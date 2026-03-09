@@ -147,8 +147,10 @@ if (process.env.NODE_ENV !== 'test') {
 // Start Server
 // ---------------------------------------------------------------------------
 
-app.listen(PORT, () => {
-  console.log(`CLARITA API running on port ${PORT} [${process.env.NODE_ENV || 'development'}]`);
-});
+if (require.main === module) {
+  app.listen(PORT, () => {
+    console.log(`CLARITA API running on port ${PORT} [${process.env.NODE_ENV || 'development'}]`);
+  });
+}
 
 module.exports = app;
