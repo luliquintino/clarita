@@ -1,49 +1,101 @@
 # CLARITA
 
-**Longitudinal Mental Health Monitoring Platform**
+**Plataforma de Monitoramento Longitudinal de Saude Mental**
 
-CLARITA connects patients, psychologists, and psychiatrists through a unified system for tracking emotional states, symptoms, treatments, and life events over time.
+O CLARITA conecta pacientes, psicologos e psiquiatras em um sistema unificado para acompanhamento de estados emocionais, sintomas, tratamentos e eventos de vida ao longo do tempo.
 
 ---
 
-## Architecture
+## Sobre o Projeto
 
-| Component | Technology | Port |
+O CLARITA foi criado para preencher uma lacuna no acompanhamento de saude mental: a falta de dados longitudinais estruturados que permitam a profissionais identificar padroes, tendencias e riscos de forma proativa.
+
+**Funcionalidades principais:**
+
+- Check-in diario de humor, ansiedade, energia e sono
+- Registro e acompanhamento de sintomas
+- Prescricao e logs de adesao a medicamentos
+- Avaliacoes clinicas padronizadas (PHQ-9, GAD-7)
+- Registro de eventos de vida com nivel de impacto
+- Notas clinicas com opcao de privacidade
+- Journal/diario do paciente
+- Metas terapeuticas com aceite/rejeicao pelo paciente
+- Chat entre profissionais
+- Upload e compartilhamento de exames com controle de permissoes
+- Digital Twin — modelo IA do paciente
+- Sistema de alertas automaticos (episodio depressivo, ansiedade alta, nao-adesao)
+- Convites para vinculos terapeuticos
+- Controle de permissoes de dados pelo paciente
+- Dashboard profissional com timeline unificada
+
+---
+
+## Arquitetura
+
+```
+┌─────────────────┐     ┌──────────────────┐     ┌──────────────────┐
+│   Dashboard      │     │   Mobile App     │     │   AI Engine      │
+│   Next.js 14     │     │   React Native   │     │   Python/Flask   │
+│   :3000          │     │   Expo           │     │   :5001          │
+└────────┬────────┘     └────────┬─────────┘     └────────┬─────────┘
+         │                       │                         │
+         └───────────┬───────────┘                         │
+                     │                                     │
+              ┌──────┴──────┐                              │
+              │  Backend API │◄─────────────────────────────┘
+              │  Express.js  │
+              │  :3001       │
+              └──────┬──────┘
+                     │
+              ┌──────┴──────┐
+              │  PostgreSQL  │
+              │  :5432       │
+              └─────────────┘
+```
+
+| Componente | Tecnologia | Porta |
 |---|---|---|
-| **Backend API** | Node.js + Express | 3001 |
-| **Professional Dashboard** | Next.js + React + TypeScript | 3000 |
-| **Patient Mobile App** | React Native (Expo) | — |
-| **AI Insight Engine** | Python + Flask + scikit-learn | 5001 |
-| **Database** | PostgreSQL 16 | 5432 |
+| **Backend API** | Node.js + Express.js | 3001 |
+| **Dashboard Profissional** | Next.js 14 + React + TypeScript + Tailwind | 3000 |
+| **App Paciente** | React Native (Expo) | — |
+| **AI Engine** | Python + Flask + scikit-learn | 5001 |
+| **Banco de Dados** | PostgreSQL 16 | 5432 |
 
-## Quick Start with Docker
+---
+
+## Requisitos
+
+- **Node.js** 18+ (recomendado 20+)
+- **PostgreSQL** 16+
+- **Python** 3.11+ (para AI Engine)
+- **npm** 9+
+
+---
+
+## Setup Rapido (Docker Compose)
 
 ```bash
-# Clone and start all services
-cd Clarita
+git clone https://github.com/luliquintino/clarita.git
+cd clarita
 docker compose up --build
 ```
 
-This starts:
-- PostgreSQL with schema and seed data auto-loaded
-- Backend API at http://localhost:3001
-- Professional Dashboard at http://localhost:3000
-- AI Engine at http://localhost:5001
+Isso inicia:
+- PostgreSQL com schema e dados de seed automaticos
+- Backend API em http://localhost:3001
+- Dashboard em http://localhost:3000
+- AI Engine em http://localhost:5001
 
-## Manual Setup
+---
 
-### Prerequisites
-- Node.js 20+
-- Python 3.11+
-- PostgreSQL 16+
+## Setup Manual
 
-### 1. Database
+### 1. Banco de Dados
 
 ```bash
-# Create database
 createdb clarita
 
-# Run schema and seed
+# Rodar schema e seed
 psql clarita < backend/db/schema.sql
 psql clarita < backend/db/seed.sql
 ```
@@ -52,61 +104,93 @@ psql clarita < backend/db/seed.sql
 
 ```bash
 cd backend
-cp .env.example .env   # Edit with your database credentials
+cp .env.example .env   # Editar com suas credenciais
 npm install
-npm run dev             # Starts on port 3001
+npm run dev             # Inicia na porta 3001
 ```
 
-### 3. Professional Dashboard
+### 3. Dashboard
 
 ```bash
 cd dashboard
 npm install
-npm run dev             # Starts on port 3000
+npm run dev             # Inicia na porta 3000
 ```
 
-### 4. AI Engine
+### 4. AI Engine (opcional)
 
 ```bash
 cd ai-engine
 python -m venv venv
 source venv/bin/activate
 pip install -r requirements.txt
-python -m src.main      # Starts on port 5001
+python -m src.main      # Inicia na porta 5001
 ```
 
-### 5. Mobile App
+### 5. App Mobile (opcional)
 
 ```bash
 cd mobile
 npm install
-npx expo start          # Scan QR code with Expo Go
+npx expo start          # Escanear QR code com Expo Go
 ```
 
-## Project Structure
+---
+
+## Variaveis de Ambiente
+
+### Backend (`backend/.env`)
+
+| Variavel | Descricao | Exemplo |
+|---|---|---|
+| `DATABASE_URL` | URL de conexao PostgreSQL | `postgresql://user:pass@localhost:5432/clarita` |
+| `JWT_SECRET` | Chave secreta para tokens JWT | `uma-string-segura-aleatoria` |
+| `PORT` | Porta do servidor | `3001` |
+| `NODE_ENV` | Ambiente de execucao | `development` |
+| `AI_ENGINE_URL` | URL do servico de IA | `http://localhost:5001` |
+| `CORS_ORIGIN` | Origem permitida para CORS | `http://localhost:3000` |
+| `SMTP_HOST` | Servidor SMTP para emails | `smtp.gmail.com` |
+| `SMTP_PORT` | Porta SMTP | `587` |
+| `SMTP_USER` | Usuario SMTP | `seu-email@gmail.com` |
+| `SMTP_PASS` | Senha SMTP | `senha-de-app` |
+| `SMTP_FROM` | Remetente dos emails | `"CLARITA" <noreply@clarita.com>` |
+| `FRONTEND_URL` | URL do frontend (para links em emails) | `http://localhost:3000` |
+
+### Dashboard (`dashboard/.env.local`)
+
+| Variavel | Descricao | Exemplo |
+|---|---|---|
+| `NEXT_PUBLIC_API_URL` | URL da API backend | `http://localhost:3001/api` |
+
+---
+
+## Estrutura do Projeto
 
 ```
-Clarita/
-├── backend/              # Node.js + Express API
-│   ├── db/               # SQL schema and seed data
+clarita/
+├── backend/                # API Node.js + Express
+│   ├── db/                 # Schema SQL, seeds e migracoes
+│   │   ├── schema.sql      # Schema principal (17 tabelas)
+│   │   ├── seed.sql        # Dados iniciais
+│   │   └── migration_*.sql # Migracoes incrementais
 │   └── src/
-│       ├── config/       # Database connection
-│       ├── middleware/    # Auth + RBAC
-│       ├── routes/       # REST endpoints
-│       ├── services/     # Business logic
-│       └── validators/   # Input validation
-├── dashboard/            # Next.js professional dashboard
+│       ├── config/         # Configuracao do banco
+│       ├── middleware/      # Auth JWT, RBAC, Upload
+│       ├── routes/         # 21 arquivos de rotas (65+ endpoints)
+│       ├── services/       # Logica de negocios (alertas, assessments, email, sumarios)
+│       ├── utils/          # Utilitarios (generateDisplayId)
+│       └── validators/     # Validacao de entrada
+├── dashboard/              # Dashboard profissional Next.js
 │   └── src/
-│       ├── app/          # Pages (login, patients, alerts)
-│       ├── components/   # UI components
-│       └── lib/          # API client
-├── mobile/               # React Native patient app
+│       ├── app/            # 12 paginas (login, register, patients, alerts, chat...)
+│       ├── components/     # 25 componentes React
+│       └── lib/            # Cliente API com tipos TypeScript
+├── mobile/                 # App paciente React Native
 │   └── src/
-│       ├── screens/      # App screens
-│       ├── components/   # Reusable components
-│       ├── navigation/   # Tab + stack navigators
-│       └── services/     # API + auth services
-├── ai-engine/            # Python analysis service
+│       ├── screens/        # 10 telas
+│       ├── components/     # Componentes reutilizaveis
+│       └── services/       # API + Auth
+├── ai-engine/              # Motor de analise Python/Flask
 │   └── src/
 │       ├── feature_engineering.py
 │       ├── pattern_detection.py
@@ -114,63 +198,110 @@ Clarita/
 │       ├── dsm_patterns.py
 │       ├── insight_generation.py
 │       └── alert_rules.py
-└── docker-compose.yml
+├── docs/                   # Documentacao
+├── docker-compose.yml      # Setup Docker completo
+└── .editorconfig           # Configuracao de editor
 ```
 
-## Database Schema
+---
 
-17 tables covering users, profiles, care relationships, emotional logs, symptoms, medications, assessments, life events, clinical notes, AI insights, and alerts. All tables use UUID primary keys with proper foreign keys, indexes, and constraints.
+## Comandos Uteis
 
-## API Endpoints
+### Backend
 
-| Area | Endpoints |
+```bash
+cd backend
+npm run dev           # Servidor de desenvolvimento
+npm run start         # Servidor de producao
+npm run lint          # Verificar linting
+npm run lint:fix      # Corrigir linting automaticamente
+npm run format        # Formatar codigo com Prettier
+npm run format:check  # Verificar formatacao
+npm run db:init       # Rodar schema no banco
+npm run db:seed       # Popular banco com dados de teste
+npm test              # Rodar testes
+npm run test:coverage # Rodar testes com cobertura
+```
+
+### Dashboard
+
+```bash
+cd dashboard
+npm run dev           # Servidor de desenvolvimento
+npm run build         # Build de producao
+npm run start         # Servidor de producao
+npm run lint          # Verificar linting
+npm run lint:fix      # Corrigir linting
+npm run format        # Formatar codigo
+npm run format:check  # Verificar formatacao
+npm test              # Rodar testes
+npm run test:coverage # Rodar testes com cobertura
+```
+
+---
+
+## Roles de Usuario
+
+| Role | Capacidades |
 |---|---|
-| Auth | `POST /api/auth/register`, `POST /api/auth/login`, `GET /api/auth/me` |
-| Patients | `GET /api/patients`, `GET /api/patients/:id/timeline` |
-| Emotional Logs | `POST /api/emotional-logs`, `GET /api/emotional-logs/trends` |
-| Symptoms | `GET /api/symptoms`, `POST /api/patient-symptoms` |
-| Medications | `POST /api/patient-medications`, `POST /api/medication-logs` |
-| Assessments | `GET /api/assessments`, `POST /api/assessment-results` |
-| Life Events | `POST /api/life-events` |
-| Clinical Notes | `POST /api/clinical-notes` |
-| AI Insights | `GET /api/insights`, `GET /api/insights/:patientId` |
-| Alerts | `GET /api/alerts`, `PUT /api/alerts/:id/acknowledge` |
+| **Paciente** | Check-in diario, registro de sintomas, logs de medicamento, avaliacoes, journal, upload de exames, gerenciar permissoes de dados |
+| **Psicologo** | Ver dados do paciente, timeline, notas clinicas, insights IA, alertas, metas, chat com profissionais |
+| **Psiquiatra** | Tudo do psicologo + prescrever/ajustar medicamentos |
+
+---
+
+## Seguranca
+
+- Autenticacao JWT com RBAC (Role-Based Access Control)
+- Verificacao de vinculo terapeutico (care_relationship) para acesso cross-usuario
+- Sistema de permissoes de dados (paciente controla o que cada profissional pode ver)
+- Queries SQL parametrizadas (prevencao de injection)
+- Helmet security headers
+- Validacao de entrada em todos os endpoints
+- Senhas hash com bcrypt (12 rounds)
+- Tokens de reset de senha com expiracao (1 hora)
+
+---
+
+## Avaliacoes Clinicas
+
+Scoring automatico integrado para:
+
+- **PHQ-9** — Rastreamento de depressao (escala 0-27, 5 niveis de severidade)
+- **GAD-7** — Rastreamento de ansiedade (escala 0-21, 4 niveis de severidade)
+
+---
 
 ## AI Engine
 
-The AI service runs scheduled analysis every 6 hours:
+O servico de IA roda analises periodicas:
 
-- **Feature Engineering** - rolling averages, slopes, adherence rates
-- **Pattern Detection** - correlations, trends, cyclical patterns
-- **Anomaly Detection** - z-score, sudden changes, Isolation Forest
-- **DSM-Inspired Patterns** - depressive episodes, anxiety patterns, rapid cycling
-- **Alert Generation** - risk-based alerts with severity levels
+- **Feature Engineering** — Medias moveis, slopes, taxas de adesao
+- **Deteccao de Padroes** — Correlacoes, tendencias, padroes ciclicos
+- **Deteccao de Anomalias** — Z-score, mudancas subitas, Isolation Forest
+- **Padroes DSM** — Episodios depressivos, padroes de ansiedade, ciclagem rapida
+- **Geracao de Alertas** — Alertas baseados em risco com niveis de severidade
 
-The system flags patterns for professional review. It does **not** diagnose conditions.
+O sistema sinaliza padroes para revisao profissional. **Nao realiza diagnosticos.**
 
-## Clinical Assessments
+---
 
-Built-in scoring for:
-- **PHQ-9** - Depression screening (0-27 scale, 5 severity levels)
-- **GAD-7** - Anxiety screening (0-21 scale, 4 severity levels)
+## Documentacao
 
-## User Roles
+- [Documentacao da API](docs/API.md) — Todos os 65+ endpoints detalhados
+- [Arquitetura](docs/ARQUITETURA.md) — Visao geral dos servicos e fluxos
+- [Banco de Dados](docs/BANCO-DE-DADOS.md) — Schema completo com diagrama ER
+- [Contribuindo](docs/CONTRIBUINDO.md) — Guia para contribuidores
+- [Componentes](docs/COMPONENTES.md) — Catalogo de componentes do dashboard
 
-| Role | Capabilities |
-|---|---|
-| **Patient** | Daily check-ins, symptom tracking, medication logs, assessments, view insights |
-| **Psychologist** | View patient data, timeline, notes, insights, alerts |
-| **Psychiatrist** | All psychologist features + prescribe/adjust medications |
+---
 
-## Security
+## Contribuindo
 
-- JWT authentication with role-based access control
-- Care relationship verification for cross-user data access
-- Data permission system (patients control what professionals can see)
-- Parameterized SQL queries (injection prevention)
-- Helmet security headers
-- Input validation on all endpoints
+Veja [docs/CONTRIBUINDO.md](docs/CONTRIBUINDO.md) para instrucoes detalhadas sobre como configurar o ambiente, convencoes de codigo e como criar PRs.
 
-## License
+---
 
-Private - All rights reserved.
+## Licenca
+
+Este projeto esta licenciado sob a licenca MIT. Veja o arquivo [LICENSE](LICENSE) para detalhes.
