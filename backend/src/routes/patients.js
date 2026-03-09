@@ -41,10 +41,7 @@ router.get('/', requireRole('psychologist', 'psychiatrist'), async (req, res, ne
     }
 
     // Count
-    const countResult = await query(
-      `SELECT COUNT(*) FROM (${sql}) AS filtered`,
-      params,
-    );
+    const countResult = await query(`SELECT COUNT(*) FROM (${sql}) AS filtered`, params);
 
     sql += ` ORDER BY u.last_name, u.first_name LIMIT $${paramIdx} OFFSET $${paramIdx + 1}`;
     params.push(lim, offset);
@@ -83,7 +80,7 @@ router.put('/revoke-access', requireRole('patient'), async (req, res, next) => {
        SET status = 'inactive', ended_at = NOW()
        WHERE patient_id = $1 AND professional_id = $2 AND status = 'active'
        RETURNING *`,
-      [patientId, professional_id],
+      [patientId, professional_id]
     );
 
     if (result.rows.length === 0) {
@@ -115,14 +112,13 @@ router.get('/my-professionals', requireRole('patient'), async (req, res, next) =
          AND cr.status = 'active'
          AND u.is_active = TRUE
        ORDER BY u.last_name, u.first_name`,
-      [req.user.id],
+      [req.user.id]
     );
 
     // Also get permissions for each professional
-    const permResult = await query(
-      `SELECT * FROM data_permissions WHERE patient_id = $1`,
-      [req.user.id],
-    );
+    const permResult = await query(`SELECT * FROM data_permissions WHERE patient_id = $1`, [
+      req.user.id,
+    ]);
 
     const permsByProfessional = {};
     for (const perm of permResult.rows) {
@@ -148,57 +144,68 @@ router.get('/my-professionals', requireRole('patient'), async (req, res, next) =
 // Get patient detail with profile
 // ---------------------------------------------------------------------------
 
-router.get('/:id', isUUID('id'), handleValidation, requirePatientAccess(), async (req, res, next) => {
-  try {
-    const result = await query(
-      `SELECT u.id, u.email, u.role, u.first_name, u.last_name, u.phone, u.avatar_url, u.created_at,
+router.get(
+  '/:id',
+  isUUID('id'),
+  handleValidation,
+  requirePatientAccess(),
+  async (req, res, next) => {
+    try {
+      const result = await query(
+        `SELECT u.id, u.email, u.role, u.first_name, u.last_name, u.phone, u.avatar_url, u.created_at,
               pp.date_of_birth, pp.gender, pp.emergency_contact_name, pp.emergency_contact_phone,
               pp.onboarding_completed, pp.onboarding_data
        FROM users u
        LEFT JOIN patient_profiles pp ON pp.user_id = u.id
        WHERE u.id = $1 AND u.role = 'patient' AND u.is_active = TRUE`,
-      [req.params.id],
-    );
+        [req.params.id]
+      );
 
-    if (result.rows.length === 0) {
-      return res.status(404).json({ error: 'Paciente não encontrado' });
+      if (result.rows.length === 0) {
+        return res.status(404).json({ error: 'Paciente não encontrado' });
+      }
+
+      res.json({ patient: result.rows[0] });
+    } catch (err) {
+      next(err);
     }
-
-    res.json({ patient: result.rows[0] });
-  } catch (err) {
-    next(err);
   }
-});
+);
 
 // ---------------------------------------------------------------------------
 // GET /api/patients/:id/timeline
 // Unified timeline: emotional logs + life events + medication changes + symptoms + assessments
 // ---------------------------------------------------------------------------
 
-router.get('/:id/timeline', isUUID('id'), handleValidation, requirePatientAccess(), async (req, res, next) => {
-  try {
-    const patientId = req.params.id;
-    const { start_date, end_date, limit = 50 } = req.query;
-    const lim = Math.min(200, Math.max(1, parseInt(limit, 10)));
+router.get(
+  '/:id/timeline',
+  isUUID('id'),
+  handleValidation,
+  requirePatientAccess(),
+  async (req, res, next) => {
+    try {
+      const patientId = req.params.id;
+      const { start_date, end_date, limit = 50 } = req.query;
+      const lim = Math.min(200, Math.max(1, parseInt(limit, 10)));
 
-    let dateFilter = '';
-    const params = [patientId];
-    let paramIdx = 2;
+      let dateFilter = '';
+      const params = [patientId];
+      let paramIdx = 2;
 
-    if (start_date) {
-      dateFilter += ` AND event_date >= $${paramIdx}`;
-      params.push(start_date);
-      paramIdx++;
-    }
-    if (end_date) {
-      dateFilter += ` AND event_date <= $${paramIdx}`;
-      params.push(end_date);
-      paramIdx++;
-    }
+      if (start_date) {
+        dateFilter += ` AND event_date >= $${paramIdx}`;
+        params.push(start_date);
+        paramIdx++;
+      }
+      if (end_date) {
+        dateFilter += ` AND event_date <= $${paramIdx}`;
+        params.push(end_date);
+        paramIdx++;
+      }
 
-    params.push(lim);
+      params.push(lim);
 
-    const sql = `
+      const sql = `
       SELECT * FROM (
         -- Emotional logs
         SELECT
@@ -286,24 +293,31 @@ router.get('/:id/timeline', isUUID('id'), handleValidation, requirePatientAccess
       LIMIT $${paramIdx}
     `;
 
-    const result = await query(sql, params);
+      const result = await query(sql, params);
 
-    res.json({ timeline: result.rows });
-  } catch (err) {
-    next(err);
+      res.json({ timeline: result.rows });
+    } catch (err) {
+      next(err);
+    }
   }
-});
+);
 
 // ---------------------------------------------------------------------------
 // POST /api/patients/:id/connect
 // DEPRECATED: Use POST /api/invitations instead
 // ---------------------------------------------------------------------------
 
-router.post('/:id/connect', isUUID('id'), handleValidation, requireRole('psychologist', 'psychiatrist'), async (_req, res) => {
-  res.status(410).json({
-    error: 'Este endpoint foi descontinuado. Use POST /api/invitations para enviar convites.',
-  });
-});
+router.post(
+  '/:id/connect',
+  isUUID('id'),
+  handleValidation,
+  requireRole('psychologist', 'psychiatrist'),
+  async (_req, res) => {
+    res.status(410).json({
+      error: 'Este endpoint foi descontinuado. Use POST /api/invitations para enviar convites.',
+    });
+  }
+);
 
 // ---------------------------------------------------------------------------
 // PUT /api/patients/:id/permissions
@@ -316,25 +330,31 @@ router.put('/:id/permissions', isUUID('id'), handleValidation, async (req, res, 
 
     // Only the patient themselves can update their permissions
     if (req.user.role !== 'patient' || req.user.id !== patientId) {
-      return res.status(403).json({ error: 'Apenas o paciente pode atualizar suas próprias permissões' });
+      return res
+        .status(403)
+        .json({ error: 'Apenas o paciente pode atualizar suas próprias permissões' });
     }
 
     const { professional_id, permissions } = req.body;
     // permissions: [{ permission_type: 'emotional_logs', granted: true }, ...]
 
     if (!professional_id || !Array.isArray(permissions)) {
-      return res.status(400).json({ error: 'professional_id e array de permissões são obrigatórios' });
+      return res
+        .status(400)
+        .json({ error: 'professional_id e array de permissões são obrigatórios' });
     }
 
     // Verify care relationship exists
     const relResult = await query(
       `SELECT id FROM care_relationships
        WHERE patient_id = $1 AND professional_id = $2 AND status IN ('active', 'pending')`,
-      [patientId, professional_id],
+      [patientId, professional_id]
     );
 
     if (relResult.rows.length === 0) {
-      return res.status(404).json({ error: 'Nenhum vínculo de cuidado encontrado com este profissional' });
+      return res
+        .status(404)
+        .json({ error: 'Nenhum vínculo de cuidado encontrado com este profissional' });
     }
 
     const updatedPermissions = [];
@@ -348,7 +368,7 @@ router.put('/:id/permissions', isUUID('id'), handleValidation, async (req, res, 
          ON CONFLICT (patient_id, professional_id, permission_type)
          DO UPDATE SET granted = $4
          RETURNING *`,
-        [patientId, professional_id, permission_type, granted],
+        [patientId, professional_id, permission_type, granted]
       );
 
       updatedPermissions.push(result.rows[0]);

@@ -49,10 +49,7 @@ router.get('/', requireRole('psychologist', 'psychiatrist'), async (req, res, ne
       paramIdx++;
     }
 
-    const countResult = await query(
-      `SELECT COUNT(*) FROM (${sql}) AS filtered`,
-      params,
-    );
+    const countResult = await query(`SELECT COUNT(*) FROM (${sql}) AS filtered`, params);
 
     sql += ` ORDER BY a.is_acknowledged ASC, a.severity DESC, a.created_at DESC
              LIMIT $${paramIdx} OFFSET $${paramIdx + 1}`;
@@ -118,7 +115,7 @@ router.get(
     } catch (err) {
       next(err);
     }
-  },
+  }
 );
 
 // ---------------------------------------------------------------------------
@@ -134,10 +131,7 @@ router.put(
   async (req, res, next) => {
     try {
       // Fetch alert to get patient_id
-      const alertResult = await query(
-        'SELECT * FROM alerts WHERE id = $1',
-        [req.params.id],
-      );
+      const alertResult = await query('SELECT * FROM alerts WHERE id = $1', [req.params.id]);
 
       if (alertResult.rows.length === 0) {
         return res.status(404).json({ error: 'Alerta não encontrado' });
@@ -153,7 +147,7 @@ router.put(
       const relResult = await query(
         `SELECT id FROM care_relationships
          WHERE professional_id = $1 AND patient_id = $2 AND status = 'active'`,
-        [req.user.id, alert.patient_id],
+        [req.user.id, alert.patient_id]
       );
 
       if (relResult.rows.length === 0) {
@@ -167,14 +161,14 @@ router.put(
              acknowledged_at = NOW()
          WHERE id = $2
          RETURNING *`,
-        [req.user.id, req.params.id],
+        [req.user.id, req.params.id]
       );
 
       res.json({ alert: result.rows[0] });
     } catch (err) {
       next(err);
     }
-  },
+  }
 );
 
 module.exports = router;

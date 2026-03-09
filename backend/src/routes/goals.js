@@ -20,7 +20,10 @@ router.post(
   requireRole('psychologist', 'psychiatrist'),
   [
     body('patient_id').isUUID().withMessage('patient_id is required'),
-    body('title').isString().isLength({ min: 1, max: 300 }).withMessage('Title is required (max 300 chars)'),
+    body('title')
+      .isString()
+      .isLength({ min: 1, max: 300 })
+      .withMessage('Title is required (max 300 chars)'),
     body('description').optional().isString().isLength({ max: 5000 }),
     body('target_date').optional().isISO8601(),
   ],
@@ -58,32 +61,28 @@ router.post(
 // List goals for a patient (professional or patient themselves)
 // ---------------------------------------------------------------------------
 
-router.get(
-  '/:patientId',
-  isUUID('patientId'),
-  handleValidation,
-  async (req, res, next) => {
-    try {
-      const { patientId } = req.params;
+router.get('/:patientId', isUUID('patientId'), handleValidation, async (req, res, next) => {
+  try {
+    const { patientId } = req.params;
 
-      // Allow patient to see own goals, or professional with access
-      if (req.user.role === 'patient') {
-        if (req.user.id !== patientId) {
-          return res.status(403).json({ error: 'Acesso negado' });
-        }
-      } else {
-        const access = await query(
-          `SELECT 1 FROM care_relationships
-           WHERE patient_id = $1 AND professional_id = $2 AND status = 'active'`,
-          [patientId, req.user.id]
-        );
-        if (access.rows.length === 0) {
-          return res.status(403).json({ error: 'Acesso negado a este paciente' });
-        }
+    // Allow patient to see own goals, or professional with access
+    if (req.user.role === 'patient') {
+      if (req.user.id !== patientId) {
+        return res.status(403).json({ error: 'Acesso negado' });
       }
+    } else {
+      const access = await query(
+        `SELECT 1 FROM care_relationships
+           WHERE patient_id = $1 AND professional_id = $2 AND status = 'active'`,
+        [patientId, req.user.id]
+      );
+      if (access.rows.length === 0) {
+        return res.status(403).json({ error: 'Acesso negado a este paciente' });
+      }
+    }
 
-      const result = await query(
-        `SELECT g.*,
+    const result = await query(
+      `SELECT g.*,
                 u.first_name AS created_by_first_name,
                 u.last_name AS created_by_last_name
          FROM goals g
@@ -102,15 +101,14 @@ router.get(
              WHEN 'cancelled' THEN 3
            END,
            g.created_at DESC`,
-        [patientId]
-      );
+      [patientId]
+    );
 
-      res.json({ goals: result.rows });
-    } catch (err) {
-      next(err);
-    }
+    res.json({ goals: result.rows });
+  } catch (err) {
+    next(err);
   }
-);
+});
 
 // ---------------------------------------------------------------------------
 // PUT /api/goals/:id
@@ -146,17 +144,35 @@ router.put(
 
       // Block status changes on pending goals
       if (goalCheck.rows[0].patient_status === 'pending' && status) {
-        return res.status(400).json({ error: 'Não é possível alterar o status de uma meta pendente de aceitação' });
+        return res
+          .status(400)
+          .json({ error: 'Não é possível alterar o status de uma meta pendente de aceitação' });
       }
 
       const fields = [];
       const values = [];
       let idx = 1;
 
-      if (title !== undefined) { fields.push(`title = $${idx}`); values.push(title); idx++; }
-      if (description !== undefined) { fields.push(`description = $${idx}`); values.push(description); idx++; }
-      if (status !== undefined) { fields.push(`status = $${idx}`); values.push(status); idx++; }
-      if (target_date !== undefined) { fields.push(`target_date = $${idx}`); values.push(target_date); idx++; }
+      if (title !== undefined) {
+        fields.push(`title = $${idx}`);
+        values.push(title);
+        idx++;
+      }
+      if (description !== undefined) {
+        fields.push(`description = $${idx}`);
+        values.push(description);
+        idx++;
+      }
+      if (status !== undefined) {
+        fields.push(`status = $${idx}`);
+        values.push(status);
+        idx++;
+      }
+      if (target_date !== undefined) {
+        fields.push(`target_date = $${idx}`);
+        values.push(target_date);
+        idx++;
+      }
       fields.push(`updated_at = NOW()`);
 
       if (fields.length === 1) {
@@ -203,7 +219,9 @@ router.put(
 
       // Goal must be accepted by patient before it can be achieved
       if (goalCheck.rows[0].patient_status !== 'accepted') {
-        return res.status(400).json({ error: 'Meta precisa ser aceita pelo paciente antes de ser conquistada' });
+        return res
+          .status(400)
+          .json({ error: 'Meta precisa ser aceita pelo paciente antes de ser conquistada' });
       }
 
       const result = await query(
@@ -290,9 +308,7 @@ router.put(
           req.user.id,
           `Meta recusada: ${rejectedGoal.title}`,
           `O paciente ${patientName} recusou a meta "${rejectedGoal.title}". ${
-            rejection_reason
-              ? `Motivo: ${rejection_reason}. `
-              : ''
+            rejection_reason ? `Motivo: ${rejection_reason}. ` : ''
           }Considere revisar a meta para melhor se adequar à capacidade do paciente.`,
           JSON.stringify({
             goal_id: rejectedGoal.id,
@@ -322,7 +338,9 @@ router.post(
     body('patient_id').isUUID().withMessage('patient_id is required'),
     body('title').isString().isLength({ min: 1, max: 300 }).withMessage('Title is required'),
     body('description').optional().isString().isLength({ max: 5000 }),
-    body('milestone_type').isIn(['positive', 'difficult']).withMessage('Type must be positive or difficult'),
+    body('milestone_type')
+      .isIn(['positive', 'difficult'])
+      .withMessage('Type must be positive or difficult'),
     body('event_date').isISO8601().withMessage('event_date is required'),
     body('goal_id').optional().isUUID(),
   ],
@@ -345,7 +363,15 @@ router.post(
         `INSERT INTO milestones (patient_id, goal_id, title, description, milestone_type, event_date, created_by)
          VALUES ($1, $2, $3, $4, $5, $6, $7)
          RETURNING *`,
-        [patient_id, goal_id || null, title, description || null, milestone_type, event_date, req.user.id]
+        [
+          patient_id,
+          goal_id || null,
+          title,
+          description || null,
+          milestone_type,
+          event_date,
+          req.user.id,
+        ]
       );
 
       res.status(201).json({ milestone: result.rows[0] });

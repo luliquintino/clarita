@@ -4,11 +4,7 @@ const router = require('express').Router();
 const { query } = require('../config/database');
 const authenticate = require('../middleware/auth');
 const { requireRole, requirePatientAccess } = require('../middleware/rbac');
-const {
-  lifeEventValidator,
-  handleValidation,
-  isUUID,
-} = require('../validators');
+const { lifeEventValidator, handleValidation, isUUID } = require('../validators');
 
 // All routes require authentication
 router.use(authenticate);
@@ -18,22 +14,28 @@ router.use(authenticate);
 // Create life event (patient only)
 // ---------------------------------------------------------------------------
 
-router.post('/', requireRole('patient'), lifeEventValidator, handleValidation, async (req, res, next) => {
-  try {
-    const { title, description, category, impact_level, event_date } = req.body;
+router.post(
+  '/',
+  requireRole('patient'),
+  lifeEventValidator,
+  handleValidation,
+  async (req, res, next) => {
+    try {
+      const { title, description, category, impact_level, event_date } = req.body;
 
-    const result = await query(
-      `INSERT INTO life_events (patient_id, title, description, category, impact_level, event_date)
+      const result = await query(
+        `INSERT INTO life_events (patient_id, title, description, category, impact_level, event_date)
        VALUES ($1, $2, $3, $4, $5, $6)
        RETURNING *`,
-      [req.user.id, title, description || null, category, impact_level, event_date],
-    );
+        [req.user.id, title, description || null, category, impact_level, event_date]
+      );
 
-    res.status(201).json({ life_event: result.rows[0] });
-  } catch (err) {
-    next(err);
+      res.status(201).json({ life_event: result.rows[0] });
+    } catch (err) {
+      next(err);
+    }
   }
-});
+);
 
 // ---------------------------------------------------------------------------
 // GET /api/life-events
@@ -66,10 +68,7 @@ router.get('/', requireRole('patient'), async (req, res, next) => {
       paramIdx++;
     }
 
-    const countResult = await query(
-      `SELECT COUNT(*) FROM (${sql}) AS filtered`,
-      params,
-    );
+    const countResult = await query(`SELECT COUNT(*) FROM (${sql}) AS filtered`, params);
 
     sql += ` ORDER BY event_date DESC LIMIT $${paramIdx} OFFSET $${paramIdx + 1}`;
     params.push(lim, offset);
@@ -126,10 +125,7 @@ router.get(
         paramIdx++;
       }
 
-      const countResult = await query(
-        `SELECT COUNT(*) FROM (${sql}) AS filtered`,
-        params,
-      );
+      const countResult = await query(`SELECT COUNT(*) FROM (${sql}) AS filtered`, params);
 
       sql += ` ORDER BY event_date DESC LIMIT $${paramIdx} OFFSET $${paramIdx + 1}`;
       params.push(lim, offset);
@@ -147,7 +143,7 @@ router.get(
     } catch (err) {
       next(err);
     }
-  },
+  }
 );
 
 module.exports = router;

@@ -4,11 +4,7 @@ const { Router } = require('express');
 const { query } = require('../config/database');
 const authenticate = require('../middleware/auth');
 const { requireRole, requirePatientAccess } = require('../middleware/rbac');
-const {
-  symptomReportValidator,
-  handleValidation,
-  isUUID,
-} = require('../validators');
+const { symptomReportValidator, handleValidation, isUUID } = require('../validators');
 
 // ---------------------------------------------------------------------------
 // Router for GET /api/symptoms (reference data)
@@ -46,28 +42,34 @@ const patientSymptomsRouter = Router();
 patientSymptomsRouter.use(authenticate);
 
 // POST /api/patient-symptoms - Report a symptom (patient only)
-patientSymptomsRouter.post('/', requireRole('patient'), symptomReportValidator, handleValidation, async (req, res, next) => {
-  try {
-    const { symptom_id, severity, notes, reported_at } = req.body;
+patientSymptomsRouter.post(
+  '/',
+  requireRole('patient'),
+  symptomReportValidator,
+  handleValidation,
+  async (req, res, next) => {
+    try {
+      const { symptom_id, severity, notes, reported_at } = req.body;
 
-    // Verify symptom exists
-    const symptomResult = await query('SELECT id FROM symptoms WHERE id = $1', [symptom_id]);
-    if (symptomResult.rows.length === 0) {
-      return res.status(404).json({ error: 'Sintoma não encontrado' });
-    }
+      // Verify symptom exists
+      const symptomResult = await query('SELECT id FROM symptoms WHERE id = $1', [symptom_id]);
+      if (symptomResult.rows.length === 0) {
+        return res.status(404).json({ error: 'Sintoma não encontrado' });
+      }
 
-    const result = await query(
-      `INSERT INTO patient_symptoms (patient_id, symptom_id, severity, notes, reported_at)
+      const result = await query(
+        `INSERT INTO patient_symptoms (patient_id, symptom_id, severity, notes, reported_at)
        VALUES ($1, $2, $3, $4, $5)
        RETURNING *`,
-      [req.user.id, symptom_id, severity, notes || null, reported_at || new Date().toISOString()],
-    );
+        [req.user.id, symptom_id, severity, notes || null, reported_at || new Date().toISOString()]
+      );
 
-    res.status(201).json({ patient_symptom: result.rows[0] });
-  } catch (err) {
-    next(err);
+      res.status(201).json({ patient_symptom: result.rows[0] });
+    } catch (err) {
+      next(err);
+    }
   }
-});
+);
 
 // GET /api/patient-symptoms - Get patient's own symptom history
 patientSymptomsRouter.get('/', requireRole('patient'), async (req, res, next) => {
@@ -96,10 +98,7 @@ patientSymptomsRouter.get('/', requireRole('patient'), async (req, res, next) =>
       paramIdx++;
     }
 
-    const countResult = await query(
-      `SELECT COUNT(*) FROM (${sql}) AS filtered`,
-      params,
-    );
+    const countResult = await query(`SELECT COUNT(*) FROM (${sql}) AS filtered`, params);
 
     sql += ` ORDER BY ps.reported_at DESC LIMIT $${paramIdx} OFFSET $${paramIdx + 1}`;
     params.push(lim, offset);
@@ -152,10 +151,7 @@ patientSymptomsRouter.get(
         paramIdx++;
       }
 
-      const countResult = await query(
-        `SELECT COUNT(*) FROM (${sql}) AS filtered`,
-        params,
-      );
+      const countResult = await query(`SELECT COUNT(*) FROM (${sql}) AS filtered`, params);
 
       sql += ` ORDER BY ps.reported_at DESC LIMIT $${paramIdx} OFFSET $${paramIdx + 1}`;
       params.push(lim, offset);
@@ -173,7 +169,7 @@ patientSymptomsRouter.get(
     } catch (err) {
       next(err);
     }
-  },
+  }
 );
 
 module.exports = { symptomsRouter, patientSymptomsRouter };

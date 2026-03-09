@@ -4,11 +4,7 @@ const { Router } = require('express');
 const { query } = require('../config/database');
 const authenticate = require('../middleware/auth');
 const { requireRole, requirePatientAccess } = require('../middleware/rbac');
-const {
-  assessmentResultValidator,
-  handleValidation,
-  isUUID,
-} = require('../validators');
+const { assessmentResultValidator, handleValidation, isUUID } = require('../validators');
 const {
   calculateScore,
   classifySeverity,
@@ -49,10 +45,9 @@ assessmentResultsRouter.post(
       const { assessment_id, answers } = req.body;
 
       // Fetch assessment
-      const assessmentResult = await query(
-        'SELECT * FROM assessments WHERE id = $1',
-        [assessment_id],
-      );
+      const assessmentResult = await query('SELECT * FROM assessments WHERE id = $1', [
+        assessment_id,
+      ]);
 
       if (assessmentResult.rows.length === 0) {
         return res.status(404).json({ error: 'Avaliação não encontrada' });
@@ -75,7 +70,7 @@ assessmentResultsRouter.post(
            (patient_id, assessment_id, answers, total_score, severity_level)
          VALUES ($1, $2, $3, $4, $5)
          RETURNING *`,
-        [req.user.id, assessment_id, JSON.stringify(answers), totalScore, severityLevel],
+        [req.user.id, assessment_id, JSON.stringify(answers), totalScore, severityLevel]
       );
 
       res.status(201).json({
@@ -89,7 +84,7 @@ assessmentResultsRouter.post(
     } catch (err) {
       next(err);
     }
-  },
+  }
 );
 
 // GET /api/assessment-results - Get patient's own assessment history
@@ -114,10 +109,7 @@ assessmentResultsRouter.get('/', requireRole('patient'), async (req, res, next) 
       paramIdx++;
     }
 
-    const countResult = await query(
-      `SELECT COUNT(*) FROM (${sql}) AS filtered`,
-      params,
-    );
+    const countResult = await query(`SELECT COUNT(*) FROM (${sql}) AS filtered`, params);
 
     sql += ` ORDER BY ar.completed_at DESC LIMIT $${paramIdx} OFFSET $${paramIdx + 1}`;
     params.push(lim, offset);
@@ -165,10 +157,7 @@ assessmentResultsRouter.get(
         paramIdx++;
       }
 
-      const countResult = await query(
-        `SELECT COUNT(*) FROM (${sql}) AS filtered`,
-        params,
-      );
+      const countResult = await query(`SELECT COUNT(*) FROM (${sql}) AS filtered`, params);
 
       sql += ` ORDER BY ar.completed_at DESC LIMIT $${paramIdx} OFFSET $${paramIdx + 1}`;
       params.push(lim, offset);
@@ -186,7 +175,7 @@ assessmentResultsRouter.get(
     } catch (err) {
       next(err);
     }
-  },
+  }
 );
 
 module.exports = { assessmentsRouter, assessmentResultsRouter };

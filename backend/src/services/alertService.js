@@ -18,7 +18,7 @@ async function checkDepressivePattern(patientId) {
      WHERE patient_id = $1
        AND mood_score <= 3
        AND logged_at >= NOW() - INTERVAL '7 days'`,
-    [patientId],
+    [patientId]
   );
 
   const lowDays = parseInt(result.rows[0].low_days, 10);
@@ -49,7 +49,7 @@ async function checkAnxietyPattern(patientId) {
      WHERE patient_id = $1
        AND anxiety_score >= 7
        AND logged_at >= NOW() - INTERVAL '3 days'`,
-    [patientId],
+    [patientId]
   );
 
   const highDays = parseInt(result.rows[0].high_days, 10);
@@ -81,7 +81,7 @@ async function checkMedicationAdherence(patientId) {
      WHERE pm.patient_id = $1
        AND ml.skipped = TRUE
        AND ml.taken_at >= NOW() - INTERVAL '7 days'`,
-    [patientId],
+    [patientId]
   );
 
   const missedCount = parseInt(result.rows[0].missed_count, 10);
@@ -132,7 +132,7 @@ async function generateAlerts(patientId) {
          AND alert_type = $2
          AND created_at >= NOW() - INTERVAL '24 hours'
        LIMIT 1`,
-      [patientId, alertData.alert_type],
+      [patientId, alertData.alert_type]
     );
 
     if (existing.rows.length > 0) continue;
@@ -148,7 +148,7 @@ async function generateAlerts(patientId) {
         alertData.title,
         alertData.description,
         JSON.stringify(alertData.trigger_data),
-      ],
+      ]
     );
 
     created.push(insertResult.rows[0]);
@@ -162,9 +162,7 @@ async function generateAlerts(patientId) {
  * Intended to be called by the cron scheduler.
  */
 async function generateAlertsForAllPatients() {
-  const result = await query(
-    `SELECT id FROM users WHERE role = 'patient' AND is_active = TRUE`,
-  );
+  const result = await query(`SELECT id FROM users WHERE role = 'patient' AND is_active = TRUE`);
 
   const allCreated = [];
 

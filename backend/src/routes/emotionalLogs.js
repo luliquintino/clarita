@@ -20,47 +20,53 @@ router.use(authenticate);
 // Create emotional log (patient only)
 // ---------------------------------------------------------------------------
 
-router.post('/', requireRole('patient'), emotionalLogValidator, handleValidation, async (req, res, next) => {
-  try {
-    const {
-      mood_score,
-      anxiety_score,
-      energy_score,
-      sleep_quality,
-      sleep_hours,
-      notes,
-      journal_entry,
-      logged_at,
-    } = req.body;
-
-    const result = await query(
-      `INSERT INTO emotional_logs
-         (patient_id, mood_score, anxiety_score, energy_score, sleep_quality, sleep_hours, notes, journal_entry, logged_at)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
-       RETURNING *`,
-      [
-        req.user.id,
+router.post(
+  '/',
+  requireRole('patient'),
+  emotionalLogValidator,
+  handleValidation,
+  async (req, res, next) => {
+    try {
+      const {
         mood_score,
         anxiety_score,
         energy_score,
-        sleep_quality || null,
-        sleep_hours || null,
-        notes || null,
-        journal_entry || null,
-        logged_at || new Date().toISOString(),
-      ],
-    );
+        sleep_quality,
+        sleep_hours,
+        notes,
+        journal_entry,
+        logged_at,
+      } = req.body;
 
-    // Trigger alert checks asynchronously (do not block response)
-    generateAlerts(req.user.id).catch((err) => {
-      console.error('[emotionalLogs] Alert generation failed:', err.message);
-    });
+      const result = await query(
+        `INSERT INTO emotional_logs
+         (patient_id, mood_score, anxiety_score, energy_score, sleep_quality, sleep_hours, notes, journal_entry, logged_at)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+       RETURNING *`,
+        [
+          req.user.id,
+          mood_score,
+          anxiety_score,
+          energy_score,
+          sleep_quality || null,
+          sleep_hours || null,
+          notes || null,
+          journal_entry || null,
+          logged_at || new Date().toISOString(),
+        ]
+      );
 
-    res.status(201).json({ emotional_log: result.rows[0] });
-  } catch (err) {
-    next(err);
+      // Trigger alert checks asynchronously (do not block response)
+      generateAlerts(req.user.id).catch((err) => {
+        console.error('[emotionalLogs] Alert generation failed:', err.message);
+      });
+
+      res.status(201).json({ emotional_log: result.rows[0] });
+    } catch (err) {
+      next(err);
+    }
   }
-});
+);
 
 // ---------------------------------------------------------------------------
 // GET /api/emotional-logs
@@ -89,10 +95,7 @@ router.get('/', requireRole('patient'), async (req, res, next) => {
     }
 
     // Count
-    const countResult = await query(
-      `SELECT COUNT(*) FROM (${sql}) AS filtered`,
-      params,
-    );
+    const countResult = await query(`SELECT COUNT(*) FROM (${sql}) AS filtered`, params);
 
     sql += ` ORDER BY logged_at DESC LIMIT $${paramIdx} OFFSET $${paramIdx + 1}`;
     params.push(lim, offset);
@@ -202,10 +205,7 @@ router.get(
         paramIdx++;
       }
 
-      const countResult = await query(
-        `SELECT COUNT(*) FROM (${sql}) AS filtered`,
-        params,
-      );
+      const countResult = await query(`SELECT COUNT(*) FROM (${sql}) AS filtered`, params);
 
       sql += ` ORDER BY logged_at DESC LIMIT $${paramIdx} OFFSET $${paramIdx + 1}`;
       params.push(lim, offset);
@@ -223,7 +223,7 @@ router.get(
     } catch (err) {
       next(err);
     }
-  },
+  }
 );
 
 module.exports = router;

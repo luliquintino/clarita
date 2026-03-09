@@ -6,8 +6,7 @@ const { body, param, query: queryValidator } = require('express-validator');
 // Shared helpers
 // ---------------------------------------------------------------------------
 
-const isUUID = (field) =>
-  param(field).isUUID(4).withMessage(`${field} deve ser um UUID válido`);
+const isUUID = (field) => param(field).isUUID(4).withMessage(`${field} deve ser um UUID válido`);
 
 const optionalDateRange = [
   queryValidator('start_date')
@@ -25,10 +24,7 @@ const optionalDateRange = [
 // ---------------------------------------------------------------------------
 
 const registrationValidator = [
-  body('email')
-    .isEmail()
-    .normalizeEmail()
-    .withMessage('Um email válido é obrigatório'),
+  body('email').isEmail().normalizeEmail().withMessage('Um email válido é obrigatório'),
   body('password')
     .isLength({ min: 8 })
     .withMessage('A senha deve ter pelo menos 8 caracteres')
@@ -62,41 +58,22 @@ const registrationValidator = [
     .trim()
     .isLength({ max: 100 })
     .withMessage('Número de registro máximo de 100 caracteres'),
-  body('specialization')
-    .optional()
-    .trim()
-    .isLength({ max: 200 }),
-  body('institution')
-    .optional()
-    .trim()
-    .isLength({ max: 300 }),
+  body('specialization').optional().trim().isLength({ max: 200 }),
+  body('institution').optional().trim().isLength({ max: 300 }),
 ];
 
 const loginValidator = [
-  body('email')
-    .isEmail()
-    .normalizeEmail()
-    .withMessage('Um email válido é obrigatório'),
-  body('password')
-    .notEmpty()
-    .withMessage('Senha é obrigatória'),
+  body('email').isEmail().normalizeEmail().withMessage('Um email válido é obrigatório'),
+  body('password').notEmpty().withMessage('Senha é obrigatória'),
 ];
 
 const forgotPasswordValidation = [
-  body('email')
-    .isEmail()
-    .normalizeEmail()
-    .withMessage('Um email válido é obrigatório'),
+  body('email').isEmail().normalizeEmail().withMessage('Um email válido é obrigatório'),
 ];
 
 const resetPasswordValidation = [
-  body('token')
-    .trim()
-    .notEmpty()
-    .withMessage('O token é obrigatório'),
-  body('password')
-    .isLength({ min: 8 })
-    .withMessage('A senha deve ter pelo menos 8 caracteres'),
+  body('token').trim().notEmpty().withMessage('O token é obrigatório'),
+  body('password').isLength({ min: 8 }).withMessage('A senha deve ter pelo menos 8 caracteres'),
 ];
 
 // ---------------------------------------------------------------------------
@@ -104,15 +81,9 @@ const resetPasswordValidation = [
 // ---------------------------------------------------------------------------
 
 const emotionalLogValidator = [
-  body('mood_score')
-    .isInt({ min: 1, max: 10 })
-    .withMessage('mood_score deve ser de 1 a 10'),
-  body('anxiety_score')
-    .isInt({ min: 1, max: 10 })
-    .withMessage('anxiety_score deve ser de 1 a 10'),
-  body('energy_score')
-    .isInt({ min: 1, max: 10 })
-    .withMessage('energy_score deve ser de 1 a 10'),
+  body('mood_score').isInt({ min: 1, max: 10 }).withMessage('mood_score deve ser de 1 a 10'),
+  body('anxiety_score').isInt({ min: 1, max: 10 }).withMessage('anxiety_score deve ser de 1 a 10'),
+  body('energy_score').isInt({ min: 1, max: 10 }).withMessage('energy_score deve ser de 1 a 10'),
   body('sleep_quality')
     .optional()
     .isIn(['very_poor', 'poor', 'fair', 'good', 'excellent'])
@@ -137,16 +108,9 @@ const emotionalLogValidator = [
 // ---------------------------------------------------------------------------
 
 const symptomReportValidator = [
-  body('symptom_id')
-    .isUUID(4)
-    .withMessage('symptom_id deve ser um UUID válido'),
-  body('severity')
-    .isInt({ min: 1, max: 10 })
-    .withMessage('severity deve ser de 1 a 10'),
-  body('notes')
-    .optional()
-    .trim()
-    .isLength({ max: 5000 }),
+  body('symptom_id').isUUID(4).withMessage('symptom_id deve ser um UUID válido'),
+  body('severity').isInt({ min: 1, max: 10 }).withMessage('severity deve ser de 1 a 10'),
+  body('notes').optional().trim().isLength({ max: 5000 }),
   body('reported_at')
     .optional()
     .isISO8601()
@@ -158,33 +122,17 @@ const symptomReportValidator = [
 // ---------------------------------------------------------------------------
 
 const medicationValidator = [
-  body('patient_id')
-    .isUUID(4)
-    .withMessage('patient_id deve ser um UUID válido'),
-  body('medication_id')
-    .isUUID(4)
-    .withMessage('medication_id deve ser um UUID válido'),
-  body('dosage')
-    .trim()
-    .notEmpty()
-    .withMessage('Dosagem é obrigatória')
-    .isLength({ max: 100 }),
+  body('patient_id').isUUID(4).withMessage('patient_id deve ser um UUID válido'),
+  body('medication_id').isUUID(4).withMessage('medication_id deve ser um UUID válido'),
+  body('dosage').trim().notEmpty().withMessage('Dosagem é obrigatória').isLength({ max: 100 }),
   body('frequency')
     .trim()
     .notEmpty()
     .withMessage('Frequência é obrigatória')
     .isLength({ max: 100 }),
-  body('start_date')
-    .isISO8601()
-    .withMessage('start_date deve ser uma data válida'),
-  body('end_date')
-    .optional()
-    .isISO8601()
-    .withMessage('end_date deve ser uma data válida'),
-  body('notes')
-    .optional()
-    .trim()
-    .isLength({ max: 5000 }),
+  body('start_date').isISO8601().withMessage('start_date deve ser uma data válida'),
+  body('end_date').optional().isISO8601().withMessage('end_date deve ser uma data válida'),
+  body('notes').optional().trim().isLength({ max: 5000 }),
 ];
 
 // ---------------------------------------------------------------------------
@@ -192,12 +140,8 @@ const medicationValidator = [
 // ---------------------------------------------------------------------------
 
 const assessmentResultValidator = [
-  body('assessment_id')
-    .isUUID(4)
-    .withMessage('assessment_id deve ser um UUID válido'),
-  body('answers')
-    .isObject()
-    .withMessage('answers deve ser um objeto JSON'),
+  body('assessment_id').isUUID(4).withMessage('assessment_id deve ser um UUID válido'),
+  body('answers').isObject().withMessage('answers deve ser um objeto JSON'),
 ];
 
 // ---------------------------------------------------------------------------
@@ -205,24 +149,13 @@ const assessmentResultValidator = [
 // ---------------------------------------------------------------------------
 
 const lifeEventValidator = [
-  body('title')
-    .trim()
-    .notEmpty()
-    .withMessage('Título é obrigatório')
-    .isLength({ max: 300 }),
-  body('description')
-    .optional()
-    .trim()
-    .isLength({ max: 5000 }),
+  body('title').trim().notEmpty().withMessage('Título é obrigatório').isLength({ max: 300 }),
+  body('description').optional().trim().isLength({ max: 5000 }),
   body('category')
     .isIn(['relationship', 'work', 'health', 'family', 'financial', 'loss', 'achievement', 'other'])
     .withMessage('Categoria inválida'),
-  body('impact_level')
-    .isInt({ min: 1, max: 10 })
-    .withMessage('impact_level deve ser de 1 a 10'),
-  body('event_date')
-    .isISO8601()
-    .withMessage('event_date deve ser uma data válida'),
+  body('impact_level').isInt({ min: 1, max: 10 }).withMessage('impact_level deve ser de 1 a 10'),
+  body('event_date').isISO8601().withMessage('event_date deve ser uma data válida'),
 ];
 
 // ---------------------------------------------------------------------------
@@ -230,24 +163,13 @@ const lifeEventValidator = [
 // ---------------------------------------------------------------------------
 
 const clinicalNoteValidator = [
-  body('patient_id')
-    .isUUID(4)
-    .withMessage('patient_id deve ser um UUID válido'),
-  body('session_date')
-    .isISO8601()
-    .withMessage('session_date deve ser uma data válida'),
+  body('patient_id').isUUID(4).withMessage('patient_id deve ser um UUID válido'),
+  body('session_date').isISO8601().withMessage('session_date deve ser uma data válida'),
   body('note_type')
     .isIn(['session', 'observation', 'treatment_plan', 'progress'])
     .withMessage('note_type deve ser session, observation, treatment_plan ou progress'),
-  body('content')
-    .trim()
-    .notEmpty()
-    .withMessage('Conteúdo é obrigatório')
-    .isLength({ max: 50000 }),
-  body('is_private')
-    .optional()
-    .isBoolean()
-    .withMessage('is_private deve ser um booleano'),
+  body('content').trim().notEmpty().withMessage('Conteúdo é obrigatório').isLength({ max: 50000 }),
+  body('is_private').optional().isBoolean().withMessage('is_private deve ser um booleano'),
 ];
 
 // ---------------------------------------------------------------------------

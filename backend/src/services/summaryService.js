@@ -35,19 +35,24 @@ async function generatePatientSummary(patientId, periodDays = 7) {
   const avgMood = (logs.reduce((s, l) => s + l.mood_score, 0) / logs.length).toFixed(1);
   const avgAnxiety = (logs.reduce((s, l) => s + l.anxiety_score, 0) / logs.length).toFixed(1);
   const avgEnergy = (logs.reduce((s, l) => s + l.energy_score, 0) / logs.length).toFixed(1);
-  const avgSleep = logs.filter(l => l.sleep_hours).length > 0
-    ? (logs.filter(l => l.sleep_hours).reduce((s, l) => s + parseFloat(l.sleep_hours), 0) / logs.filter(l => l.sleep_hours).length).toFixed(1)
-    : null;
+  const avgSleep =
+    logs.filter((l) => l.sleep_hours).length > 0
+      ? (
+          logs.filter((l) => l.sleep_hours).reduce((s, l) => s + parseFloat(l.sleep_hours), 0) /
+          logs.filter((l) => l.sleep_hours).length
+        ).toFixed(1)
+      : null;
 
   // Mood trend
   const firstHalf = logs.slice(Math.floor(logs.length / 2));
   const secondHalf = logs.slice(0, Math.floor(logs.length / 2));
   const firstAvg = firstHalf.reduce((s, l) => s + l.mood_score, 0) / (firstHalf.length || 1);
   const secondAvg = secondHalf.reduce((s, l) => s + l.mood_score, 0) / (secondHalf.length || 1);
-  const moodTrend = secondAvg > firstAvg + 0.5 ? 'melhora' : secondAvg < firstAvg - 0.5 ? 'declínio' : 'estável';
+  const moodTrend =
+    secondAvg > firstAvg + 0.5 ? 'melhora' : secondAvg < firstAvg - 0.5 ? 'declínio' : 'estável';
 
   // Journal entries
-  const journalEntries = logs.filter(l => l.journal_entry).map(l => l.journal_entry);
+  const journalEntries = logs.filter((l) => l.journal_entry).map((l) => l.journal_entry);
 
   // Build summary text
   const lines = [];
@@ -80,7 +85,12 @@ async function generatePatientSummary(patientId, periodDays = 7) {
     `INSERT INTO journal_summaries (patient_id, summary_text, period_start, period_end)
      VALUES ($1, $2, $3, $4)
      RETURNING *`,
-    [patientId, summaryText, startDate.toISOString().split('T')[0], endDate.toISOString().split('T')[0]]
+    [
+      patientId,
+      summaryText,
+      startDate.toISOString().split('T')[0],
+      endDate.toISOString().split('T')[0],
+    ]
   );
 
   return {

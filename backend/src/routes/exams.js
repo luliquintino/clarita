@@ -187,56 +187,48 @@ router.get(
 // GET /api/exams/download/:examId
 // Authenticated file download
 // ---------------------------------------------------------------------------
-router.get(
-  '/download/:examId',
-  isUUID('examId'),
-  handleValidation,
-  async (req, res, next) => {
-    try {
-      const { examId } = req.params;
+router.get('/download/:examId', isUUID('examId'), handleValidation, async (req, res, next) => {
+  try {
+    const { examId } = req.params;
 
-      const examResult = await query(
-        `SELECT * FROM patient_exams WHERE id = $1`,
-        [examId]
-      );
+    const examResult = await query(`SELECT * FROM patient_exams WHERE id = $1`, [examId]);
 
-      if (examResult.rows.length === 0) {
-        return res.status(404).json({ error: 'Exame não encontrado.' });
-      }
-
-      const exam = examResult.rows[0];
-
-      // Access control
-      if (req.user.role === 'patient') {
-        if (exam.patient_id !== req.user.id) {
-          return res.status(403).json({ error: 'Acesso negado.' });
-        }
-      } else {
-        // Professional: check exam_permissions
-        const permCheck = await query(
-          `SELECT 1 FROM exam_permissions
-           WHERE exam_id = $1 AND professional_id = $2`,
-          [examId, req.user.id]
-        );
-        if (permCheck.rows.length === 0) {
-          return res.status(403).json({ error: 'Acesso negado a este exame.' });
-        }
-      }
-
-      // Serve file
-      const filePath = path.join(__dirname, '../../uploads/exams', exam.file_name);
-      if (!fs.existsSync(filePath)) {
-        return res.status(404).json({ error: 'Arquivo não encontrado no servidor.' });
-      }
-
-      res.setHeader('Content-Type', exam.mime_type);
-      res.setHeader('Content-Disposition', `inline; filename="${exam.original_name}"`);
-      res.sendFile(path.resolve(filePath));
-    } catch (err) {
-      next(err);
+    if (examResult.rows.length === 0) {
+      return res.status(404).json({ error: 'Exame não encontrado.' });
     }
+
+    const exam = examResult.rows[0];
+
+    // Access control
+    if (req.user.role === 'patient') {
+      if (exam.patient_id !== req.user.id) {
+        return res.status(403).json({ error: 'Acesso negado.' });
+      }
+    } else {
+      // Professional: check exam_permissions
+      const permCheck = await query(
+        `SELECT 1 FROM exam_permissions
+           WHERE exam_id = $1 AND professional_id = $2`,
+        [examId, req.user.id]
+      );
+      if (permCheck.rows.length === 0) {
+        return res.status(403).json({ error: 'Acesso negado a este exame.' });
+      }
+    }
+
+    // Serve file
+    const filePath = path.join(__dirname, '../../uploads/exams', exam.file_name);
+    if (!fs.existsSync(filePath)) {
+      return res.status(404).json({ error: 'Arquivo não encontrado no servidor.' });
+    }
+
+    res.setHeader('Content-Type', exam.mime_type);
+    res.setHeader('Content-Disposition', `inline; filename="${exam.original_name}"`);
+    res.sendFile(path.resolve(filePath));
+  } catch (err) {
+    next(err);
   }
-);
+});
 
 // ---------------------------------------------------------------------------
 // DELETE /api/exams/:examId

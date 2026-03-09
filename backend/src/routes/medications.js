@@ -4,11 +4,7 @@ const { Router } = require('express');
 const { query } = require('../config/database');
 const authenticate = require('../middleware/auth');
 const { requireRole, requirePatientAccess } = require('../middleware/rbac');
-const {
-  medicationValidator,
-  handleValidation,
-  isUUID,
-} = require('../validators');
+const { medicationValidator, handleValidation, isUUID } = require('../validators');
 const { generateAlerts } = require('../services/alertService');
 
 // ---------------------------------------------------------------------------
@@ -62,21 +58,14 @@ patientMedicationsRouter.post(
   handleValidation,
   async (req, res, next) => {
     try {
-      const {
-        patient_id,
-        medication_id,
-        dosage,
-        frequency,
-        start_date,
-        end_date,
-        notes,
-      } = req.body;
+      const { patient_id, medication_id, dosage, frequency, start_date, end_date, notes } =
+        req.body;
 
       // Verify care relationship
       const relResult = await query(
         `SELECT id FROM care_relationships
          WHERE professional_id = $1 AND patient_id = $2 AND status = 'active'`,
-        [req.user.id, patient_id],
+        [req.user.id, patient_id]
       );
 
       if (relResult.rows.length === 0) {
@@ -94,14 +83,23 @@ patientMedicationsRouter.post(
            (patient_id, medication_id, prescribed_by, dosage, frequency, start_date, end_date, notes)
          VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
          RETURNING *`,
-        [patient_id, medication_id, req.user.id, dosage, frequency, start_date, end_date || null, notes || null],
+        [
+          patient_id,
+          medication_id,
+          req.user.id,
+          dosage,
+          frequency,
+          start_date,
+          end_date || null,
+          notes || null,
+        ]
       );
 
       res.status(201).json({ patient_medication: result.rows[0] });
     } catch (err) {
       next(err);
     }
-  },
+  }
 );
 
 // PUT /api/patient-medications/:id - Update prescription (psychiatrist only)
@@ -120,7 +118,7 @@ patientMedicationsRouter.put(
            AND cr.professional_id = $1
            AND cr.status = 'active'
          WHERE pm.id = $2`,
-        [req.user.id, req.params.id],
+        [req.user.id, req.params.id]
       );
 
       if (pmResult.rows.length === 0) {
@@ -133,11 +131,26 @@ patientMedicationsRouter.put(
       const values = [];
       let idx = 1;
 
-      if (dosage !== undefined) { updates.push(`dosage = $${idx++}`); values.push(dosage); }
-      if (frequency !== undefined) { updates.push(`frequency = $${idx++}`); values.push(frequency); }
-      if (end_date !== undefined) { updates.push(`end_date = $${idx++}`); values.push(end_date); }
-      if (status !== undefined) { updates.push(`status = $${idx++}`); values.push(status); }
-      if (notes !== undefined) { updates.push(`notes = $${idx++}`); values.push(notes); }
+      if (dosage !== undefined) {
+        updates.push(`dosage = $${idx++}`);
+        values.push(dosage);
+      }
+      if (frequency !== undefined) {
+        updates.push(`frequency = $${idx++}`);
+        values.push(frequency);
+      }
+      if (end_date !== undefined) {
+        updates.push(`end_date = $${idx++}`);
+        values.push(end_date);
+      }
+      if (status !== undefined) {
+        updates.push(`status = $${idx++}`);
+        values.push(status);
+      }
+      if (notes !== undefined) {
+        updates.push(`notes = $${idx++}`);
+        values.push(notes);
+      }
 
       if (updates.length === 0) {
         return res.status(400).json({ error: 'Nenhum campo para atualizar' });
@@ -147,14 +160,14 @@ patientMedicationsRouter.put(
 
       const result = await query(
         `UPDATE patient_medications SET ${updates.join(', ')} WHERE id = $${idx} RETURNING *`,
-        values,
+        values
       );
 
       res.json({ patient_medication: result.rows[0] });
     } catch (err) {
       next(err);
     }
-  },
+  }
 );
 
 // GET /api/patient-medications - Get patient's medications
@@ -167,14 +180,16 @@ patientMedicationsRouter.get('/', async (req, res, next) => {
     } else {
       patientId = req.query.patient_id;
       if (!patientId) {
-        return res.status(400).json({ error: 'Parâmetro patient_id é obrigatório para profissionais' });
+        return res
+          .status(400)
+          .json({ error: 'Parâmetro patient_id é obrigatório para profissionais' });
       }
 
       // Verify care relationship
       const relResult = await query(
         `SELECT id FROM care_relationships
          WHERE professional_id = $1 AND patient_id = $2 AND status = 'active'`,
-        [req.user.id, patientId],
+        [req.user.id, patientId]
       );
       if (relResult.rows.length === 0) {
         return res.status(403).json({ error: 'Sem vínculo de cuidado ativo com este paciente' });
@@ -228,7 +243,7 @@ medicationLogsRouter.post('/', requireRole('patient'), async (req, res, next) =>
     // Verify patient owns this medication prescription
     const pmResult = await query(
       'SELECT id FROM patient_medications WHERE id = $1 AND patient_id = $2',
-      [patient_medication_id, req.user.id],
+      [patient_medication_id, req.user.id]
     );
 
     if (pmResult.rows.length === 0) {
@@ -236,7 +251,9 @@ medicationLogsRouter.post('/', requireRole('patient'), async (req, res, next) =>
     }
 
     if (skipped && !skip_reason) {
-      return res.status(400).json({ error: 'skip_reason é obrigatório quando a medicação é pulada' });
+      return res
+        .status(400)
+        .json({ error: 'skip_reason é obrigatório quando a medicação é pulada' });
     }
 
     const result = await query(
@@ -249,7 +266,7 @@ medicationLogsRouter.post('/', requireRole('patient'), async (req, res, next) =>
         skipped || false,
         skip_reason || null,
         notes || null,
-      ],
+      ]
     );
 
     // Trigger alert checks if medication was skipped
@@ -275,13 +292,15 @@ medicationLogsRouter.get('/', async (req, res, next) => {
     } else {
       patientId = req.query.patient_id;
       if (!patientId) {
-        return res.status(400).json({ error: 'Parâmetro patient_id é obrigatório para profissionais' });
+        return res
+          .status(400)
+          .json({ error: 'Parâmetro patient_id é obrigatório para profissionais' });
       }
 
       const relResult = await query(
         `SELECT id FROM care_relationships
          WHERE professional_id = $1 AND patient_id = $2 AND status = 'active'`,
-        [req.user.id, patientId],
+        [req.user.id, patientId]
       );
       if (relResult.rows.length === 0) {
         return res.status(403).json({ error: 'Sem vínculo de cuidado ativo com este paciente' });

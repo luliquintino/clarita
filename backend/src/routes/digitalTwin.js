@@ -31,7 +31,7 @@ router.get(
          WHERE patient_id = $1
          ORDER BY computed_at DESC
          LIMIT 1`,
-        [req.params.patientId],
+        [req.params.patientId]
       );
 
       if (result.rows.length === 0) {
@@ -44,7 +44,7 @@ router.get(
     } catch (err) {
       next(err);
     }
-  },
+  }
 );
 
 // ---------------------------------------------------------------------------
@@ -71,14 +71,14 @@ router.get(
          FROM digital_twin_states
          WHERE patient_id = $1 AND computed_at >= $2
          ORDER BY computed_at ASC`,
-        [req.params.patientId, since],
+        [req.params.patientId, since]
       );
 
       res.json({ history: result.rows });
     } catch (err) {
       next(err);
     }
-  },
+  }
 );
 
 // ---------------------------------------------------------------------------
@@ -100,7 +100,7 @@ router.get(
          WHERE patient_id = $1
          ORDER BY computed_at DESC
          LIMIT 1`,
-        [req.params.patientId],
+        [req.params.patientId]
       );
 
       if (result.rows.length === 0) {
@@ -115,7 +115,7 @@ router.get(
     } catch (err) {
       next(err);
     }
-  },
+  }
 );
 
 // ---------------------------------------------------------------------------
@@ -158,7 +158,7 @@ router.post(
       }
       next(err);
     }
-  },
+  }
 );
 
 module.exports = router;

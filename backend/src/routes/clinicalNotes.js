@@ -4,11 +4,7 @@ const router = require('express').Router();
 const { query } = require('../config/database');
 const authenticate = require('../middleware/auth');
 const { requireRole, requirePatientAccess, requireOwnership } = require('../middleware/rbac');
-const {
-  clinicalNoteValidator,
-  handleValidation,
-  isUUID,
-} = require('../validators');
+const { clinicalNoteValidator, handleValidation, isUUID } = require('../validators');
 
 // All routes require authentication
 router.use(authenticate);
@@ -31,7 +27,7 @@ router.post(
       const relResult = await query(
         `SELECT id FROM care_relationships
          WHERE professional_id = $1 AND patient_id = $2 AND status = 'active'`,
-        [req.user.id, patient_id],
+        [req.user.id, patient_id]
       );
 
       if (relResult.rows.length === 0) {
@@ -43,14 +39,14 @@ router.post(
            (professional_id, patient_id, session_date, note_type, content, is_private)
          VALUES ($1, $2, $3, $4, $5, $6)
          RETURNING *`,
-        [req.user.id, patient_id, session_date, note_type, content, is_private || false],
+        [req.user.id, patient_id, session_date, note_type, content, is_private || false]
       );
 
       res.status(201).json({ clinical_note: result.rows[0] });
     } catch (err) {
       next(err);
     }
-  },
+  }
 );
 
 // ---------------------------------------------------------------------------
@@ -99,10 +95,7 @@ router.get(
         paramIdx++;
       }
 
-      const countResult = await query(
-        `SELECT COUNT(*) FROM (${sql}) AS filtered`,
-        params,
-      );
+      const countResult = await query(`SELECT COUNT(*) FROM (${sql}) AS filtered`, params);
 
       sql += ` ORDER BY cn.session_date DESC, cn.created_at DESC LIMIT $${paramIdx} OFFSET $${paramIdx + 1}`;
       params.push(lim, offset);
@@ -120,7 +113,7 @@ router.get(
     } catch (err) {
       next(err);
     }
-  },
+  }
 );
 
 // ---------------------------------------------------------------------------
@@ -142,10 +135,22 @@ router.put(
       const values = [];
       let idx = 1;
 
-      if (session_date !== undefined) { updates.push(`session_date = $${idx++}`); values.push(session_date); }
-      if (note_type !== undefined) { updates.push(`note_type = $${idx++}`); values.push(note_type); }
-      if (content !== undefined) { updates.push(`content = $${idx++}`); values.push(content); }
-      if (is_private !== undefined) { updates.push(`is_private = $${idx++}`); values.push(is_private); }
+      if (session_date !== undefined) {
+        updates.push(`session_date = $${idx++}`);
+        values.push(session_date);
+      }
+      if (note_type !== undefined) {
+        updates.push(`note_type = $${idx++}`);
+        values.push(note_type);
+      }
+      if (content !== undefined) {
+        updates.push(`content = $${idx++}`);
+        values.push(content);
+      }
+      if (is_private !== undefined) {
+        updates.push(`is_private = $${idx++}`);
+        values.push(is_private);
+      }
 
       if (updates.length === 0) {
         return res.status(400).json({ error: 'Nenhum campo para atualizar' });
@@ -155,14 +160,14 @@ router.put(
 
       const result = await query(
         `UPDATE clinical_notes SET ${updates.join(', ')} WHERE id = $${idx} RETURNING *`,
-        values,
+        values
       );
 
       res.json({ clinical_note: result.rows[0] });
     } catch (err) {
       next(err);
     }
-  },
+  }
 );
 
 module.exports = router;

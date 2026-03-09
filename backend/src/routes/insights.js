@@ -43,10 +43,7 @@ router.get('/', requireRole('patient'), async (req, res, next) => {
       paramIdx++;
     }
 
-    const countResult = await query(
-      `SELECT COUNT(*) FROM (${sql}) AS filtered`,
-      params,
-    );
+    const countResult = await query(`SELECT COUNT(*) FROM (${sql}) AS filtered`, params);
 
     sql += ` ORDER BY ai.created_at DESC LIMIT $${paramIdx} OFFSET $${paramIdx + 1}`;
     params.push(lim, offset);
@@ -110,10 +107,7 @@ router.get(
         paramIdx++;
       }
 
-      const countResult = await query(
-        `SELECT COUNT(*) FROM (${sql}) AS filtered`,
-        params,
-      );
+      const countResult = await query(`SELECT COUNT(*) FROM (${sql}) AS filtered`, params);
 
       sql += ` ORDER BY ai.created_at DESC LIMIT $${paramIdx} OFFSET $${paramIdx + 1}`;
       params.push(lim, offset);
@@ -131,7 +125,7 @@ router.get(
     } catch (err) {
       next(err);
     }
-  },
+  }
 );
 
 // ---------------------------------------------------------------------------
@@ -147,10 +141,7 @@ router.put(
   async (req, res, next) => {
     try {
       // Fetch the insight to get patient_id
-      const insightResult = await query(
-        'SELECT * FROM ai_insights WHERE id = $1',
-        [req.params.id],
-      );
+      const insightResult = await query('SELECT * FROM ai_insights WHERE id = $1', [req.params.id]);
 
       if (insightResult.rows.length === 0) {
         return res.status(404).json({ error: 'Insight não encontrado' });
@@ -162,7 +153,7 @@ router.put(
       const relResult = await query(
         `SELECT id FROM care_relationships
          WHERE professional_id = $1 AND patient_id = $2 AND status = 'active'`,
-        [req.user.id, insight.patient_id],
+        [req.user.id, insight.patient_id]
       );
 
       if (relResult.rows.length === 0) {
@@ -174,14 +165,14 @@ router.put(
          SET is_reviewed = TRUE, reviewed_by = $1
          WHERE id = $2
          RETURNING *`,
-        [req.user.id, req.params.id],
+        [req.user.id, req.params.id]
       );
 
       res.json({ insight: result.rows[0] });
     } catch (err) {
       next(err);
     }
-  },
+  }
 );
 
 module.exports = router;

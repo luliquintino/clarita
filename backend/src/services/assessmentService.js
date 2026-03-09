@@ -51,7 +51,11 @@ function classifySeverity(assessmentName, totalScore) {
 
   if (normalised.includes('PHQ') || normalised.includes('PHQ-9') || normalised.includes('PHQ9')) {
     table = PHQ9_SEVERITY;
-  } else if (normalised.includes('GAD') || normalised.includes('GAD-7') || normalised.includes('GAD7')) {
+  } else if (
+    normalised.includes('GAD') ||
+    normalised.includes('GAD-7') ||
+    normalised.includes('GAD7')
+  ) {
     table = GAD7_SEVERITY;
   } else {
     // Unknown assessment -- fallback to a generic label

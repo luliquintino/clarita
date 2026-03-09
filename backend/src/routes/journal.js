@@ -16,15 +16,9 @@ router.use(authenticate);
 // ---------------------------------------------------------------------------
 
 const journalValidator = [
-  body('mood_score')
-    .isInt({ min: 1, max: 10 })
-    .withMessage('Humor deve ser entre 1 e 10'),
-  body('anxiety_score')
-    .isInt({ min: 1, max: 10 })
-    .withMessage('Ansiedade deve ser entre 1 e 10'),
-  body('energy_score')
-    .isInt({ min: 1, max: 10 })
-    .withMessage('Energia deve ser entre 1 e 10'),
+  body('mood_score').isInt({ min: 1, max: 10 }).withMessage('Humor deve ser entre 1 e 10'),
+  body('anxiety_score').isInt({ min: 1, max: 10 }).withMessage('Ansiedade deve ser entre 1 e 10'),
+  body('energy_score').isInt({ min: 1, max: 10 }).withMessage('Energia deve ser entre 1 e 10'),
   body('sleep_hours')
     .optional()
     .isFloat({ min: 0, max: 24 })
@@ -73,7 +67,7 @@ router.post(
           notes || null,
           journal_entry || null,
           logged_at || new Date().toISOString(),
-        ],
+        ]
       );
 
       // Trigger alert checks asynchronously
@@ -85,7 +79,7 @@ router.post(
     } catch (err) {
       next(err);
     }
-  },
+  }
 );
 
 // ---------------------------------------------------------------------------
@@ -114,10 +108,7 @@ router.get('/', requireRole('patient'), async (req, res, next) => {
       paramIdx++;
     }
 
-    const countResult = await query(
-      `SELECT COUNT(*) FROM (${sql}) AS filtered`,
-      params,
-    );
+    const countResult = await query(`SELECT COUNT(*) FROM (${sql}) AS filtered`, params);
 
     sql += ` ORDER BY logged_at DESC LIMIT $${paramIdx} OFFSET $${paramIdx + 1}`;
     params.push(lim, offset);
@@ -169,10 +160,7 @@ router.get(
         paramIdx++;
       }
 
-      const countResult = await query(
-        `SELECT COUNT(*) FROM (${sql}) AS filtered`,
-        params,
-      );
+      const countResult = await query(`SELECT COUNT(*) FROM (${sql}) AS filtered`, params);
 
       sql += ` ORDER BY logged_at DESC LIMIT $${paramIdx} OFFSET $${paramIdx + 1}`;
       params.push(lim, offset);
@@ -190,7 +178,7 @@ router.get(
     } catch (err) {
       next(err);
     }
-  },
+  }
 );
 
 module.exports = router;

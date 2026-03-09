@@ -55,7 +55,7 @@ function requirePatientAccess(permissionType) {
            AND patient_id = $2
            AND status = 'active'
          LIMIT 1`,
-        [req.user.id, patientId],
+        [req.user.id, patientId]
       );
 
       if (relResult.rows.length === 0) {
@@ -71,7 +71,7 @@ function requirePatientAccess(permissionType) {
              AND patient_id = $2
              AND permission_type IN ($3, 'all')
            LIMIT 1`,
-          [req.user.id, patientId, permissionType],
+          [req.user.id, patientId, permissionType]
         );
 
         // Only deny if there's an explicit "granted = false" record

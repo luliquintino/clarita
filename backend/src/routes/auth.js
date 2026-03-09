@@ -65,7 +65,7 @@ router.post('/register', registrationValidator, handleValidation, async (req, re
       `INSERT INTO users (email, password_hash, role, first_name, last_name, phone, display_id)
        VALUES ($1, $2, $3, $4, $5, $6, $7)
        RETURNING id, email, role, first_name, last_name, phone, display_id, created_at`,
-      [email, passwordHash, role, first_name, last_name, phone || null, displayId],
+      [email, passwordHash, role, first_name, last_name, phone || null, displayId]
     );
 
     const user = userResult.rows[0];
@@ -75,13 +75,20 @@ router.post('/register', registrationValidator, handleValidation, async (req, re
       await query(
         `INSERT INTO patient_profiles (user_id, date_of_birth, gender)
          VALUES ($1, $2, $3)`,
-        [user.id, date_of_birth || null, gender || null],
+        [user.id, date_of_birth || null, gender || null]
       );
     } else {
       await query(
         `INSERT INTO professional_profiles (user_id, license_number, specialization, institution, bio, years_of_experience)
          VALUES ($1, $2, $3, $4, $5, $6)`,
-        [user.id, license_number, specialization || null, institution || null, bio || null, years_of_experience || null],
+        [
+          user.id,
+          license_number,
+          specialization || null,
+          institution || null,
+          bio || null,
+          years_of_experience || null,
+        ]
       );
     }
 
@@ -107,7 +114,7 @@ router.post('/login', loginValidator, handleValidation, async (req, res, next) =
     const result = await query(
       `SELECT id, email, password_hash, role, first_name, last_name, is_active, display_id
        FROM users WHERE email = $1`,
-      [email],
+      [email]
     );
 
     if (result.rows.length === 0) {
@@ -147,16 +154,14 @@ router.get('/me', authenticate, async (req, res, next) => {
     let profile = null;
 
     if (req.user.role === 'patient') {
-      const result = await query(
-        `SELECT * FROM patient_profiles WHERE user_id = $1`,
-        [req.user.id],
-      );
+      const result = await query(`SELECT * FROM patient_profiles WHERE user_id = $1`, [
+        req.user.id,
+      ]);
       profile = result.rows[0] || null;
     } else {
-      const result = await query(
-        `SELECT * FROM professional_profiles WHERE user_id = $1`,
-        [req.user.id],
-      );
+      const result = await query(`SELECT * FROM professional_profiles WHERE user_id = $1`, [
+        req.user.id,
+      ]);
       profile = result.rows[0] || null;
     }
 
@@ -204,7 +209,7 @@ router.put('/me', authenticate, async (req, res, next) => {
     const result = await query(
       `UPDATE users SET ${updates.join(', ')} WHERE id = $${idx}
        RETURNING id, email, role, first_name, last_name, phone, avatar_url, updated_at`,
-      values,
+      values
     );
 
     // Update role-specific profile if fields are provided
@@ -214,16 +219,28 @@ router.put('/me', authenticate, async (req, res, next) => {
       const profValues = [];
       let profIdx = 1;
 
-      if (date_of_birth !== undefined) { profUpdates.push(`date_of_birth = $${profIdx++}`); profValues.push(date_of_birth); }
-      if (gender !== undefined) { profUpdates.push(`gender = $${profIdx++}`); profValues.push(gender); }
-      if (emergency_contact_name !== undefined) { profUpdates.push(`emergency_contact_name = $${profIdx++}`); profValues.push(emergency_contact_name); }
-      if (emergency_contact_phone !== undefined) { profUpdates.push(`emergency_contact_phone = $${profIdx++}`); profValues.push(emergency_contact_phone); }
+      if (date_of_birth !== undefined) {
+        profUpdates.push(`date_of_birth = $${profIdx++}`);
+        profValues.push(date_of_birth);
+      }
+      if (gender !== undefined) {
+        profUpdates.push(`gender = $${profIdx++}`);
+        profValues.push(gender);
+      }
+      if (emergency_contact_name !== undefined) {
+        profUpdates.push(`emergency_contact_name = $${profIdx++}`);
+        profValues.push(emergency_contact_name);
+      }
+      if (emergency_contact_phone !== undefined) {
+        profUpdates.push(`emergency_contact_phone = $${profIdx++}`);
+        profValues.push(emergency_contact_phone);
+      }
 
       if (profUpdates.length > 0) {
         profValues.push(req.user.id);
         await query(
           `UPDATE patient_profiles SET ${profUpdates.join(', ')} WHERE user_id = $${profIdx}`,
-          profValues,
+          profValues
         );
       }
     } else {
@@ -232,16 +249,28 @@ router.put('/me', authenticate, async (req, res, next) => {
       const profValues = [];
       let profIdx = 1;
 
-      if (specialization !== undefined) { profUpdates.push(`specialization = $${profIdx++}`); profValues.push(specialization); }
-      if (institution !== undefined) { profUpdates.push(`institution = $${profIdx++}`); profValues.push(institution); }
-      if (bio !== undefined) { profUpdates.push(`bio = $${profIdx++}`); profValues.push(bio); }
-      if (years_of_experience !== undefined) { profUpdates.push(`years_of_experience = $${profIdx++}`); profValues.push(years_of_experience); }
+      if (specialization !== undefined) {
+        profUpdates.push(`specialization = $${profIdx++}`);
+        profValues.push(specialization);
+      }
+      if (institution !== undefined) {
+        profUpdates.push(`institution = $${profIdx++}`);
+        profValues.push(institution);
+      }
+      if (bio !== undefined) {
+        profUpdates.push(`bio = $${profIdx++}`);
+        profValues.push(bio);
+      }
+      if (years_of_experience !== undefined) {
+        profUpdates.push(`years_of_experience = $${profIdx++}`);
+        profValues.push(years_of_experience);
+      }
 
       if (profUpdates.length > 0) {
         profValues.push(req.user.id);
         await query(
           `UPDATE professional_profiles SET ${profUpdates.join(', ')} WHERE user_id = $${profIdx}`,
-          profValues,
+          profValues
         );
       }
     }
@@ -256,79 +285,88 @@ router.put('/me', authenticate, async (req, res, next) => {
 // POST /api/auth/forgot-password
 // ---------------------------------------------------------------------------
 
-router.post('/forgot-password', forgotPasswordValidation, handleValidation, async (req, res, next) => {
-  try {
-    const { email } = req.body;
+router.post(
+  '/forgot-password',
+  forgotPasswordValidation,
+  handleValidation,
+  async (req, res, next) => {
+    try {
+      const { email } = req.body;
 
-    // Always return the same response to avoid revealing whether email exists
-    const successMessage = 'Se este email estiver cadastrado, você receberá um link para redefinir sua senha';
+      // Always return the same response to avoid revealing whether email exists
+      const successMessage =
+        'Se este email estiver cadastrado, você receberá um link para redefinir sua senha';
 
-    const result = await query(
-      'SELECT id, first_name FROM users WHERE email = $1',
-      [email],
-    );
+      const result = await query('SELECT id, first_name FROM users WHERE email = $1', [email]);
 
-    if (result.rows.length === 0) {
-      return res.json({ message: successMessage });
+      if (result.rows.length === 0) {
+        return res.json({ message: successMessage });
+      }
+
+      const user = result.rows[0];
+
+      // Generate a secure random token
+      const resetToken = crypto.randomBytes(32).toString('hex');
+      const resetTokenExpires = new Date(Date.now() + 60 * 60 * 1000); // 1 hour
+
+      // Store token and expiry in the database
+      await query('UPDATE users SET reset_token = $1, reset_token_expires = $2 WHERE id = $3', [
+        resetToken,
+        resetTokenExpires,
+        user.id,
+      ]);
+
+      // Send the reset email
+      await sendPasswordResetEmail(email, resetToken, user.first_name);
+
+      res.json({ message: successMessage });
+    } catch (err) {
+      next(err);
     }
-
-    const user = result.rows[0];
-
-    // Generate a secure random token
-    const resetToken = crypto.randomBytes(32).toString('hex');
-    const resetTokenExpires = new Date(Date.now() + 60 * 60 * 1000); // 1 hour
-
-    // Store token and expiry in the database
-    await query(
-      'UPDATE users SET reset_token = $1, reset_token_expires = $2 WHERE id = $3',
-      [resetToken, resetTokenExpires, user.id],
-    );
-
-    // Send the reset email
-    await sendPasswordResetEmail(email, resetToken, user.first_name);
-
-    res.json({ message: successMessage });
-  } catch (err) {
-    next(err);
   }
-});
+);
 
 // ---------------------------------------------------------------------------
 // POST /api/auth/reset-password
 // ---------------------------------------------------------------------------
 
-router.post('/reset-password', resetPasswordValidation, handleValidation, async (req, res, next) => {
-  try {
-    const { token, password } = req.body;
+router.post(
+  '/reset-password',
+  resetPasswordValidation,
+  handleValidation,
+  async (req, res, next) => {
+    try {
+      const { token, password } = req.body;
 
-    // Find user with valid (non-expired) reset token
-    const result = await query(
-      `SELECT id FROM users
+      // Find user with valid (non-expired) reset token
+      const result = await query(
+        `SELECT id FROM users
        WHERE reset_token = $1 AND reset_token_expires > NOW()`,
-      [token],
-    );
+        [token]
+      );
 
-    if (result.rows.length === 0) {
-      return res.status(400).json({ error: 'Token inválido ou expirado' });
-    }
+      if (result.rows.length === 0) {
+        return res.status(400).json({ error: 'Token inválido ou expirado' });
+      }
 
-    const user = result.rows[0];
+      const user = result.rows[0];
 
-    // Hash the new password
-    const passwordHash = await bcrypt.hash(password, SALT_ROUNDS);
+      // Hash the new password
+      const passwordHash = await bcrypt.hash(password, SALT_ROUNDS);
 
-    // Update password and clear reset token fields
-    await query(
-      `UPDATE users
+      // Update password and clear reset token fields
+      await query(
+        `UPDATE users
        SET password_hash = $1, reset_token = NULL, reset_token_expires = NULL
        WHERE id = $2`,
-      [passwordHash, user.id],
-    );
+        [passwordHash, user.id]
+      );
 
-    res.json({ message: 'Senha redefinida com sucesso' });
-  } catch (err) {
-    next(err);
+      res.json({ message: 'Senha redefinida com sucesso' });
+    } catch (err) {
+      next(err);
+    }
   }
-});
+);
 
 module.exports = router;

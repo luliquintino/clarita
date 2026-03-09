@@ -25,7 +25,7 @@ router.get('/search', async (req, res, next) => {
        FROM users u
        LEFT JOIN professional_profiles pp ON pp.user_id = u.id
        WHERE u.display_id = $1 AND u.is_active = TRUE`,
-      [display_id.toUpperCase().trim()],
+      [display_id.toUpperCase().trim()]
     );
 
     if (result.rows.length === 0) {

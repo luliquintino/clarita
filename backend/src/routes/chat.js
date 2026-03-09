@@ -100,10 +100,9 @@ router.post(
       }
 
       // Create new conversation
-      const conv = await query(
-        `INSERT INTO conversations (patient_id) VALUES ($1) RETURNING *`,
-        [patient_id]
-      );
+      const conv = await query(`INSERT INTO conversations (patient_id) VALUES ($1) RETURNING *`, [
+        patient_id,
+      ]);
       const convId = conv.rows[0].id;
 
       // Add participants
@@ -181,9 +180,7 @@ router.get(
 router.post(
   '/conversations/:id/messages',
   isUUID('id'),
-  [
-    body('content').isString().isLength({ min: 1, max: 10000 }).withMessage('Content is required'),
-  ],
+  [body('content').isString().isLength({ min: 1, max: 10000 }).withMessage('Content is required')],
   handleValidation,
   async (req, res, next) => {
     try {
@@ -216,27 +213,22 @@ router.post(
 // Mark messages as read
 // ---------------------------------------------------------------------------
 
-router.put(
-  '/conversations/:id/read',
-  isUUID('id'),
-  handleValidation,
-  async (req, res, next) => {
-    try {
-      const { id } = req.params;
+router.put('/conversations/:id/read', isUUID('id'), handleValidation, async (req, res, next) => {
+  try {
+    const { id } = req.params;
 
-      // Mark all unread messages from others as read
-      await query(
-        `UPDATE messages SET read_at = NOW()
+    // Mark all unread messages from others as read
+    await query(
+      `UPDATE messages SET read_at = NOW()
          WHERE conversation_id = $1 AND sender_id != $2 AND read_at IS NULL`,
-        [id, req.user.id]
-      );
+      [id, req.user.id]
+    );
 
-      res.json({ success: true });
-    } catch (err) {
-      next(err);
-    }
+    res.json({ success: true });
+  } catch (err) {
+    next(err);
   }
-);
+});
 
 // ---------------------------------------------------------------------------
 // GET /api/chat/unread-count

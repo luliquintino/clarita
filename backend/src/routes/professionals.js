@@ -45,10 +45,7 @@ router.get('/', async (req, res, next) => {
 
     // Count
     const countParams = [...params];
-    const countResult = await query(
-      `SELECT COUNT(*) FROM (${sql}) AS filtered`,
-      countParams,
-    );
+    const countResult = await query(`SELECT COUNT(*) FROM (${sql}) AS filtered`, countParams);
 
     sql += ` ORDER BY u.last_name, u.first_name LIMIT $${paramIdx} OFFSET $${paramIdx + 1}`;
     params.push(lim, offset);
@@ -86,7 +83,7 @@ router.get('/my-patients', requireRole('psychologist', 'psychiatrist'), async (r
          AND cr.status = 'active'
          AND u.is_active = TRUE
        ORDER BY u.last_name, u.first_name`,
-      [req.user.id],
+      [req.user.id]
     );
 
     res.json({ patients: result.rows });
@@ -108,7 +105,7 @@ router.get('/:id', isUUID('id'), handleValidation, async (req, res, next) => {
        FROM users u
        JOIN professional_profiles pp ON pp.user_id = u.id
        WHERE u.id = $1 AND u.role IN ('psychologist', 'psychiatrist') AND u.is_active = TRUE`,
-      [req.params.id],
+      [req.params.id]
     );
 
     if (result.rows.length === 0) {

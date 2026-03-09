@@ -12,7 +12,11 @@ const patientRoutes = require('./routes/patients');
 const professionalRoutes = require('./routes/professionals');
 const emotionalLogRoutes = require('./routes/emotionalLogs');
 const { symptomsRouter, patientSymptomsRouter } = require('./routes/symptoms');
-const { medicationsRouter, patientMedicationsRouter, medicationLogsRouter } = require('./routes/medications');
+const {
+  medicationsRouter,
+  patientMedicationsRouter,
+  medicationLogsRouter,
+} = require('./routes/medications');
 const { assessmentsRouter, assessmentResultsRouter } = require('./routes/assessments');
 const lifeEventRoutes = require('./routes/lifeEvents');
 const clinicalNoteRoutes = require('./routes/clinicalNotes');
@@ -40,12 +44,14 @@ const PORT = process.env.PORT || 3001;
 
 app.use(helmet());
 
-app.use(cors({
-  origin: process.env.CORS_ORIGIN || '*',
-  methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization'],
-  credentials: true,
-}));
+app.use(
+  cors({
+    origin: process.env.CORS_ORIGIN || '*',
+    methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization'],
+    credentials: true,
+  })
+);
 
 app.use(express.json({ limit: '1mb' }));
 app.use(express.urlencoded({ extended: true }));
@@ -105,7 +111,6 @@ app.use((_req, res) => {
 // Global Error Handler
 // ---------------------------------------------------------------------------
 
-// eslint-disable-next-line no-unused-vars
 app.use((err, _req, res, _next) => {
   console.error('Unhandled error:', err);
 

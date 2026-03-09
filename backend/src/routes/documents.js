@@ -87,34 +87,27 @@ router.get('/', requireRole('patient'), async (req, res, next) => {
 // GET /api/documents/:id/file
 // Serve the actual file (authenticated, access-controlled)
 // ---------------------------------------------------------------------------
-router.get(
-  '/:id/file',
-  isUUID('id'),
-  handleValidation,
-  async (req, res, next) => {
-    try {
-      const { id } = req.params;
+router.get('/:id/file', isUUID('id'), handleValidation, async (req, res, next) => {
+  try {
+    const { id } = req.params;
 
-      const docResult = await query(
-        `SELECT * FROM patient_documents WHERE id = $1`,
-        [id]
-      );
+    const docResult = await query(`SELECT * FROM patient_documents WHERE id = $1`, [id]);
 
-      if (docResult.rows.length === 0) {
-        return res.status(404).json({ error: 'Documento não encontrado' });
+    if (docResult.rows.length === 0) {
+      return res.status(404).json({ error: 'Documento não encontrado' });
+    }
+
+    const doc = docResult.rows[0];
+
+    // If patient: must own the document
+    if (req.user.role === 'patient') {
+      if (doc.patient_id !== req.user.id) {
+        return res.status(403).json({ error: 'Acesso negado' });
       }
-
-      const doc = docResult.rows[0];
-
-      // If patient: must own the document
-      if (req.user.role === 'patient') {
-        if (doc.patient_id !== req.user.id) {
-          return res.status(403).json({ error: 'Acesso negado' });
-        }
-      } else {
-        // Professional: check care relationship + documents permission + specific access
-        const access = await query(
-          `SELECT 1 FROM care_relationships cr
+    } else {
+      // Professional: check care relationship + documents permission + specific access
+      const access = await query(
+        `SELECT 1 FROM care_relationships cr
            JOIN data_permissions dp ON dp.patient_id = cr.patient_id
                                     AND dp.professional_id = cr.professional_id
                                     AND dp.permission_type = 'documents'
@@ -124,34 +117,33 @@ router.get(
            WHERE cr.patient_id = $3
              AND cr.professional_id = $2
              AND cr.status = 'active'`,
-          [id, req.user.id, doc.patient_id]
-        );
+        [id, req.user.id, doc.patient_id]
+      );
 
-        if (access.rows.length === 0) {
-          return res.status(403).json({ error: 'Acesso negado a este documento' });
-        }
+      if (access.rows.length === 0) {
+        return res.status(403).json({ error: 'Acesso negado a este documento' });
       }
-
-      // Serve file
-      const filePath = doc.storage_path;
-      if (!fs.existsSync(filePath)) {
-        return res.status(404).json({ error: 'Arquivo não encontrado no servidor' });
-      }
-
-      const mimeTypes = {
-        pdf: 'application/pdf',
-        jpeg: 'image/jpeg',
-        png: 'image/png',
-      };
-
-      res.setHeader('Content-Type', mimeTypes[doc.file_type] || 'application/octet-stream');
-      res.setHeader('Content-Disposition', `inline; filename="${doc.original_name}"`);
-      res.sendFile(path.resolve(filePath));
-    } catch (err) {
-      next(err);
     }
+
+    // Serve file
+    const filePath = doc.storage_path;
+    if (!fs.existsSync(filePath)) {
+      return res.status(404).json({ error: 'Arquivo não encontrado no servidor' });
+    }
+
+    const mimeTypes = {
+      pdf: 'application/pdf',
+      jpeg: 'image/jpeg',
+      png: 'image/png',
+    };
+
+    res.setHeader('Content-Type', mimeTypes[doc.file_type] || 'application/octet-stream');
+    res.setHeader('Content-Disposition', `inline; filename="${doc.original_name}"`);
+    res.sendFile(path.resolve(filePath));
+  } catch (err) {
+    next(err);
   }
-);
+});
 
 // ---------------------------------------------------------------------------
 // DELETE /api/documents/:id
@@ -275,10 +267,10 @@ router.put(
           [id, professional_id, req.user.id]
         );
       } else {
-        await query(
-          `DELETE FROM document_access WHERE document_id = $1 AND professional_id = $2`,
-          [id, professional_id]
-        );
+        await query(`DELETE FROM document_access WHERE document_id = $1 AND professional_id = $2`, [
+          id,
+          professional_id,
+        ]);
       }
 
       // Return updated access list
