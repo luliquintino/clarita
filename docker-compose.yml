@@ -1,0 +1,68 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: clarita-db
+    environment:
+      POSTGRES_DB: clarita
+      POSTGRES_USER: clarita_user
+      POSTGRES_PASSWORD: clarita_secret_2024
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./backend/db/schema.sql:/docker-entrypoint-initdb.d/01-schema.sql
+      - ./backend/db/seed.sql:/docker-entrypoint-initdb.d/02-seed.sql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U clarita_user -d clarita"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  backend:
+    build: ./backend
+    container_name: clarita-backend
+    environment:
+      DATABASE_URL: postgresql://clarita_user:clarita_secret_2024@postgres:5432/clarita
+      JWT_SECRET: clarita-jwt-secret-change-in-production
+      PORT: 3001
+      AI_ENGINE_URL: http://ai-engine:5001
+      NODE_ENV: development
+    ports:
+      - "3001:3001"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: unless-stopped
+
+  dashboard:
+    build: ./dashboard
+    container_name: clarita-dashboard
+    environment:
+      NEXT_PUBLIC_API_URL: http://localhost:3001/api
+    ports:
+      - "3000:3000"
+    depends_on:
+      - backend
+    restart: unless-stopped
+
+  ai-engine:
+    build: ./ai-engine
+    container_name: clarita-ai-engine
+    environment:
+      DATABASE_URL: postgresql://clarita_user:clarita_secret_2024@postgres:5432/clarita
+      ANALYSIS_INTERVAL: 6
+      ALERT_CHECK_INTERVAL: 1
+      LOG_LEVEL: INFO
+      FLASK_HOST: 0.0.0.0
+      FLASK_PORT: 5001
+    ports:
+      - "5001:5001"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: unless-stopped
+
+volumes:
+  postgres_data:

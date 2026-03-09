@@ -1,0 +1,137 @@
+"use client";
+
+import { useState } from "react";
+import Link from "next/link";
+import { ArrowLeft, Loader2, Mail, CheckCircle } from "lucide-react";
+import Image from "next/image";
+import { authApi } from "@/lib/api";
+
+export default function ForgotPasswordPage() {
+  const [email, setEmail] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [sent, setSent] = useState(false);
+  const [error, setError] = useState("");
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError("");
+    setLoading(true);
+
+    try {
+      await authApi.forgotPassword(email);
+      setSent(true);
+    } catch (err) {
+      setError(
+        err instanceof Error ? err.message : "Erro ao enviar email. Tente novamente."
+      );
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div className="min-h-screen flex items-center justify-center relative overflow-hidden px-4">
+      <div className="absolute top-[-10%] left-[-5%] w-[400px] h-[400px] rounded-full bg-clarita-blue-200/30 blur-3xl animate-float" />
+      <div className="absolute bottom-[-10%] right-[-5%] w-[400px] h-[400px] rounded-full bg-clarita-purple-200/30 blur-3xl animate-float" style={{ animationDelay: "1.5s" }} />
+
+      <div className="w-full max-w-md relative z-10 animate-slide-up">
+        <div className="text-center mb-8">
+          <Image src="/logo-clarita.png" alt="Clarita" width={120} height={96} className="mx-auto mb-3 drop-shadow-lg" priority />
+          <p className="text-gray-500 text-sm font-light">Plataforma de Saúde Mental</p>
+        </div>
+
+        <div className="bg-white/70 backdrop-blur-xl rounded-3xl shadow-2xl border border-white/40 p-8">
+          {sent ? (
+            <div className="text-center py-4 animate-scale-in">
+              <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-clarita-green-100 to-clarita-green-200 rounded-full mb-4">
+                <CheckCircle size={32} className="text-clarita-green-500" />
+              </div>
+              <h2 className="text-2xl font-semibold text-gray-800 mb-2">
+                Email enviado!
+              </h2>
+              <p className="text-sm text-gray-500 mb-6 leading-relaxed">
+                Se este email estiver cadastrado, você receberá um link para
+                redefinir sua senha. Verifique sua caixa de entrada e a pasta de spam.
+              </p>
+              <Link
+                href="/login"
+                className="btn-primary inline-flex items-center gap-2 px-6 py-3 rounded-xl"
+              >
+                <ArrowLeft size={16} />
+                Voltar ao login
+              </Link>
+            </div>
+          ) : (
+            <>
+              <div className="flex items-center gap-3 mb-2">
+                <div className="inline-flex items-center justify-center w-12 h-12 bg-gradient-to-br from-clarita-blue-100 to-clarita-purple-100 rounded-2xl">
+                  <Mail size={22} className="text-clarita-purple-500" />
+                </div>
+                <div>
+                  <h2 className="text-xl font-semibold text-gray-800">
+                    Esqueceu sua senha?
+                  </h2>
+                  <p className="text-xs text-gray-400">Sem problemas, acontece!</p>
+                </div>
+              </div>
+              <p className="text-sm text-gray-500 mb-6 mt-4">
+                Digite seu email e enviaremos um link para redefinir sua senha.
+              </p>
+
+              <form onSubmit={handleSubmit} className="space-y-5">
+                {error && (
+                  <div className="px-4 py-3 bg-red-50/80 backdrop-blur-sm border border-red-100 rounded-xl text-sm text-red-600 animate-fade-in flex items-center gap-2">
+                    <div className="w-2 h-2 rounded-full bg-red-400 flex-shrink-0" />
+                    {error}
+                  </div>
+                )}
+
+                <div>
+                  <label
+                    htmlFor="email"
+                    className="block text-sm font-medium text-gray-600 mb-2"
+                  >
+                    Endereço de email
+                  </label>
+                  <input
+                    id="email"
+                    type="email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    className="input-field py-3.5"
+                    placeholder="voce@exemplo.com"
+                    required
+                    autoComplete="email"
+                    autoFocus
+                  />
+                </div>
+
+                <button
+                  type="submit"
+                  disabled={loading}
+                  className="btn-primary w-full py-3.5 text-base rounded-xl"
+                >
+                  {loading ? (
+                    <Loader2 size={20} className="animate-spin" />
+                  ) : (
+                    "Enviar link de recuperação"
+                  )}
+                </button>
+              </form>
+
+              <div className="mt-6 text-center">
+                <Link
+                  href="/login"
+                  className="text-sm text-clarita-purple-500 hover:text-clarita-purple-600 font-medium inline-flex items-center gap-1 transition-colors"
+                >
+                  <ArrowLeft size={14} />
+                  Voltar ao login
+                </Link>
+              </div>
+            </>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}

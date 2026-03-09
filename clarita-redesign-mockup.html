@@ -1,0 +1,515 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Clarita — Portal do Paciente (Redesign)</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --teal-50: #f0fdfa; --teal-100: #ccfbf1; --teal-200: #99f6e4;
+  --teal-400: #2dd4bf; --teal-500: #14b8a6; --teal-600: #0d9488;
+  --purple-50: #f5f3ff; --purple-100: #ede9fe; --purple-200: #ddd6fe;
+  --purple-400: #a78bfa; --purple-500: #8b5cf6; --purple-600: #7c3aed;
+  --blue-50: #eff6ff; --blue-100: #dbeafe; --blue-400: #60a5fa; --blue-500: #3b82f6;
+  --orange-50: #fffbeb; --orange-100: #fef3c7; --orange-400: #fbbf24; --orange-500: #f59e0b;
+  --gray-50: #f9fafb; --gray-100: #f3f4f6; --gray-200: #e5e7eb;
+  --gray-300: #d1d5db; --gray-400: #9ca3af; --gray-500: #6b7280;
+  --gray-600: #4b5563; --gray-700: #374151; --gray-800: #1f2937; --gray-900: #111827;
+  --radius-lg: 12px; --radius-xl: 16px; --radius-2xl: 20px; --radius-full: 9999px;
+}
+
+body {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  background: linear-gradient(170deg, var(--teal-50) 0%, #fafafa 40%, var(--purple-50) 100%);
+  min-height: 100vh; color: var(--gray-800); -webkit-font-smoothing: antialiased;
+}
+
+.top-bar { height: 4px; background: linear-gradient(90deg, var(--teal-500), var(--purple-500)); position: fixed; top: 0; left: 0; right: 0; z-index: 100; }
+
+.header {
+  position: fixed; top: 4px; left: 0; right: 0; z-index: 90;
+  background: rgba(255,255,255,0.72); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+  border-bottom: 1px solid rgba(255,255,255,0.5); padding: 12px 24px;
+  display: flex; align-items: center; justify-content: space-between;
+}
+.header-left { display: flex; align-items: center; gap: 12px; }
+.logo-circles { display: flex; position: relative; width: 36px; height: 30px; }
+.logo-circles span { width: 18px; height: 18px; border-radius: 50%; position: absolute; top: 50%; transform: translateY(-50%); opacity: 0.85; }
+.logo-circles span:nth-child(1) { background: var(--purple-500); left: 0; z-index: 3; }
+.logo-circles span:nth-child(2) { background: var(--blue-500); left: 8px; z-index: 2; }
+.logo-circles span:nth-child(3) { background: var(--teal-500); left: 16px; z-index: 1; }
+.header-brand { font-weight: 700; font-size: 18px; color: var(--gray-800); }
+.header-sub { font-size: 12px; color: var(--gray-400); font-weight: 500; }
+.btn-logout {
+  display: flex; align-items: center; gap: 6px;
+  background: none; border: 1px solid var(--gray-200); border-radius: var(--radius-lg);
+  padding: 8px 16px; font-size: 13px; color: var(--gray-500); cursor: pointer;
+  font-family: inherit; font-weight: 500; transition: all 0.2s;
+}
+.btn-logout:hover { border-color: var(--gray-300); color: var(--gray-700); background: var(--gray-50); }
+
+.main { max-width: 800px; margin: 0 auto; padding: 80px 20px 40px; }
+
+.greeting { margin-bottom: 24px; padding: 0 4px; }
+.greeting h1 { font-size: 28px; font-weight: 800; color: var(--gray-900); margin-bottom: 4px; }
+.greeting p { font-size: 15px; color: var(--gray-500); }
+.id-badge {
+  display: inline-flex; align-items: center; gap: 6px;
+  background: var(--gray-100); border-radius: var(--radius-full);
+  padding: 4px 12px; font-size: 12px; color: var(--gray-500); font-weight: 600;
+  margin-top: 8px; cursor: pointer; transition: all 0.2s;
+}
+.id-badge:hover { background: var(--gray-200); }
+.id-badge svg { width: 14px; height: 14px; }
+
+.tabs {
+  display: flex; gap: 4px; margin-bottom: 24px;
+  background: rgba(255,255,255,0.6); backdrop-filter: blur(12px);
+  border-radius: var(--radius-xl); padding: 4px;
+  border: 1px solid rgba(255,255,255,0.8); box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+}
+.tab {
+  flex: 1; display: flex; align-items: center; justify-content: center; gap: 8px;
+  padding: 12px 16px; border-radius: var(--radius-lg);
+  font-size: 14px; font-weight: 600; color: var(--gray-400);
+  cursor: pointer; transition: all 0.3s ease; border: none; background: none; font-family: inherit;
+}
+.tab svg { width: 18px; height: 18px; transition: all 0.3s; }
+.tab:hover { color: var(--gray-600); background: rgba(255,255,255,0.5); }
+.tab.active { color: white; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+.tab.active[data-color="teal"] { background: linear-gradient(135deg, var(--teal-500), var(--teal-600)); box-shadow: 0 4px 12px rgba(20,184,166,0.3); }
+.tab.active[data-color="purple"] { background: linear-gradient(135deg, var(--purple-500), var(--purple-600)); box-shadow: 0 4px 12px rgba(139,92,246,0.3); }
+.tab.active[data-color="blue"] { background: linear-gradient(135deg, var(--blue-500), #2563eb); box-shadow: 0 4px 12px rgba(59,130,246,0.3); }
+.tab.active[data-color="orange"] { background: linear-gradient(135deg, var(--orange-500), #d97706); box-shadow: 0 4px 12px rgba(245,158,11,0.3); }
+
+.tab-content { display: none; animation: fadeSlideIn 0.35s ease; }
+.tab-content.active { display: block; }
+@keyframes fadeSlideIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+
+.glass-card {
+  background: rgba(255,255,255,0.75); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255,255,255,0.9); border-radius: var(--radius-2xl);
+  padding: 24px; margin-bottom: 16px; transition: all 0.3s ease;
+}
+.glass-card:hover { box-shadow: 0 8px 32px rgba(0,0,0,0.06); transform: translateY(-1px); }
+.glass-card.teal-accent { border-left: 4px solid var(--teal-400); box-shadow: 0 2px 16px rgba(20,184,166,0.08); }
+.glass-card.purple-accent { border-left: 4px solid var(--purple-400); box-shadow: 0 2px 16px rgba(139,92,246,0.08); }
+.glass-card.blue-accent { border-left: 4px solid var(--blue-400); box-shadow: 0 2px 16px rgba(59,130,246,0.08); }
+.glass-card.orange-accent { border-left: 4px solid var(--orange-400); box-shadow: 0 2px 16px rgba(245,158,11,0.08); }
+
+.section-header { display: flex; align-items: center; gap: 10px; margin-bottom: 20px; }
+.section-icon { width: 40px; height: 40px; border-radius: var(--radius-lg); display: flex; align-items: center; justify-content: center; }
+.section-icon.teal { background: linear-gradient(135deg, var(--teal-100), var(--teal-200)); color: var(--teal-600); }
+.section-icon.purple { background: linear-gradient(135deg, var(--purple-100), var(--purple-200)); color: var(--purple-600); }
+.section-icon.blue { background: linear-gradient(135deg, var(--blue-100), var(--blue-50)); color: var(--blue-500); }
+.section-icon.orange { background: linear-gradient(135deg, var(--orange-100), var(--orange-50)); color: var(--orange-500); }
+.section-icon svg { width: 20px; height: 20px; }
+.section-title { font-size: 20px; font-weight: 700; color: var(--gray-800); }
+.section-subtitle { font-size: 14px; color: var(--gray-400); }
+
+.slider-group { margin-bottom: 24px; }
+.slider-group:last-of-type { margin-bottom: 0; }
+.slider-label { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
+.slider-label-left { display: flex; align-items: center; gap: 8px; }
+.slider-label-left .emoji { font-size: 20px; }
+.slider-label-left span:last-child { font-size: 15px; font-weight: 600; color: var(--gray-700); }
+.slider-value {
+  width: 36px; height: 36px; border-radius: var(--radius-lg);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 16px; font-weight: 700; color: white;
+  background: linear-gradient(135deg, var(--teal-500), var(--teal-600));
+  box-shadow: 0 2px 8px rgba(20,184,166,0.3);
+}
+.slider-track { position: relative; width: 100%; height: 8px; background: var(--gray-200); border-radius: var(--radius-full); cursor: pointer; }
+.slider-fill { position: absolute; left: 0; top: 0; height: 100%; border-radius: var(--radius-full); background: linear-gradient(90deg, var(--teal-400), var(--teal-500)); transition: width 0.15s ease; }
+.slider-thumb {
+  position: absolute; top: 50%; transform: translate(-50%, -50%);
+  width: 22px; height: 22px; border-radius: 50%;
+  background: white; border: 3px solid var(--teal-500);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.15); cursor: grab; transition: box-shadow 0.2s, transform 0.15s;
+}
+.slider-thumb:hover { box-shadow: 0 2px 12px rgba(20,184,166,0.4); transform: translate(-50%, -50%) scale(1.1); }
+.slider-range-labels { display: flex; justify-content: space-between; margin-top: 6px; font-size: 11px; color: var(--gray-400); font-weight: 500; }
+
+.btn-submit {
+  width: 100%; padding: 14px; border: none; border-radius: var(--radius-xl);
+  font-size: 16px; font-weight: 700; color: white; cursor: pointer; font-family: inherit;
+  background: linear-gradient(135deg, var(--teal-500), var(--teal-600));
+  box-shadow: 0 4px 16px rgba(20,184,166,0.3); transition: all 0.3s ease; margin-top: 24px;
+}
+.btn-submit:hover { transform: translateY(-1px); box-shadow: 0 6px 20px rgba(20,184,166,0.4); }
+
+.journal-area {
+  width: 100%; min-height: 80px; border: 1.5px solid var(--gray-200);
+  border-radius: var(--radius-lg); padding: 14px; font-size: 14px;
+  font-family: inherit; color: var(--gray-700); resize: vertical;
+  background: rgba(255,255,255,0.5); transition: all 0.2s; margin-top: 16px;
+}
+.journal-area::placeholder { color: var(--gray-400); }
+.journal-area:focus { outline: none; border-color: var(--teal-400); box-shadow: 0 0 0 3px rgba(20,184,166,0.1); }
+
+.goal-card { display: flex; align-items: flex-start; gap: 16px; }
+.goal-check {
+  width: 24px; height: 24px; border-radius: 8px; border: 2px solid var(--purple-300);
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer; transition: all 0.3s; flex-shrink: 0; margin-top: 2px;
+}
+.goal-check.done { background: linear-gradient(135deg, var(--purple-500), var(--purple-600)); border-color: transparent; }
+.goal-check.done svg { opacity: 1; }
+.goal-check svg { width: 14px; height: 14px; color: white; opacity: 0; transition: all 0.2s; }
+.goal-info { flex: 1; }
+.goal-title { font-size: 15px; font-weight: 600; color: var(--gray-800); margin-bottom: 4px; }
+.goal-desc { font-size: 13px; color: var(--gray-400); margin-bottom: 10px; }
+.goal-progress { width: 100%; height: 6px; background: var(--gray-200); border-radius: var(--radius-full); overflow: hidden; }
+.goal-progress-fill { height: 100%; border-radius: var(--radius-full); background: linear-gradient(90deg, var(--purple-400), var(--purple-500)); transition: width 0.5s ease; }
+.goal-meta { display: flex; align-items: center; gap: 12px; margin-top: 8px; }
+.goal-badge { font-size: 11px; font-weight: 600; padding: 3px 10px; border-radius: var(--radius-full); }
+.goal-badge.active { background: var(--purple-100); color: var(--purple-600); }
+.goal-badge.done-badge { background: var(--teal-100); color: var(--teal-600); }
+.goal-date { font-size: 12px; color: var(--gray-400); }
+
+.history-date { font-size: 12px; font-weight: 600; color: var(--blue-500); margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.5px; }
+.history-scores { display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 10px; }
+.history-score { display: flex; align-items: center; gap: 6px; font-size: 13px; color: var(--gray-600); font-weight: 500; }
+.history-score .dot { width: 8px; height: 8px; border-radius: 50%; }
+.history-score .dot.good { background: var(--teal-500); }
+.history-score .dot.mid { background: var(--orange-400); }
+.history-score .dot.low { background: #ef4444; }
+.history-note { font-size: 14px; color: var(--gray-500); line-height: 1.5; }
+
+.prof-card { display: flex; align-items: center; gap: 16px; margin-bottom: 12px; }
+.prof-avatar {
+  width: 48px; height: 48px; border-radius: var(--radius-lg);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 18px; font-weight: 700; color: white; flex-shrink: 0;
+}
+.prof-avatar.psych { background: linear-gradient(135deg, var(--orange-400), var(--orange-500)); }
+.prof-avatar.psiq { background: linear-gradient(135deg, var(--purple-400), var(--purple-500)); }
+.prof-name { font-size: 15px; font-weight: 600; color: var(--gray-800); }
+.prof-role { font-size: 13px; color: var(--gray-400); font-weight: 500; }
+.prof-toggle-group { display: flex; flex-direction: column; gap: 8px; padding-top: 12px; border-top: 1px solid var(--gray-100); }
+.prof-toggle-row { display: flex; align-items: center; justify-content: space-between; }
+.prof-toggle-label { font-size: 13px; color: var(--gray-500); }
+
+.toggle {
+  width: 44px; height: 24px; border-radius: var(--radius-full);
+  background: var(--gray-200); cursor: pointer; position: relative; transition: background 0.3s ease;
+}
+.toggle.on { background: linear-gradient(135deg, var(--teal-400), var(--teal-500)); }
+.toggle::after {
+  content: ''; position: absolute; width: 20px; height: 20px;
+  border-radius: 50%; background: white; top: 2px; left: 2px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.2); transition: transform 0.3s ease;
+}
+.toggle.on::after { transform: translateX(20px); }
+
+.footer-note { text-align: center; padding: 32px 20px 20px; font-size: 12px; color: var(--gray-400); }
+
+@media (max-width: 600px) {
+  .header { padding: 10px 16px; }
+  .main { padding: 76px 16px 32px; }
+  .greeting h1 { font-size: 24px; }
+  .tab span { display: none; }
+  .tab { padding: 12px; }
+  .glass-card { padding: 18px; }
+}
+</style>
+</head>
+<body>
+
+<div class="top-bar"></div>
+
+<header class="header">
+  <div class="header-left">
+    <div class="logo-circles"><span></span><span></span><span></span></div>
+    <div>
+      <div class="header-brand">Clarita</div>
+      <div class="header-sub">Portal do Paciente</div>
+    </div>
+  </div>
+  <div>
+    <button class="btn-logout">
+      <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+      Sair
+    </button>
+  </div>
+</header>
+
+<main class="main">
+  <div class="greeting">
+    <h1 id="greeting-text">Boa tarde, Luiza!</h1>
+    <p>Bem-vindo(a) ao seu espaço de saude mental.</p>
+    <div class="id-badge">
+      <span>CLA-11D974</span>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>
+    </div>
+  </div>
+
+  <div class="tabs" role="tablist">
+    <button class="tab active" data-tab="checkin" data-color="teal" onclick="switchTab('checkin', this)">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><path d="M8 14s1.5 2 4 2 4-2 4-2"/><line x1="9" y1="9" x2="9.01" y2="9"/><line x1="15" y1="9" x2="15.01" y2="9"/></svg>
+      <span>Check-in</span>
+    </button>
+    <button class="tab" data-tab="goals" data-color="purple" onclick="switchTab('goals', this)">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+      <span>Metas</span>
+    </button>
+    <button class="tab" data-tab="history" data-color="blue" onclick="switchTab('history', this)">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 8v4l3 3"/><circle cx="12" cy="12" r="10"/></svg>
+      <span>Historico</span>
+    </button>
+    <button class="tab" data-tab="profs" data-color="orange" onclick="switchTab('profs', this)">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg>
+      <span>Profissionais</span>
+    </button>
+  </div>
+
+  <!-- CHECK-IN TAB -->
+  <div class="tab-content active" id="tab-checkin">
+    <div class="glass-card teal-accent">
+      <div class="section-header">
+        <div class="section-icon teal">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><path d="M8 14s1.5 2 4 2 4-2 4-2"/><line x1="9" y1="9" x2="9.01" y2="9"/><line x1="15" y1="9" x2="15.01" y2="9"/></svg>
+        </div>
+        <div>
+          <div class="section-title">Como voce esta hoje?</div>
+          <div class="section-subtitle">Registre seus sentimentos e acompanhe sua evolucao.</div>
+        </div>
+      </div>
+
+      <div class="slider-group" data-id="humor">
+        <div class="slider-label">
+          <div class="slider-label-left"><span class="emoji">&#128522;</span><span>Humor</span></div>
+          <div class="slider-value" id="val-humor">5</div>
+        </div>
+        <div class="slider-track" onmousedown="startDrag(event, 'humor')" ontouchstart="startDrag(event, 'humor')">
+          <div class="slider-fill" id="fill-humor" style="width:50%"></div>
+          <div class="slider-thumb" id="thumb-humor" style="left:50%"></div>
+        </div>
+        <div class="slider-range-labels"><span>Muito triste</span><span>Muito feliz</span></div>
+      </div>
+
+      <div class="slider-group" data-id="anxiety">
+        <div class="slider-label">
+          <div class="slider-label-left"><span class="emoji">&#9889;</span><span>Ansiedade</span></div>
+          <div class="slider-value" id="val-anxiety">3</div>
+        </div>
+        <div class="slider-track" onmousedown="startDrag(event, 'anxiety')" ontouchstart="startDrag(event, 'anxiety')">
+          <div class="slider-fill" id="fill-anxiety" style="width:30%"></div>
+          <div class="slider-thumb" id="thumb-anxiety" style="left:30%"></div>
+        </div>
+        <div class="slider-range-labels"><span>Calmo(a)</span><span>Muito ansioso(a)</span></div>
+      </div>
+
+      <div class="slider-group" data-id="energy">
+        <div class="slider-label">
+          <div class="slider-label-left"><span class="emoji">&#9889;</span><span>Energia</span></div>
+          <div class="slider-value" id="val-energy">7</div>
+        </div>
+        <div class="slider-track" onmousedown="startDrag(event, 'energy')" ontouchstart="startDrag(event, 'energy')">
+          <div class="slider-fill" id="fill-energy" style="width:70%"></div>
+          <div class="slider-thumb" id="thumb-energy" style="left:70%"></div>
+        </div>
+        <div class="slider-range-labels"><span>Sem energia</span><span>Muita energia</span></div>
+      </div>
+
+      <div class="slider-group" data-id="sleep">
+        <div class="slider-label">
+          <div class="slider-label-left"><span class="emoji">&#127769;</span><span>Horas de sono</span></div>
+          <div class="slider-value" id="val-sleep">7</div>
+        </div>
+        <div class="slider-track" onmousedown="startDrag(event, 'sleep')" ontouchstart="startDrag(event, 'sleep')">
+          <div class="slider-fill" id="fill-sleep" style="width:58%"></div>
+          <div class="slider-thumb" id="thumb-sleep" style="left:58%"></div>
+        </div>
+        <div class="slider-range-labels"><span>0 horas</span><span>12+ horas</span></div>
+      </div>
+
+      <textarea class="journal-area" placeholder="Como foi seu dia? Escreva o que quiser... (opcional)"></textarea>
+      <button class="btn-submit" id="btn-checkin">Registrar check-in</button>
+    </div>
+  </div>
+
+  <!-- GOALS TAB -->
+  <div class="tab-content" id="tab-goals">
+    <div class="glass-card purple-accent">
+      <div class="section-header">
+        <div class="section-icon purple">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+        </div>
+        <div>
+          <div class="section-title">Minhas Metas</div>
+          <div class="section-subtitle">Objetivos definidos com seu profissional.</div>
+        </div>
+      </div>
+      <div class="goal-card">
+        <div class="goal-check done" onclick="this.classList.toggle('done')">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>
+        </div>
+        <div class="goal-info">
+          <div class="goal-title">Praticar respiracao diafragmatica</div>
+          <div class="goal-desc">5 minutos por dia, antes de dormir</div>
+          <div class="goal-progress"><div class="goal-progress-fill" style="width: 80%"></div></div>
+          <div class="goal-meta"><span class="goal-badge done-badge">80% concluido</span><span class="goal-date">Meta: 15/03/2026</span></div>
+        </div>
+      </div>
+    </div>
+    <div class="glass-card purple-accent">
+      <div class="goal-card">
+        <div class="goal-check" onclick="this.classList.toggle('done')">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>
+        </div>
+        <div class="goal-info">
+          <div class="goal-title">Registro diario de emocoes</div>
+          <div class="goal-desc">Fazer check-in pelo menos 5 dias na semana</div>
+          <div class="goal-progress"><div class="goal-progress-fill" style="width: 40%"></div></div>
+          <div class="goal-meta"><span class="goal-badge active">Em andamento</span><span class="goal-date">Meta: 30/03/2026</span></div>
+        </div>
+      </div>
+    </div>
+    <div class="glass-card purple-accent">
+      <div class="goal-card">
+        <div class="goal-check" onclick="this.classList.toggle('done')">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>
+        </div>
+        <div class="goal-info">
+          <div class="goal-title">Caminhar 30 minutos ao ar livre</div>
+          <div class="goal-desc">3 vezes por semana, de manha</div>
+          <div class="goal-progress"><div class="goal-progress-fill" style="width: 20%"></div></div>
+          <div class="goal-meta"><span class="goal-badge active">Em andamento</span><span class="goal-date">Meta: 30/04/2026</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- HISTORY TAB -->
+  <div class="tab-content" id="tab-history">
+    <div class="glass-card blue-accent">
+      <div class="section-header">
+        <div class="section-icon blue">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 8v4l3 3"/><circle cx="12" cy="12" r="10"/></svg>
+        </div>
+        <div><div class="section-title">Historico</div><div class="section-subtitle">Seus registros anteriores.</div></div>
+      </div>
+    </div>
+    <div class="glass-card blue-accent">
+      <div class="history-date">Hoje — 09 de Marco</div>
+      <div class="history-scores">
+        <span class="history-score"><span class="dot good"></span>Humor: 7</span>
+        <span class="history-score"><span class="dot good"></span>Ansiedade: 3</span>
+        <span class="history-score"><span class="dot good"></span>Energia: 7</span>
+        <span class="history-score"><span class="dot good"></span>Sono: 8h</span>
+      </div>
+      <div class="history-note">Me senti bem hoje, consegui fazer a respiracao antes de dormir ontem e acordei mais descansada.</div>
+    </div>
+    <div class="glass-card blue-accent">
+      <div class="history-date">Ontem — 08 de Marco</div>
+      <div class="history-scores">
+        <span class="history-score"><span class="dot mid"></span>Humor: 5</span>
+        <span class="history-score"><span class="dot mid"></span>Ansiedade: 6</span>
+        <span class="history-score"><span class="dot mid"></span>Energia: 4</span>
+        <span class="history-score"><span class="dot good"></span>Sono: 7h</span>
+      </div>
+      <div class="history-note">Dia corrido no trabalho, fiquei um pouco ansiosa antes da reuniao.</div>
+    </div>
+    <div class="glass-card blue-accent">
+      <div class="history-date">07 de Marco</div>
+      <div class="history-scores">
+        <span class="history-score"><span class="dot low"></span>Humor: 3</span>
+        <span class="history-score"><span class="dot low"></span>Ansiedade: 8</span>
+        <span class="history-score"><span class="dot low"></span>Energia: 2</span>
+        <span class="history-score"><span class="dot mid"></span>Sono: 5h</span>
+      </div>
+      <div class="history-note">Noite mal dormida, acordei varias vezes. Ansiedade alta durante o dia.</div>
+    </div>
+  </div>
+
+  <!-- PROFESSIONALS TAB -->
+  <div class="tab-content" id="tab-profs">
+    <div class="glass-card orange-accent">
+      <div class="section-header">
+        <div class="section-icon orange">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg>
+        </div>
+        <div><div class="section-title">Meus Profissionais</div><div class="section-subtitle">Gerencie quem tem acesso aos seus dados.</div></div>
+      </div>
+    </div>
+    <div class="glass-card orange-accent">
+      <div class="prof-card">
+        <div class="prof-avatar psych">LP</div>
+        <div><div class="prof-name">Dra. Luiza Psicologa</div><div class="prof-role">Psicologa - CRP 12345</div></div>
+      </div>
+      <div class="prof-toggle-group">
+        <div class="prof-toggle-row"><span class="prof-toggle-label">Check-ins e humor</span><div class="toggle on" onclick="this.classList.toggle('on')"></div></div>
+        <div class="prof-toggle-row"><span class="prof-toggle-label">Metas e progresso</span><div class="toggle on" onclick="this.classList.toggle('on')"></div></div>
+        <div class="prof-toggle-row"><span class="prof-toggle-label">Diario pessoal</span><div class="toggle" onclick="this.classList.toggle('on')"></div></div>
+        <div class="prof-toggle-row"><span class="prof-toggle-label">Dados medicos</span><div class="toggle on" onclick="this.classList.toggle('on')"></div></div>
+      </div>
+    </div>
+    <div class="glass-card orange-accent">
+      <div class="prof-card">
+        <div class="prof-avatar psiq">LP</div>
+        <div><div class="prof-name">Dra. Luiza Psiquiatra</div><div class="prof-role">Psiquiatra - CRM 67890</div></div>
+      </div>
+      <div class="prof-toggle-group">
+        <div class="prof-toggle-row"><span class="prof-toggle-label">Check-ins e humor</span><div class="toggle on" onclick="this.classList.toggle('on')"></div></div>
+        <div class="prof-toggle-row"><span class="prof-toggle-label">Metas e progresso</span><div class="toggle on" onclick="this.classList.toggle('on')"></div></div>
+        <div class="prof-toggle-row"><span class="prof-toggle-label">Diario pessoal</span><div class="toggle on" onclick="this.classList.toggle('on')"></div></div>
+        <div class="prof-toggle-row"><span class="prof-toggle-label">Dados medicos</span><div class="toggle on" onclick="this.classList.toggle('on')"></div></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="footer-note">Clarita Plataforma de Saude Mental - Conformidade LGPD</div>
+</main>
+
+<script>
+function switchTab(tabId, el) {
+  document.querySelectorAll('.tab').forEach(function(t) { t.classList.remove('active'); });
+  document.querySelectorAll('.tab-content').forEach(function(c) { c.classList.remove('active'); });
+  el.classList.add('active');
+  document.getElementById('tab-' + tabId).classList.add('active');
+}
+
+var dragging = null;
+function startDrag(e, id) {
+  dragging = id;
+  updateSlider(e, id);
+  e.preventDefault();
+}
+function updateSlider(e, id) {
+  var track = document.querySelector('[data-id="' + id + '"] .slider-track');
+  var rect = track.getBoundingClientRect();
+  var clientX = e.touches ? e.touches[0].clientX : e.clientX;
+  var pct = Math.max(0, Math.min(1, (clientX - rect.left) / rect.width));
+  var maxVal = id === 'sleep' ? 12 : 10;
+  var val = Math.round(pct * maxVal);
+  pct = val / maxVal;
+  document.getElementById('fill-' + id).style.width = (pct * 100) + '%';
+  document.getElementById('thumb-' + id).style.left = (pct * 100) + '%';
+  document.getElementById('val-' + id).textContent = val;
+}
+document.addEventListener('mousemove', function(e) { if (dragging) updateSlider(e, dragging); });
+document.addEventListener('mouseup', function() { dragging = null; });
+document.addEventListener('touchmove', function(e) { if (dragging) updateSlider(e, dragging); }, { passive: false });
+document.addEventListener('touchend', function() { dragging = null; });
+
+var hour = new Date().getHours();
+var greetEl = document.getElementById('greeting-text');
+if (hour < 12) greetEl.textContent = 'Bom dia, Luiza!';
+else if (hour < 18) greetEl.textContent = 'Boa tarde, Luiza!';
+else greetEl.textContent = 'Boa noite, Luiza!';
+
+document.getElementById('btn-checkin').addEventListener('click', function() {
+  var btn = this;
+  btn.textContent = 'Registrado!';
+  btn.style.background = 'linear-gradient(135deg, #10b981, #059669)';
+  setTimeout(function() { btn.textContent = 'Registrar check-in'; btn.style.background = ''; }, 2000);
+});
+</script>
+</body>
+</html>
