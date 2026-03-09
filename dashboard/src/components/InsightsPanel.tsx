@@ -1,38 +1,28 @@
-"use client";
+'use client';
 
-import {
-  Sparkles,
-  ArrowRight,
-  AlertCircle,
-  TrendingUp,
-  Brain,
-  Shield,
-} from "lucide-react";
-import type { Insight } from "@/lib/api";
+import { Sparkles, ArrowRight, AlertCircle, TrendingUp, Brain, Shield } from 'lucide-react';
+import type { Insight } from '@/lib/api';
 
 interface InsightsPanelProps {
   insights: Insight[];
   loading?: boolean;
 }
 
-const impactConfig: Record<
-  string,
-  { color: string; bgColor: string; label: string }
-> = {
+const impactConfig: Record<string, { color: string; bgColor: string; label: string }> = {
   high: {
-    color: "text-red-600",
-    bgColor: "bg-red-100",
-    label: "Alto Impacto",
+    color: 'text-red-600',
+    bgColor: 'bg-red-100',
+    label: 'Alto Impacto',
   },
   medium: {
-    color: "text-yellow-600",
-    bgColor: "bg-yellow-100",
-    label: "Médio Impacto",
+    color: 'text-yellow-600',
+    bgColor: 'bg-yellow-100',
+    label: 'Médio Impacto',
   },
   low: {
-    color: "text-clarita-blue-500",
-    bgColor: "bg-clarita-blue-100",
-    label: "Baixo Impacto",
+    color: 'text-clarita-blue-500',
+    bgColor: 'bg-clarita-blue-100',
+    label: 'Baixo Impacto',
   },
 };
 
@@ -40,22 +30,15 @@ function ConfidenceBadge({ confidence }: { confidence: number }) {
   const pct = Math.round(confidence * 100);
   const color =
     pct >= 80
-      ? "text-clarita-green-600 bg-clarita-green-100"
+      ? 'text-clarita-green-600 bg-clarita-green-100'
       : pct >= 60
-      ? "text-yellow-600 bg-yellow-100"
-      : "text-gray-500 bg-gray-100";
+        ? 'text-yellow-600 bg-yellow-100'
+        : 'text-gray-500 bg-gray-100';
 
-  return (
-    <span className={`badge text-[10px] ${color}`}>
-      {pct}% confiança
-    </span>
-  );
+  return <span className={`badge text-[10px] ${color}`}>{pct}% confiança</span>;
 }
 
-export default function InsightsPanel({
-  insights,
-  loading = false,
-}: InsightsPanelProps) {
+export default function InsightsPanel({ insights, loading = false }: InsightsPanelProps) {
   if (loading) {
     return (
       <div className="space-y-4">
@@ -106,20 +89,14 @@ export default function InsightsPanel({
 
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2 flex-wrap mb-1">
-                  <h4 className="font-semibold text-gray-800 text-sm">
-                    {insight.title}
-                  </h4>
+                  <h4 className="font-semibold text-gray-800 text-sm">{insight.title}</h4>
                   <ConfidenceBadge confidence={insight.confidence} />
-                  <span
-                    className={`badge text-[10px] ${impact.bgColor} ${impact.color}`}
-                  >
+                  <span className={`badge text-[10px] ${impact.bgColor} ${impact.color}`}>
                     {impact.label}
                   </span>
                 </div>
 
-                <p className="text-sm text-gray-600 leading-relaxed mb-3">
-                  {insight.description}
-                </p>
+                <p className="text-sm text-gray-600 leading-relaxed mb-3">{insight.description}</p>
 
                 {/* Recommendations */}
                 {insight.recommendations.length > 0 && (
@@ -130,10 +107,7 @@ export default function InsightsPanel({
                     </p>
                     <ul className="space-y-1.5">
                       {insight.recommendations.map((rec, idx) => (
-                        <li
-                          key={idx}
-                          className="flex items-start gap-2 text-sm text-gray-700"
-                        >
+                        <li key={idx} className="flex items-start gap-2 text-sm text-gray-700">
                           <ArrowRight
                             size={14}
                             className="text-clarita-green-400 flex-shrink-0 mt-0.5"

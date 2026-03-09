@@ -1,35 +1,30 @@
-"use client";
+'use client';
 
-import { useState, useEffect, useCallback } from "react";
-import { useRouter } from "next/navigation";
-import { Loader2, MessageCircle } from "lucide-react";
-import Sidebar from "@/components/Sidebar";
-import ConversationList from "@/components/ConversationList";
-import ChatPanel from "@/components/ChatPanel";
-import {
-  chatApi,
-  authApi,
-  isAuthenticated,
-  getUserRoleFromToken,
-} from "@/lib/api";
-import type { Conversation } from "@/lib/api";
+import { useState, useEffect, useCallback } from 'react';
+import { useRouter } from 'next/navigation';
+import { Loader2, MessageCircle } from 'lucide-react';
+import Sidebar from '@/components/Sidebar';
+import ConversationList from '@/components/ConversationList';
+import ChatPanel from '@/components/ChatPanel';
+import { chatApi, authApi, isAuthenticated, getUserRoleFromToken } from '@/lib/api';
+import type { Conversation } from '@/lib/api';
 
 export default function ChatPage() {
   const router = useRouter();
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [activeConv, setActiveConv] = useState<Conversation | null>(null);
   const [loading, setLoading] = useState(true);
-  const [currentUserId, setCurrentUserId] = useState("");
+  const [currentUserId, setCurrentUserId] = useState('');
   const [unreadCount, setUnreadCount] = useState(0);
 
   useEffect(() => {
     if (!isAuthenticated()) {
-      router.replace("/login");
+      router.replace('/login');
       return;
     }
     const role = getUserRoleFromToken();
-    if (role === "patient") {
-      router.replace("/patient-home");
+    if (role === 'patient') {
+      router.replace('/patient-home');
       return;
     }
     loadProfile();
@@ -41,16 +36,15 @@ export default function ChatPage() {
       setCurrentUserId(response.user.id);
       loadConversations();
     } catch {
-      router.replace("/login");
+      router.replace('/login');
     }
   };
 
   const loadConversations = useCallback(async () => {
     try {
       const data = await chatApi.listConversations();
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const raw = data as any;
-      const convs = Array.isArray(raw) ? raw : raw?.conversations ?? [];
+      const convs = Array.isArray(raw) ? raw : (raw?.conversations ?? []);
       setConversations(convs);
 
       // Update unread count
@@ -71,9 +65,7 @@ export default function ChatPage() {
     // Mark as read optimistically
     if (conv.unread_count > 0) {
       setConversations((prev) =>
-        prev.map((c) =>
-          c.id === conv.id ? { ...c, unread_count: 0 } : c
-        )
+        prev.map((c) => (c.id === conv.id ? { ...c, unread_count: 0 } : c))
       );
     }
   };
@@ -145,14 +137,9 @@ export default function ChatPage() {
                 <div className="flex-1 flex items-center justify-center animate-fade-in">
                   <div className="text-center">
                     <div className="w-20 h-20 rounded-3xl bg-white/70 backdrop-blur-xl border border-white/40 shadow-soft flex items-center justify-center mx-auto mb-5">
-                      <MessageCircle
-                        size={36}
-                        className="text-clarita-green-300"
-                      />
+                      <MessageCircle size={36} className="text-clarita-green-300" />
                     </div>
-                    <p className="text-gray-600 font-semibold text-lg">
-                      Selecione uma conversa
-                    </p>
+                    <p className="text-gray-600 font-semibold text-lg">Selecione uma conversa</p>
                     <p className="text-sm text-gray-400 mt-1.5 max-w-[260px]">
                       Escolha uma conversa à esquerda para começar a trocar mensagens
                     </p>

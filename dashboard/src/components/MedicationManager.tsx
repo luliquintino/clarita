@@ -1,23 +1,14 @@
-"use client";
+'use client';
 
-import { useState } from "react";
-import { format } from "date-fns";
-import {
-  Pill,
-  Plus,
-  X,
-  Save,
-  AlertTriangle,
-  CheckCircle,
-  Clock,
-  Ban,
-} from "lucide-react";
-import type { Medication } from "@/lib/api";
+import { useState } from 'react';
+import { format } from 'date-fns';
+import { Pill, Plus, X, Save, AlertTriangle, CheckCircle, Clock, Ban } from 'lucide-react';
+import type { Medication } from '@/lib/api';
 
 interface MedicationManagerProps {
   medications: Medication[];
   patientId: string;
-  role: "psychiatrist" | "psychologist" | "therapist";
+  role: 'psychiatrist' | 'psychologist' | 'therapist';
   onPrescribe?: (data: {
     name: string;
     dosage: string;
@@ -32,11 +23,11 @@ interface MedicationManagerProps {
 }
 
 function AdherenceBar({ rate }: { rate: number }) {
-  let color = "bg-red-400";
+  let color = 'bg-red-400';
   if (rate >= 80) {
-    color = "bg-clarita-green-400";
+    color = 'bg-clarita-green-400';
   } else if (rate >= 60) {
-    color = "bg-yellow-400";
+    color = 'bg-yellow-400';
   }
 
   return (
@@ -47,9 +38,7 @@ function AdherenceBar({ rate }: { rate: number }) {
           style={{ width: `${rate}%` }}
         />
       </div>
-      <span className="text-xs font-medium text-gray-600 w-10 text-right">
-        {rate}%
-      </span>
+      <span className="text-xs font-medium text-gray-600 w-10 text-right">{rate}%</span>
     </div>
   );
 }
@@ -65,21 +54,21 @@ const statusConfig: Record<
 > = {
   active: {
     icon: <CheckCircle size={14} />,
-    borderColor: "border-l-clarita-green-400",
-    badgeClass: "badge-green",
-    label: "Ativo",
+    borderColor: 'border-l-clarita-green-400',
+    badgeClass: 'badge-green',
+    label: 'Ativo',
   },
   adjusted: {
     icon: <Clock size={14} />,
-    borderColor: "border-l-yellow-400",
-    badgeClass: "badge-yellow",
-    label: "Ajustado",
+    borderColor: 'border-l-yellow-400',
+    badgeClass: 'badge-yellow',
+    label: 'Ajustado',
   },
   discontinued: {
     icon: <Ban size={14} />,
-    borderColor: "border-l-gray-300",
-    badgeClass: "badge bg-gray-100 text-gray-500 border border-gray-200/50",
-    label: "Descontinuado",
+    borderColor: 'border-l-gray-300',
+    badgeClass: 'badge bg-gray-100 text-gray-500 border border-gray-200/50',
+    label: 'Descontinuado',
   },
 };
 
@@ -95,29 +84,29 @@ export default function MedicationManager({
   const [adjustingId, setAdjustingId] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
 
-  const [medName, setMedName] = useState("");
-  const [medDosage, setMedDosage] = useState("");
-  const [medFrequency, setMedFrequency] = useState("");
-  const [medNotes, setMedNotes] = useState("");
+  const [medName, setMedName] = useState('');
+  const [medDosage, setMedDosage] = useState('');
+  const [medFrequency, setMedFrequency] = useState('');
+  const [medNotes, setMedNotes] = useState('');
 
-  const [adjDosage, setAdjDosage] = useState("");
-  const [adjFrequency, setAdjFrequency] = useState("");
-  const [adjNotes, setAdjNotes] = useState("");
+  const [adjDosage, setAdjDosage] = useState('');
+  const [adjFrequency, setAdjFrequency] = useState('');
+  const [adjNotes, setAdjNotes] = useState('');
 
-  const isPrescriber = role === "psychiatrist";
+  const isPrescriber = role === 'psychiatrist';
 
   const resetPrescribeForm = () => {
-    setMedName("");
-    setMedDosage("");
-    setMedFrequency("");
-    setMedNotes("");
+    setMedName('');
+    setMedDosage('');
+    setMedFrequency('');
+    setMedNotes('');
     setShowPrescribeForm(false);
   };
 
   const resetAdjustForm = () => {
-    setAdjDosage("");
-    setAdjFrequency("");
-    setAdjNotes("");
+    setAdjDosage('');
+    setAdjFrequency('');
+    setAdjNotes('');
     setAdjustingId(null);
   };
 
@@ -134,7 +123,7 @@ export default function MedicationManager({
       });
       resetPrescribeForm();
     } catch (err) {
-      console.error("Failed to prescribe:", err);
+      console.error('Failed to prescribe:', err);
     } finally {
       setSaving(false);
     }
@@ -151,7 +140,7 @@ export default function MedicationManager({
       });
       resetAdjustForm();
     } catch (err) {
-      console.error("Failed to adjust medication:", err);
+      console.error('Failed to adjust medication:', err);
     } finally {
       setSaving(false);
     }
@@ -159,12 +148,11 @@ export default function MedicationManager({
 
   const handleDiscontinue = async (medId: string) => {
     if (!onDiscontinue) return;
-    if (!confirm("Tem certeza de que deseja descontinuar este medicamento?"))
-      return;
+    if (!confirm('Tem certeza de que deseja descontinuar este medicamento?')) return;
     try {
       await onDiscontinue(medId);
     } catch (err) {
-      console.error("Failed to discontinue:", err);
+      console.error('Failed to discontinue:', err);
     }
   };
 
@@ -172,12 +160,12 @@ export default function MedicationManager({
     setAdjustingId(med.id);
     setAdjDosage(med.dosage);
     setAdjFrequency(med.frequency);
-    setAdjNotes("");
+    setAdjNotes('');
     setShowPrescribeForm(false);
   };
 
-  const activeMeds = medications.filter((m) => m.status === "active");
-  const pastMeds = medications.filter((m) => m.status !== "active");
+  const activeMeds = medications.filter((m) => m.status === 'active');
+  const pastMeds = medications.filter((m) => m.status !== 'active');
 
   return (
     <div className="card animate-fade-in">
@@ -226,9 +214,7 @@ export default function MedicationManager({
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1.5">
-                  Dosagem
-                </label>
+                <label className="block text-sm font-medium text-gray-700 mb-1.5">Dosagem</label>
                 <input
                   type="text"
                   value={medDosage}
@@ -238,9 +224,7 @@ export default function MedicationManager({
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1.5">
-                  Frequencia
-                </label>
+                <label className="block text-sm font-medium text-gray-700 mb-1.5">Frequencia</label>
                 <input
                   type="text"
                   value={medFrequency}
@@ -267,16 +251,11 @@ export default function MedicationManager({
             <div className="flex items-center gap-3">
               <button
                 onClick={handlePrescribe}
-                disabled={
-                  saving ||
-                  !medName.trim() ||
-                  !medDosage.trim() ||
-                  !medFrequency.trim()
-                }
+                disabled={saving || !medName.trim() || !medDosage.trim() || !medFrequency.trim()}
                 className="btn-primary flex items-center gap-2"
               >
                 <Save size={16} />
-                {saving ? "Prescrevendo..." : "Prescrever Medicamento"}
+                {saving ? 'Prescrevendo...' : 'Prescrever Medicamento'}
               </button>
               <button onClick={resetPrescribeForm} className="btn-ghost">
                 Cancelar
@@ -303,9 +282,7 @@ export default function MedicationManager({
                   {adjustingId === med.id && isPrescriber ? (
                     <div className="space-y-4 animate-scale-in">
                       <div className="flex items-center justify-between">
-                        <h4 className="font-medium text-gray-800">
-                          Ajustar: {med.name}
-                        </h4>
+                        <h4 className="font-medium text-gray-800">Ajustar: {med.name}</h4>
                         <button
                           onClick={resetAdjustForm}
                           className="text-gray-400 hover:text-gray-600 transition-colors"
@@ -355,12 +332,9 @@ export default function MedicationManager({
                           className="btn-primary flex items-center gap-2 text-sm"
                         >
                           <Save size={14} />
-                          {saving ? "Salvando..." : "Salvar Ajuste"}
+                          {saving ? 'Salvando...' : 'Salvar Ajuste'}
                         </button>
-                        <button
-                          onClick={resetAdjustForm}
-                          className="btn-ghost text-sm"
-                        >
+                        <button onClick={resetAdjustForm} className="btn-ghost text-sm">
                           Cancelar
                         </button>
                       </div>
@@ -373,9 +347,7 @@ export default function MedicationManager({
                             <Pill size={16} className="text-clarita-purple-500" />
                           </div>
                           <div>
-                            <h4 className="font-semibold text-gray-800">
-                              {med.name}
-                            </h4>
+                            <h4 className="font-semibold text-gray-800">{med.name}</h4>
                             <p className="text-sm text-gray-500">
                               {med.dosage} &middot; {med.frequency}
                             </p>
@@ -397,20 +369,12 @@ export default function MedicationManager({
                       {med.side_effects.length > 0 && (
                         <div className="mb-3">
                           <div className="flex items-center gap-1 mb-1">
-                            <AlertTriangle
-                              size={12}
-                              className="text-clarita-orange-400"
-                            />
-                            <p className="text-xs text-gray-500">
-                              Efeitos colaterais
-                            </p>
+                            <AlertTriangle size={12} className="text-clarita-orange-400" />
+                            <p className="text-xs text-gray-500">Efeitos colaterais</p>
                           </div>
                           <div className="flex flex-wrap gap-1">
                             {med.side_effects.map((effect) => (
-                              <span
-                                key={effect}
-                                className="badge-orange text-[10px]"
-                              >
+                              <span key={effect} className="badge-orange text-[10px]">
                                 {effect}
                               </span>
                             ))}
@@ -421,19 +385,13 @@ export default function MedicationManager({
                       {/* Footer */}
                       <div className="flex items-center justify-between pt-3 border-t border-white/30">
                         <span className="text-xs text-gray-400">
-                          Prescrito por {med.prescribed_by} em{" "}
-                          {format(
-                            new Date(med.prescribed_date),
-                            "MMM d, yyyy"
-                          )}
+                          Prescrito por {med.prescribed_by} em{' '}
+                          {format(new Date(med.prescribed_date), 'MMM d, yyyy')}
                         </span>
 
                         {isPrescriber && (
                           <div className="flex items-center gap-2">
-                            <button
-                              onClick={() => startAdjust(med)}
-                              className="btn-ghost text-xs"
-                            >
+                            <button onClick={() => startAdjust(med)} className="btn-ghost text-xs">
                               Ajustar
                             </button>
                             <button
@@ -452,9 +410,7 @@ export default function MedicationManager({
             })}
 
             {activeMeds.length === 0 && (
-              <p className="text-sm text-gray-400 text-center py-6">
-                Nenhum medicamento ativo
-              </p>
+              <p className="text-sm text-gray-400 text-center py-6">Nenhum medicamento ativo</p>
             )}
           </div>
         </div>
@@ -481,9 +437,7 @@ export default function MedicationManager({
                           {med.name} ({med.dosage})
                         </span>
                       </div>
-                      <span className={`${sConfig.badgeClass} text-[10px]`}>
-                        {sConfig.label}
-                      </span>
+                      <span className={`${sConfig.badgeClass} text-[10px]`}>{sConfig.label}</span>
                     </div>
                   </div>
                 );

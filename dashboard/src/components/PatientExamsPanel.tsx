@@ -1,15 +1,9 @@
-"use client";
+'use client';
 
-import { useState, useEffect, useCallback } from "react";
-import {
-  FileText,
-  Image as ImageIcon,
-  Download,
-  Loader2,
-  ClipboardList,
-} from "lucide-react";
-import { examsApi } from "@/lib/api";
-import type { Exam } from "@/lib/api";
+import { useState, useEffect, useCallback } from 'react';
+import { FileText, Image as ImageIcon, Download, Loader2, ClipboardList } from 'lucide-react';
+import { examsApi } from '@/lib/api';
+import type { Exam } from '@/lib/api';
 
 function formatFileSize(bytes: number): string {
   if (bytes < 1024) return `${bytes} B`;
@@ -20,7 +14,7 @@ function formatFileSize(bytes: number): string {
 function formatDate(dateStr: string): string {
   const d = new Date(dateStr);
   if (isNaN(d.getTime())) return dateStr;
-  return d.toLocaleDateString("pt-BR", { day: "2-digit", month: "short", year: "numeric" });
+  return d.toLocaleDateString('pt-BR', { day: '2-digit', month: 'short', year: 'numeric' });
 }
 
 interface PatientExamsPanelProps {
@@ -39,7 +33,7 @@ export default function PatientExamsPanel({ patientId }: PatientExamsPanelProps)
       const res = await examsApi.getPatientExams(patientId);
       setExams(res.exams);
     } catch {
-      setError("Erro ao carregar exames.");
+      setError('Erro ao carregar exames.');
     } finally {
       setLoading(false);
     }
@@ -53,15 +47,15 @@ export default function PatientExamsPanel({ patientId }: PatientExamsPanelProps)
     try {
       const blob = await examsApi.download(exam.id);
       const url = URL.createObjectURL(blob);
-      window.open(url, "_blank");
+      window.open(url, '_blank');
       setTimeout(() => URL.revokeObjectURL(url), 60000);
     } catch {
-      setError("Erro ao baixar exame.");
+      setError('Erro ao baixar exame.');
     }
   };
 
   const getFileIcon = (mimeType: string) => {
-    if (mimeType === "application/pdf") return <FileText className="w-5 h-5 text-red-500" />;
+    if (mimeType === 'application/pdf') return <FileText className="w-5 h-5 text-red-500" />;
     return <ImageIcon className="w-5 h-5 text-blue-500" />;
   };
 
@@ -93,7 +87,9 @@ export default function PatientExamsPanel({ patientId }: PatientExamsPanelProps)
         <div className="text-center py-8">
           <FileText className="w-10 h-10 mx-auto mb-3 text-gray-300" />
           <p className="text-sm text-gray-500">Nenhum exame compartilhado com você.</p>
-          <p className="text-xs text-gray-400 mt-1">O paciente precisa compartilhar exames para que apareçam aqui.</p>
+          <p className="text-xs text-gray-400 mt-1">
+            O paciente precisa compartilhar exames para que apareçam aqui.
+          </p>
         </div>
       ) : (
         <div className="space-y-3">

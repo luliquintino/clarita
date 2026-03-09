@@ -1,40 +1,40 @@
-"use client";
+'use client';
 
-import { useState, Suspense } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
-import Link from "next/link";
-import { ArrowLeft, Loader2, Lock, CheckCircle, Eye, EyeOff, ShieldAlert } from "lucide-react";
-import Image from "next/image";
-import { authApi } from "@/lib/api";
+import { useState, Suspense } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
+import Link from 'next/link';
+import { ArrowLeft, Loader2, Lock, CheckCircle, Eye, EyeOff, ShieldAlert } from 'lucide-react';
+import Image from 'next/image';
+import { authApi } from '@/lib/api';
 
 function ResetPasswordForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const token = searchParams.get("token");
+  const token = searchParams.get('token');
 
-  const [password, setPassword] = useState("");
-  const [confirmPassword, setConfirmPassword] = useState("");
+  const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
-  const [error, setError] = useState("");
+  const [error, setError] = useState('');
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError("");
+    setError('');
 
     if (password.length < 8) {
-      setError("A senha deve ter pelo menos 8 caracteres.");
+      setError('A senha deve ter pelo menos 8 caracteres.');
       return;
     }
 
     if (password !== confirmPassword) {
-      setError("As senhas não coincidem.");
+      setError('As senhas não coincidem.');
       return;
     }
 
     if (!token) {
-      setError("Token inválido. Solicite um novo link de recuperação.");
+      setError('Token inválido. Solicite um novo link de recuperação.');
       return;
     }
 
@@ -43,11 +43,9 @@ function ResetPasswordForm() {
     try {
       await authApi.resetPassword(token, password);
       setSuccess(true);
-      setTimeout(() => router.push("/login"), 3000);
+      setTimeout(() => router.push('/login'), 3000);
     } catch (err) {
-      setError(
-        err instanceof Error ? err.message : "Erro ao redefinir senha. Tente novamente."
-      );
+      setError(err instanceof Error ? err.message : 'Erro ao redefinir senha. Tente novamente.');
     } finally {
       setLoading(false);
     }
@@ -59,9 +57,7 @@ function ResetPasswordForm() {
         <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-red-100 to-red-200 rounded-full mb-4">
           <ShieldAlert size={32} className="text-red-400" />
         </div>
-        <h2 className="text-2xl font-semibold text-gray-800 mb-2">
-          Link inválido
-        </h2>
+        <h2 className="text-2xl font-semibold text-gray-800 mb-2">Link inválido</h2>
         <p className="text-sm text-gray-500 mb-6">
           Este link de recuperação é inválido ou expirou. Solicite um novo.
         </p>
@@ -82,9 +78,7 @@ function ResetPasswordForm() {
           <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-clarita-green-100 to-clarita-green-200 rounded-full mb-4">
             <CheckCircle size={32} className="text-clarita-green-500" />
           </div>
-          <h2 className="text-2xl font-semibold text-gray-800 mb-2">
-            Senha redefinida!
-          </h2>
+          <h2 className="text-2xl font-semibold text-gray-800 mb-2">Senha redefinida!</h2>
           <p className="text-sm text-gray-500 mb-4">
             Sua senha foi alterada com sucesso. Redirecionando para o login...
           </p>
@@ -97,15 +91,11 @@ function ResetPasswordForm() {
               <Lock size={22} className="text-clarita-purple-500" />
             </div>
             <div>
-              <h2 className="text-xl font-semibold text-gray-800">
-                Redefinir senha
-              </h2>
+              <h2 className="text-xl font-semibold text-gray-800">Redefinir senha</h2>
               <p className="text-xs text-gray-400">Escolha uma senha segura</p>
             </div>
           </div>
-          <p className="text-sm text-gray-500 mb-6 mt-4">
-            Digite sua nova senha abaixo.
-          </p>
+          <p className="text-sm text-gray-500 mb-6 mt-4">Digite sua nova senha abaixo.</p>
 
           <form onSubmit={handleSubmit} className="space-y-5">
             {error && (
@@ -116,16 +106,13 @@ function ResetPasswordForm() {
             )}
 
             <div>
-              <label
-                htmlFor="password"
-                className="block text-sm font-medium text-gray-600 mb-2"
-              >
+              <label htmlFor="password" className="block text-sm font-medium text-gray-600 mb-2">
                 Nova senha
               </label>
               <div className="relative">
                 <input
                   id="password"
-                  type={showPassword ? "text" : "password"}
+                  type={showPassword ? 'text' : 'password'}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   className="input-field py-3.5 pr-11"
@@ -154,7 +141,7 @@ function ResetPasswordForm() {
               </label>
               <input
                 id="confirmPassword"
-                type={showPassword ? "text" : "password"}
+                type={showPassword ? 'text' : 'password'}
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
                 className="input-field py-3.5"
@@ -169,11 +156,7 @@ function ResetPasswordForm() {
               disabled={loading}
               className="btn-primary w-full py-3.5 text-base rounded-xl"
             >
-              {loading ? (
-                <Loader2 size={20} className="animate-spin" />
-              ) : (
-                "Redefinir senha"
-              )}
+              {loading ? <Loader2 size={20} className="animate-spin" /> : 'Redefinir senha'}
             </button>
           </form>
 
@@ -196,19 +179,31 @@ export default function ResetPasswordPage() {
   return (
     <div className="min-h-screen flex items-center justify-center relative overflow-hidden px-4">
       <div className="absolute top-[-10%] right-[-5%] w-[400px] h-[400px] rounded-full bg-clarita-green-200/30 blur-3xl animate-float" />
-      <div className="absolute bottom-[-10%] left-[-5%] w-[400px] h-[400px] rounded-full bg-clarita-purple-200/30 blur-3xl animate-float" style={{ animationDelay: "1.5s" }} />
+      <div
+        className="absolute bottom-[-10%] left-[-5%] w-[400px] h-[400px] rounded-full bg-clarita-purple-200/30 blur-3xl animate-float"
+        style={{ animationDelay: '1.5s' }}
+      />
 
       <div className="w-full max-w-md relative z-10 animate-slide-up">
         <div className="text-center mb-8">
-          <Image src="/logo-clarita.png" alt="Clarita" width={120} height={96} className="mx-auto mb-3 drop-shadow-lg" priority />
+          <Image
+            src="/logo-clarita.png"
+            alt="Clarita"
+            width={120}
+            height={96}
+            className="mx-auto mb-3 drop-shadow-lg"
+            priority
+          />
           <p className="text-gray-500 text-sm font-light">Plataforma de Saúde Mental</p>
         </div>
 
-        <Suspense fallback={
-          <div className="bg-white/70 backdrop-blur-xl rounded-3xl shadow-2xl border border-white/40 p-8 text-center">
-            <Loader2 size={24} className="animate-spin text-clarita-green-500 mx-auto" />
-          </div>
-        }>
+        <Suspense
+          fallback={
+            <div className="bg-white/70 backdrop-blur-xl rounded-3xl shadow-2xl border border-white/40 p-8 text-center">
+              <Loader2 size={24} className="animate-spin text-clarita-green-500 mx-auto" />
+            </div>
+          }
+        >
           <ResetPasswordForm />
         </Suspense>
       </div>

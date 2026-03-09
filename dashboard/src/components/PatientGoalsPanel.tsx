@@ -1,71 +1,59 @@
-"use client";
+'use client';
 
-import { useState } from "react";
-import { format } from "date-fns";
-import { ptBR } from "date-fns/locale";
-import {
-  Target,
-  Clock,
-  Check,
-  X,
-  Loader2,
-  Trophy,
-  Pause,
-  Calendar,
-  User,
-} from "lucide-react";
-import type { Goal } from "@/lib/api";
+import { useState } from 'react';
+import { format } from 'date-fns';
+import { ptBR } from 'date-fns/locale';
+import { Target, Clock, Check, X, Loader2, Trophy, Pause, Calendar, User } from 'lucide-react';
+import type { Goal } from '@/lib/api';
 
 interface PatientGoalsPanelProps {
   goals: Goal[];
   loading: boolean;
-  onRespond: (goalId: string, action: "accept" | "reject", reason?: string) => Promise<void>;
+  onRespond: (goalId: string, action: 'accept' | 'reject', reason?: string) => Promise<void>;
 }
 
-type TabKey = "pending" | "active" | "rejected";
+type TabKey = 'pending' | 'active' | 'rejected';
 
 const statusConfig: Record<string, { label: string; color: string; icon: React.ReactNode }> = {
-  in_progress: { label: "Em andamento", color: "text-clarita-blue-500", icon: <Target size={12} /> },
-  paused: { label: "Pausada", color: "text-yellow-500", icon: <Pause size={12} /> },
-  achieved: { label: "Conquistada", color: "text-clarita-green-600", icon: <Trophy size={12} /> },
-  cancelled: { label: "Cancelada", color: "text-gray-400", icon: <X size={12} /> },
+  in_progress: {
+    label: 'Em andamento',
+    color: 'text-clarita-blue-500',
+    icon: <Target size={12} />,
+  },
+  paused: { label: 'Pausada', color: 'text-yellow-500', icon: <Pause size={12} /> },
+  achieved: { label: 'Conquistada', color: 'text-clarita-green-600', icon: <Trophy size={12} /> },
+  cancelled: { label: 'Cancelada', color: 'text-gray-400', icon: <X size={12} /> },
 };
 
 function getStatusBadgeClasses(status: string): string {
   switch (status) {
-    case "in_progress":
-      return "badge-green";
-    case "paused":
-      return "badge-yellow";
-    case "achieved":
-      return "badge-green";
-    case "cancelled":
-      return "badge text-gray-400 bg-gray-100 border border-gray-200/50";
+    case 'in_progress':
+      return 'badge-green';
+    case 'paused':
+      return 'badge-yellow';
+    case 'achieved':
+      return 'badge-green';
+    case 'cancelled':
+      return 'badge text-gray-400 bg-gray-100 border border-gray-200/50';
     default:
-      return "badge-green";
+      return 'badge-green';
   }
 }
 
-export default function PatientGoalsPanel({
-  goals,
-  loading,
-  onRespond,
-}: PatientGoalsPanelProps) {
+export default function PatientGoalsPanel({ goals, loading, onRespond }: PatientGoalsPanelProps) {
   const [rejectingId, setRejectingId] = useState<string | null>(null);
-  const [rejectReason, setRejectReason] = useState("");
+  const [rejectReason, setRejectReason] = useState('');
   const [respondingId, setRespondingId] = useState<string | null>(null);
-  const [activeTab, setActiveTab] = useState<TabKey>("pending");
+  const [activeTab, setActiveTab] = useState<TabKey>('pending');
 
-  const pending = goals.filter((g) => g.patient_status === "pending");
-  const active = goals.filter(
-    (g) => g.patient_status === "accepted" && g.status !== "cancelled"
-  );
-  const rejected = goals.filter((g) => g.patient_status === "rejected");
+  const pending = goals.filter((g) => g.patient_status === 'pending');
+  const active = goals.filter((g) => g.patient_status === 'accepted' && g.status !== 'cancelled');
+  const rejected = goals.filter((g) => g.patient_status === 'rejected');
 
   const handleAccept = async (goalId: string) => {
     setRespondingId(goalId);
     try {
-      await onRespond(goalId, "accept");
+      await onRespond(goalId, 'accept');
     } finally {
       setRespondingId(null);
     }
@@ -74,9 +62,9 @@ export default function PatientGoalsPanel({
   const handleReject = async (goalId: string) => {
     setRespondingId(goalId);
     try {
-      await onRespond(goalId, "reject", rejectReason || undefined);
+      await onRespond(goalId, 'reject', rejectReason || undefined);
       setRejectingId(null);
-      setRejectReason("");
+      setRejectReason('');
     } finally {
       setRespondingId(null);
     }
@@ -84,12 +72,12 @@ export default function PatientGoalsPanel({
 
   // Auto-select the first tab that has content
   const effectiveTab = (() => {
-    if (activeTab === "pending" && pending.length > 0) return "pending";
-    if (activeTab === "active" && active.length > 0) return "active";
-    if (activeTab === "rejected" && rejected.length > 0) return "rejected";
-    if (pending.length > 0) return "pending";
-    if (active.length > 0) return "active";
-    if (rejected.length > 0) return "rejected";
+    if (activeTab === 'pending' && pending.length > 0) return 'pending';
+    if (activeTab === 'active' && active.length > 0) return 'active';
+    if (activeTab === 'rejected' && rejected.length > 0) return 'rejected';
+    if (pending.length > 0) return 'pending';
+    if (active.length > 0) return 'active';
+    if (rejected.length > 0) return 'rejected';
     return activeTab;
   })();
 
@@ -132,9 +120,9 @@ export default function PatientGoalsPanel({
   }
 
   const tabs: { key: TabKey; label: string; count: number }[] = [
-    { key: "pending", label: "Pendentes", count: pending.length },
-    { key: "active", label: "Ativas", count: active.length },
-    { key: "rejected", label: "Recusadas", count: rejected.length },
+    { key: 'pending', label: 'Pendentes', count: pending.length },
+    { key: 'active', label: 'Ativas', count: active.length },
+    { key: 'rejected', label: 'Recusadas', count: rejected.length },
   ];
 
   return (
@@ -146,7 +134,7 @@ export default function PatientGoalsPanel({
         </div>
         <h3 className="text-lg font-semibold text-gray-800">Minhas Metas</h3>
         <span className="badge-purple ml-auto">
-          {goals.length} {goals.length === 1 ? "meta" : "metas"}
+          {goals.length} {goals.length === 1 ? 'meta' : 'metas'}
         </span>
       </div>
 
@@ -161,16 +149,16 @@ export default function PatientGoalsPanel({
               onClick={() => setActiveTab(tab.key)}
               className={`px-4 py-2 text-sm font-medium transition-all duration-200 border-b-2 -mb-px ${
                 isActive
-                  ? "border-clarita-purple-500 text-clarita-purple-700"
-                  : "border-transparent text-gray-400 hover:text-gray-600 hover:border-gray-200"
+                  ? 'border-clarita-purple-500 text-clarita-purple-700'
+                  : 'border-transparent text-gray-400 hover:text-gray-600 hover:border-gray-200'
               }`}
             >
               {tab.label}
               <span
                 className={`ml-1.5 text-xs px-1.5 py-0.5 rounded-full ${
                   isActive
-                    ? "bg-clarita-purple-100 text-clarita-purple-600"
-                    : "bg-gray-100 text-gray-400"
+                    ? 'bg-clarita-purple-100 text-clarita-purple-600'
+                    : 'bg-gray-100 text-gray-400'
                 }`}
               >
                 {tab.count}
@@ -183,7 +171,7 @@ export default function PatientGoalsPanel({
       {/* Tab content */}
       <div className="space-y-3">
         {/* Pending Goals */}
-        {effectiveTab === "pending" && (
+        {effectiveTab === 'pending' && (
           <div className="animate-fade-in">
             <div className="flex items-center gap-1.5 mb-3">
               <Clock size={14} className="text-clarita-purple-400" />
@@ -216,7 +204,8 @@ export default function PatientGoalsPanel({
                       {goal.target_date && (
                         <span className="flex items-center gap-1">
                           <Calendar size={10} />
-                          Ate {format(new Date(goal.target_date), "d 'de' MMMM yyyy", { locale: ptBR })}
+                          Ate{' '}
+                          {format(new Date(goal.target_date), "d 'de' MMMM yyyy", { locale: ptBR })}
                         </span>
                       )}
                     </div>
@@ -247,7 +236,7 @@ export default function PatientGoalsPanel({
                         <button
                           onClick={() => {
                             setRejectingId(null);
-                            setRejectReason("");
+                            setRejectReason('');
                           }}
                           className="btn-secondary text-sm px-4 py-2"
                         >
@@ -261,7 +250,7 @@ export default function PatientGoalsPanel({
                         onClick={() => handleAccept(goal.id)}
                         disabled={respondingId === goal.id}
                         className="inline-flex items-center justify-center gap-1.5 px-4 py-2 text-sm font-medium text-white rounded-xl transition-all duration-300 hover:scale-[1.02] hover:shadow-lg active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed"
-                        style={{ background: "linear-gradient(135deg, #14b8a6 0%, #0d9488 100%)" }}
+                        style={{ background: 'linear-gradient(135deg, #14b8a6 0%, #0d9488 100%)' }}
                       >
                         {respondingId === goal.id ? (
                           <Loader2 size={14} className="animate-spin" />
@@ -286,7 +275,7 @@ export default function PatientGoalsPanel({
         )}
 
         {/* Active Goals */}
-        {effectiveTab === "active" && (
+        {effectiveTab === 'active' && (
           <div className="animate-fade-in">
             <div className="flex items-center gap-1.5 mb-3">
               <Check size={14} className="text-clarita-green-500" />
@@ -312,11 +301,13 @@ export default function PatientGoalsPanel({
                           {goal.target_date && (
                             <span className="text-[10px] text-gray-400 flex items-center gap-0.5">
                               <Calendar size={10} />
-                              {format(new Date(goal.target_date), "dd/MM/yyyy")}
+                              {format(new Date(goal.target_date), 'dd/MM/yyyy')}
                             </span>
                           )}
                         </div>
-                        <h4 className={`font-medium text-gray-800 ${goal.status === "achieved" ? "line-through text-gray-500" : ""}`}>
+                        <h4
+                          className={`font-medium text-gray-800 ${goal.status === 'achieved' ? 'line-through text-gray-500' : ''}`}
+                        >
                           {goal.title}
                         </h4>
                         {goal.description && (
@@ -327,7 +318,8 @@ export default function PatientGoalsPanel({
                         {goal.achieved_at && (
                           <p className="text-[10px] text-clarita-green-500 mt-1 flex items-center gap-1">
                             <Trophy size={10} />
-                            Conquistada em {format(new Date(goal.achieved_at), "d 'de' MMMM", { locale: ptBR })}
+                            Conquistada em{' '}
+                            {format(new Date(goal.achieved_at), "d 'de' MMMM", { locale: ptBR })}
                           </p>
                         )}
                       </div>
@@ -340,7 +332,7 @@ export default function PatientGoalsPanel({
         )}
 
         {/* Rejected Goals */}
-        {effectiveTab === "rejected" && (
+        {effectiveTab === 'rejected' && (
           <div className="animate-fade-in">
             <div className="flex items-center gap-1.5 mb-3">
               <X size={14} className="text-gray-400" />
@@ -354,9 +346,7 @@ export default function PatientGoalsPanel({
                   key={goal.id}
                   className="bg-white/40 backdrop-blur-sm rounded-2xl p-4 border border-white/30 opacity-70 animate-fade-in"
                 >
-                  <h4 className="font-medium text-gray-500 text-sm line-through">
-                    {goal.title}
-                  </h4>
+                  <h4 className="font-medium text-gray-500 text-sm line-through">{goal.title}</h4>
                   {goal.rejection_reason && (
                     <div className="mt-1.5 p-2 bg-red-50/60 rounded-lg">
                       <p className="text-xs text-red-500">
@@ -366,7 +356,8 @@ export default function PatientGoalsPanel({
                   )}
                   {goal.responded_at && (
                     <p className="text-[10px] text-gray-400 mt-1">
-                      Recusada em {format(new Date(goal.responded_at), "d 'de' MMMM", { locale: ptBR })}
+                      Recusada em{' '}
+                      {format(new Date(goal.responded_at), "d 'de' MMMM", { locale: ptBR })}
                     </p>
                   )}
                 </div>

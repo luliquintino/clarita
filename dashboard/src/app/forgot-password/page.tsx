@@ -1,29 +1,27 @@
-"use client";
+'use client';
 
-import { useState } from "react";
-import Link from "next/link";
-import { ArrowLeft, Loader2, Mail, CheckCircle } from "lucide-react";
-import Image from "next/image";
-import { authApi } from "@/lib/api";
+import { useState } from 'react';
+import Link from 'next/link';
+import { ArrowLeft, Loader2, Mail, CheckCircle } from 'lucide-react';
+import Image from 'next/image';
+import { authApi } from '@/lib/api';
 
 export default function ForgotPasswordPage() {
-  const [email, setEmail] = useState("");
+  const [email, setEmail] = useState('');
   const [loading, setLoading] = useState(false);
   const [sent, setSent] = useState(false);
-  const [error, setError] = useState("");
+  const [error, setError] = useState('');
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError("");
+    setError('');
     setLoading(true);
 
     try {
       await authApi.forgotPassword(email);
       setSent(true);
     } catch (err) {
-      setError(
-        err instanceof Error ? err.message : "Erro ao enviar email. Tente novamente."
-      );
+      setError(err instanceof Error ? err.message : 'Erro ao enviar email. Tente novamente.');
     } finally {
       setLoading(false);
     }
@@ -32,11 +30,21 @@ export default function ForgotPasswordPage() {
   return (
     <div className="min-h-screen flex items-center justify-center relative overflow-hidden px-4">
       <div className="absolute top-[-10%] left-[-5%] w-[400px] h-[400px] rounded-full bg-clarita-blue-200/30 blur-3xl animate-float" />
-      <div className="absolute bottom-[-10%] right-[-5%] w-[400px] h-[400px] rounded-full bg-clarita-purple-200/30 blur-3xl animate-float" style={{ animationDelay: "1.5s" }} />
+      <div
+        className="absolute bottom-[-10%] right-[-5%] w-[400px] h-[400px] rounded-full bg-clarita-purple-200/30 blur-3xl animate-float"
+        style={{ animationDelay: '1.5s' }}
+      />
 
       <div className="w-full max-w-md relative z-10 animate-slide-up">
         <div className="text-center mb-8">
-          <Image src="/logo-clarita.png" alt="Clarita" width={120} height={96} className="mx-auto mb-3 drop-shadow-lg" priority />
+          <Image
+            src="/logo-clarita.png"
+            alt="Clarita"
+            width={120}
+            height={96}
+            className="mx-auto mb-3 drop-shadow-lg"
+            priority
+          />
           <p className="text-gray-500 text-sm font-light">Plataforma de Saúde Mental</p>
         </div>
 
@@ -46,12 +54,10 @@ export default function ForgotPasswordPage() {
               <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-clarita-green-100 to-clarita-green-200 rounded-full mb-4">
                 <CheckCircle size={32} className="text-clarita-green-500" />
               </div>
-              <h2 className="text-2xl font-semibold text-gray-800 mb-2">
-                Email enviado!
-              </h2>
+              <h2 className="text-2xl font-semibold text-gray-800 mb-2">Email enviado!</h2>
               <p className="text-sm text-gray-500 mb-6 leading-relaxed">
-                Se este email estiver cadastrado, você receberá um link para
-                redefinir sua senha. Verifique sua caixa de entrada e a pasta de spam.
+                Se este email estiver cadastrado, você receberá um link para redefinir sua senha.
+                Verifique sua caixa de entrada e a pasta de spam.
               </p>
               <Link
                 href="/login"
@@ -68,9 +74,7 @@ export default function ForgotPasswordPage() {
                   <Mail size={22} className="text-clarita-purple-500" />
                 </div>
                 <div>
-                  <h2 className="text-xl font-semibold text-gray-800">
-                    Esqueceu sua senha?
-                  </h2>
+                  <h2 className="text-xl font-semibold text-gray-800">Esqueceu sua senha?</h2>
                   <p className="text-xs text-gray-400">Sem problemas, acontece!</p>
                 </div>
               </div>
@@ -87,10 +91,7 @@ export default function ForgotPasswordPage() {
                 )}
 
                 <div>
-                  <label
-                    htmlFor="email"
-                    className="block text-sm font-medium text-gray-600 mb-2"
-                  >
+                  <label htmlFor="email" className="block text-sm font-medium text-gray-600 mb-2">
                     Endereço de email
                   </label>
                   <input
@@ -114,7 +115,7 @@ export default function ForgotPasswordPage() {
                   {loading ? (
                     <Loader2 size={20} className="animate-spin" />
                   ) : (
-                    "Enviar link de recuperação"
+                    'Enviar link de recuperação'
                   )}
                 </button>
               </form>

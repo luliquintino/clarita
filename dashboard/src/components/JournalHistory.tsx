@@ -1,45 +1,29 @@
-"use client";
+'use client';
 
-import { useState } from "react";
-import { format } from "date-fns";
-import { ptBR } from "date-fns/locale";
-import {
-  ChevronDown,
-  ChevronUp,
-  BookOpen,
-  Moon,
-} from "lucide-react";
-import type { JournalEntryData } from "@/lib/api";
+import { useState } from 'react';
+import { format } from 'date-fns';
+import { ptBR } from 'date-fns/locale';
+import { ChevronDown, ChevronUp, BookOpen, Moon } from 'lucide-react';
+import type { JournalEntryData } from '@/lib/api';
 
 interface JournalHistoryProps {
   entries: JournalEntryData[];
   loading?: boolean;
 }
 
-const moodConfig: Record<
-  string,
-  { emoji: string; bg: string; label: string }
-> = {
-  low: { emoji: "😔", bg: "bg-red-100", label: "Difícil" },
-  neutral: { emoji: "😐", bg: "bg-yellow-100", label: "Neutro" },
-  good: { emoji: "😊", bg: "bg-clarita-green-100", label: "Bem" },
+const moodConfig: Record<string, { emoji: string; bg: string; label: string }> = {
+  low: { emoji: '😔', bg: 'bg-red-100', label: 'Difícil' },
+  neutral: { emoji: '😐', bg: 'bg-yellow-100', label: 'Neutro' },
+  good: { emoji: '😊', bg: 'bg-clarita-green-100', label: 'Bem' },
 };
 
 function getMoodLevel(score: number): string {
-  if (score <= 3) return "low";
-  if (score <= 6) return "neutral";
-  return "good";
+  if (score <= 3) return 'low';
+  if (score <= 6) return 'neutral';
+  return 'good';
 }
 
-function ScoreBadge({
-  label,
-  value,
-  color,
-}: {
-  label: string;
-  value: number;
-  color: string;
-}) {
+function ScoreBadge({ label, value, color }: { label: string; value: number; color: string }) {
   return (
     <span
       className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium ${color}`}
@@ -49,10 +33,7 @@ function ScoreBadge({
   );
 }
 
-export default function JournalHistory({
-  entries,
-  loading = false,
-}: JournalHistoryProps) {
+export default function JournalHistory({ entries, loading = false }: JournalHistoryProps) {
   const [expandedId, setExpandedId] = useState<string | null>(null);
 
   if (loading) {
@@ -88,12 +69,10 @@ export default function JournalHistory({
         <div className="w-16 h-16 mx-auto mb-4 bg-clarita-blue-50 rounded-full flex items-center justify-center">
           <BookOpen size={28} className="text-clarita-blue-400" />
         </div>
-        <p className="text-gray-600 font-medium">
-          Seu diário está esperando por você
-        </p>
+        <p className="text-gray-600 font-medium">Seu diário está esperando por você</p>
         <p className="text-sm text-gray-400 mt-1.5 max-w-xs mx-auto">
-          Cada registro é um passo na sua jornada de autoconhecimento.
-          Comece seu primeiro check-in acima!
+          Cada registro é um passo na sua jornada de autoconhecimento. Comece seu primeiro check-in
+          acima!
         </p>
       </div>
     );
@@ -156,11 +135,7 @@ export default function JournalHistory({
                 </div>
                 {entry.journal_entry && (
                   <span className="text-gray-400">
-                    {isExpanded ? (
-                      <ChevronUp size={18} />
-                    ) : (
-                      <ChevronDown size={18} />
-                    )}
+                    {isExpanded ? <ChevronUp size={18} /> : <ChevronDown size={18} />}
                   </span>
                 )}
               </div>
@@ -169,7 +144,7 @@ export default function JournalHistory({
                 <div className="mt-3 pt-3 border-t border-white/30">
                   <p
                     className={`text-sm text-gray-600 leading-relaxed ${
-                      isExpanded ? "" : "line-clamp-2"
+                      isExpanded ? '' : 'line-clamp-2'
                     }`}
                   >
                     {entry.journal_entry}

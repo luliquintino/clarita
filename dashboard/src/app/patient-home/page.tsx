@@ -1,17 +1,9 @@
-"use client";
+'use client';
 
-import { useState, useEffect, useCallback } from "react";
-import { useRouter } from "next/navigation";
-import {
-  LogOut,
-  Loader2,
-  Smile,
-  Target,
-  BookOpen,
-  Users,
-  FileText,
-} from "lucide-react";
-import Image from "next/image";
+import { useState, useEffect, useCallback } from 'react';
+import { useRouter } from 'next/navigation';
+import { LogOut, Loader2, Smile, Target, BookOpen, Users, FileText } from 'lucide-react';
+import Image from 'next/image';
 import {
   authApi,
   removeToken,
@@ -22,21 +14,51 @@ import {
   goalsApi,
   invitationsApi,
   onboardingApi,
-} from "@/lib/api";
-import type { AuthUser, JournalEntryData, ProfessionalInfo, Goal, Invitation } from "@/lib/api";
-import JournalEntry from "@/components/JournalEntry";
-import JournalHistory from "@/components/JournalHistory";
-import ProfessionalTabs from "@/components/ProfessionalTabs";
-import PatientGoalsPanel from "@/components/PatientGoalsPanel";
-import ExamUploadPanel from "@/components/ExamUploadPanel";
-import DisplayIdBadge from "@/components/DisplayIdBadge";
+} from '@/lib/api';
+import type { AuthUser, JournalEntryData, ProfessionalInfo, Goal, Invitation } from '@/lib/api';
+import JournalEntry from '@/components/JournalEntry';
+import JournalHistory from '@/components/JournalHistory';
+import ProfessionalTabs from '@/components/ProfessionalTabs';
+import PatientGoalsPanel from '@/components/PatientGoalsPanel';
+import ExamUploadPanel from '@/components/ExamUploadPanel';
+import DisplayIdBadge from '@/components/DisplayIdBadge';
 
 const tabConfig = [
-  { key: "checkin" as const, label: "Check-in", icon: Smile, activeClass: "tab-green-active", color: "text-clarita-green-500" },
-  { key: "goals" as const, label: "Metas", icon: Target, activeClass: "tab-purple-active", color: "text-clarita-purple-500" },
-  { key: "history" as const, label: "Histórico", icon: BookOpen, activeClass: "tab-blue-active", color: "text-clarita-blue-500" },
-  { key: "exams" as const, label: "Exames", icon: FileText, activeClass: "tab-green-active", color: "text-clarita-green-600" },
-  { key: "professionals" as const, label: "Profissionais", icon: Users, activeClass: "tab-orange-active", color: "text-orange-500" },
+  {
+    key: 'checkin' as const,
+    label: 'Check-in',
+    icon: Smile,
+    activeClass: 'tab-green-active',
+    color: 'text-clarita-green-500',
+  },
+  {
+    key: 'goals' as const,
+    label: 'Metas',
+    icon: Target,
+    activeClass: 'tab-purple-active',
+    color: 'text-clarita-purple-500',
+  },
+  {
+    key: 'history' as const,
+    label: 'Histórico',
+    icon: BookOpen,
+    activeClass: 'tab-blue-active',
+    color: 'text-clarita-blue-500',
+  },
+  {
+    key: 'exams' as const,
+    label: 'Exames',
+    icon: FileText,
+    activeClass: 'tab-green-active',
+    color: 'text-clarita-green-600',
+  },
+  {
+    key: 'professionals' as const,
+    label: 'Profissionais',
+    icon: Users,
+    activeClass: 'tab-orange-active',
+    color: 'text-orange-500',
+  },
 ];
 
 export default function PatientHomePage() {
@@ -57,16 +79,18 @@ export default function PatientHomePage() {
   const [pendingInvitations, setPendingInvitations] = useState<Invitation[]>([]);
   const [sentInvitations, setSentInvitations] = useState<Invitation[]>([]);
 
-  const [activeSection, setActiveSection] = useState<"checkin" | "history" | "goals" | "exams" | "professionals">("checkin");
+  const [activeSection, setActiveSection] = useState<
+    'checkin' | 'history' | 'goals' | 'exams' | 'professionals'
+  >('checkin');
 
   useEffect(() => {
     if (!isAuthenticated()) {
-      router.replace("/login");
+      router.replace('/login');
       return;
     }
     const role = getUserRoleFromToken();
-    if (role && role !== "patient") {
-      router.replace("/patients");
+    if (role && role !== 'patient') {
+      router.replace('/patients');
       return;
     }
     loadProfile();
@@ -75,15 +99,15 @@ export default function PatientHomePage() {
   const loadProfile = async () => {
     try {
       const response = await authApi.me();
-      if (response.user.role !== "patient") {
-        router.replace("/patients");
+      if (response.user.role !== 'patient') {
+        router.replace('/patients');
         return;
       }
 
       try {
         const onboardingRes = await onboardingApi.get();
         if (!onboardingRes.profile.onboarding_completed) {
-          router.replace("/onboarding");
+          router.replace('/onboarding');
           return;
         }
       } catch {
@@ -96,7 +120,7 @@ export default function PatientHomePage() {
       loadGoals(response.user.id);
       loadInvitations();
     } catch {
-      router.replace("/login");
+      router.replace('/login');
     } finally {
       setLoading(false);
     }
@@ -106,11 +130,10 @@ export default function PatientHomePage() {
     setJournalsLoading(true);
     try {
       const data = await journalApi.list({ limit: 20 });
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const raw = data as any;
       const entries: JournalEntryData[] = Array.isArray(raw)
         ? raw
-        : raw?.journals ?? raw?.emotional_logs ?? [];
+        : (raw?.journals ?? raw?.emotional_logs ?? []);
       setJournals(entries);
     } catch {
       setJournals([]);
@@ -123,11 +146,8 @@ export default function PatientHomePage() {
     setProfessionalsLoading(true);
     try {
       const data = await patientProfileApi.getMyProfessionals();
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const raw = data as any;
-      const profs: ProfessionalInfo[] = Array.isArray(raw)
-        ? raw
-        : raw?.professionals ?? [];
+      const profs: ProfessionalInfo[] = Array.isArray(raw) ? raw : (raw?.professionals ?? []);
       setProfessionals(profs);
     } catch {
       setProfessionals([]);
@@ -140,9 +160,8 @@ export default function PatientHomePage() {
     setGoalsLoading(true);
     try {
       const data = await goalsApi.list(userId);
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const raw = data as any;
-      const goalsList: Goal[] = Array.isArray(raw) ? raw : raw?.goals ?? [];
+      const goalsList: Goal[] = Array.isArray(raw) ? raw : (raw?.goals ?? []);
       setGoals(goalsList);
     } catch {
       setGoals([]);
@@ -171,14 +190,14 @@ export default function PatientHomePage() {
 
   const handleGoalRespond = async (
     goalId: string,
-    action: "accept" | "reject",
+    action: 'accept' | 'reject',
     reason?: string
   ) => {
     await goalsApi.respond(goalId, action, reason);
     if (user) await loadGoals(user.id);
   };
 
-  const pendingGoalsCount = goals.filter((g) => g.patient_status === "pending").length;
+  const pendingGoalsCount = goals.filter((g) => g.patient_status === 'pending').length;
 
   const handleJournalSubmit = async (data: {
     mood_score: number;
@@ -202,11 +221,7 @@ export default function PatientHomePage() {
       permissions: Array<{ permission_type: string; granted: boolean }>
     ) => {
       if (!user) return;
-      await patientProfileApi.updatePermissions(
-        user.id,
-        professionalId,
-        permissions
-      );
+      await patientProfileApi.updatePermissions(user.id, professionalId, permissions);
       await loadProfessionals();
     },
     [user]
@@ -214,7 +229,7 @@ export default function PatientHomePage() {
 
   const handleLogout = () => {
     removeToken();
-    router.push("/login");
+    router.push('/login');
   };
 
   if (loading) {
@@ -229,8 +244,9 @@ export default function PatientHomePage() {
   }
 
   const getBadge = (key: string) => {
-    if (key === "goals") return pendingGoalsCount;
-    if (key === "professionals") return pendingInvitations.filter(inv => inv.invited_by !== user?.id).length;
+    if (key === 'goals') return pendingGoalsCount;
+    if (key === 'professionals')
+      return pendingInvitations.filter((inv) => inv.invited_by !== user?.id).length;
     return 0;
   };
 
@@ -240,14 +256,18 @@ export default function PatientHomePage() {
       <header className="sticky top-0 z-30 glass rounded-none border-b border-white/30">
         <div className="max-w-5xl mx-auto flex items-center justify-between px-4 md:px-8 py-3">
           <div className="flex items-center gap-3">
-            <Image src="/logo-clarita.png" alt="Clarita" width={36} height={28} className="drop-shadow-sm" />
+            <Image
+              src="/logo-clarita.png"
+              alt="Clarita"
+              width={36}
+              height={28}
+              className="drop-shadow-sm"
+            />
             <div>
               <h1 className="text-base font-semibold text-gray-800">
-                Olá, {user?.first_name || "Paciente"}!
+                Olá, {user?.first_name || 'Paciente'}!
               </h1>
-              <p className="text-xs text-gray-400">
-                Como você está hoje?
-              </p>
+              <p className="text-xs text-gray-400">Como você está hoje?</p>
             </div>
           </div>
           <div className="flex items-center gap-3">
@@ -279,9 +299,7 @@ export default function PatientHomePage() {
                 key={tab.key}
                 onClick={() => setActiveSection(tab.key)}
                 className={`flex-1 flex items-center justify-center gap-1.5 py-2.5 text-xs font-medium rounded-xl transition-all duration-300 ${
-                  activeSection === tab.key
-                    ? tab.activeClass
-                    : "text-gray-400"
+                  activeSection === tab.key ? tab.activeClass : 'text-gray-400'
                 }`}
               >
                 <Icon size={15} />
@@ -301,16 +319,19 @@ export default function PatientHomePage() {
           {/* Left column */}
           <div
             className={`md:col-span-3 space-y-6 ${
-              activeSection !== "checkin" && activeSection !== "goals" && activeSection !== "history" && activeSection !== "exams"
-                ? "hidden md:block"
-                : ""
+              activeSection !== 'checkin' &&
+              activeSection !== 'goals' &&
+              activeSection !== 'history' &&
+              activeSection !== 'exams'
+                ? 'hidden md:block'
+                : ''
             }`}
           >
-            <div className={activeSection !== "checkin" ? "hidden md:block" : ""}>
+            <div className={activeSection !== 'checkin' ? 'hidden md:block' : ''}>
               <JournalEntry onSubmit={handleJournalSubmit} saving={saving} />
             </div>
 
-            <div className={activeSection !== "goals" ? "hidden md:block" : ""}>
+            <div className={activeSection !== 'goals' ? 'hidden md:block' : ''}>
               <PatientGoalsPanel
                 goals={goals}
                 loading={goalsLoading}
@@ -318,11 +339,11 @@ export default function PatientHomePage() {
               />
             </div>
 
-            <div className={activeSection !== "history" ? "hidden md:block" : ""}>
+            <div className={activeSection !== 'history' ? 'hidden md:block' : ''}>
               <JournalHistory entries={journals} loading={journalsLoading} />
             </div>
 
-            <div className={activeSection !== "exams" ? "hidden md:block" : ""}>
+            <div className={activeSection !== 'exams' ? 'hidden md:block' : ''}>
               <ExamUploadPanel />
             </div>
           </div>
@@ -330,7 +351,7 @@ export default function PatientHomePage() {
           {/* Right column */}
           <div
             className={`md:col-span-2 ${
-              activeSection !== "professionals" ? "hidden md:block" : ""
+              activeSection !== 'professionals' ? 'hidden md:block' : ''
             }`}
           >
             {professionalsLoading ? (
@@ -340,12 +361,12 @@ export default function PatientHomePage() {
             ) : (
               <ProfessionalTabs
                 professionals={professionals}
-                patientId={user?.id || ""}
+                patientId={user?.id || ''}
                 onPermissionChange={handlePermissionChange}
                 pendingInvitations={pendingInvitations}
                 sentInvitations={sentInvitations}
                 onInvitationsUpdate={handleInvitationsUpdate}
-                currentUserId={user?.id || ""}
+                currentUserId={user?.id || ''}
               />
             )}
           </div>

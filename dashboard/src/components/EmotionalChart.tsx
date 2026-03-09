@@ -1,6 +1,6 @@
-"use client";
+'use client';
 
-import { useState } from "react";
+import { useState } from 'react';
 import {
   LineChart,
   Line,
@@ -9,35 +9,35 @@ import {
   CartesianGrid,
   Tooltip,
   ResponsiveContainer,
-} from "recharts";
-import { format, subDays, isAfter } from "date-fns";
-import type { EmotionalLog } from "@/lib/api";
+} from 'recharts';
+import { format, subDays, isAfter } from 'date-fns';
+import type { EmotionalLog } from '@/lib/api';
 
 interface EmotionalChartProps {
   data: EmotionalLog[];
   loading?: boolean;
 }
 
-type TimeRange = "7d" | "30d" | "90d";
+type TimeRange = '7d' | '30d' | '90d';
 
 const timeRangeLabels: Record<TimeRange, string> = {
-  "7d": "7 dias",
-  "30d": "30 dias",
-  "90d": "90 dias",
+  '7d': '7 dias',
+  '30d': '30 dias',
+  '90d': '90 dias',
 };
 
 const lineColors = {
-  mood: "#14b8a6",
-  anxiety: "#f97316",
-  energy: "#3b82f6",
-  sleep_quality: "#8b5cf6",
+  mood: '#14b8a6',
+  anxiety: '#f97316',
+  energy: '#3b82f6',
+  sleep_quality: '#8b5cf6',
 };
 
 const lineLabels: Record<string, string> = {
-  mood: "humor",
-  anxiety: "ansiedade",
-  energy: "energia",
-  sleep_quality: "qualidade do sono",
+  mood: 'humor',
+  anxiety: 'ansiedade',
+  energy: 'energia',
+  sleep_quality: 'qualidade do sono',
 };
 
 interface CustomTooltipProps {
@@ -58,12 +58,9 @@ function CustomTooltip({ active, payload, label }: CustomTooltipProps) {
       <p className="text-xs font-medium text-gray-500 mb-2">{label}</p>
       {payload.map((item) => (
         <div key={item.name} className="flex items-center gap-2 text-sm">
-          <div
-            className="w-2.5 h-2.5 rounded-full"
-            style={{ backgroundColor: item.color }}
-          />
+          <div className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: item.color }} />
           <span className="text-gray-600 capitalize">
-            {lineLabels[item.name] ?? item.name.replace("_", " ")}:
+            {lineLabels[item.name] ?? item.name.replace('_', ' ')}:
           </span>
           <span className="font-medium text-gray-800">{item.value}/10</span>
         </div>
@@ -72,11 +69,8 @@ function CustomTooltip({ active, payload, label }: CustomTooltipProps) {
   );
 }
 
-export default function EmotionalChart({
-  data,
-  loading = false,
-}: EmotionalChartProps) {
-  const [timeRange, setTimeRange] = useState<TimeRange>("30d");
+export default function EmotionalChart({ data, loading = false }: EmotionalChartProps) {
+  const [timeRange, setTimeRange] = useState<TimeRange>('30d');
   const [visibleLines, setVisibleLines] = useState({
     mood: true,
     anxiety: true,
@@ -84,18 +78,15 @@ export default function EmotionalChart({
     sleep_quality: false,
   });
 
-  const rangeDays = timeRange === "7d" ? 7 : timeRange === "30d" ? 30 : 90;
+  const rangeDays = timeRange === '7d' ? 7 : timeRange === '30d' ? 30 : 90;
   const cutoff = subDays(new Date(), rangeDays);
 
   const filtered = data
     .filter((log) => isAfter(new Date(log.timestamp), cutoff))
-    .sort(
-      (a, b) =>
-        new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime()
-    );
+    .sort((a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime());
 
   const chartData = filtered.map((log) => ({
-    date: format(new Date(log.timestamp), "MMM d"),
+    date: format(new Date(log.timestamp), 'MMM d'),
     mood: log.mood,
     anxiety: log.anxiety,
     energy: log.energy,
@@ -129,8 +120,8 @@ export default function EmotionalChart({
               className={`px-4 py-1.5 text-xs font-medium rounded-full transition-all duration-300
                 ${
                   timeRange === range
-                    ? "bg-clarita-green-500 text-white shadow-sm"
-                    : "text-gray-500 hover:text-gray-700 hover:bg-white/50"
+                    ? 'bg-clarita-green-500 text-white shadow-sm'
+                    : 'text-gray-500 hover:text-gray-700 hover:bg-white/50'
                 }`}
             >
               {timeRangeLabels[range]}
@@ -141,9 +132,7 @@ export default function EmotionalChart({
 
       {/* Line toggle pills */}
       <div className="flex flex-wrap items-center gap-2 mb-4">
-        {(
-          Object.entries(lineColors) as [keyof typeof lineColors, string][]
-        ).map(([key, color]) => {
+        {(Object.entries(lineColors) as [keyof typeof lineColors, string][]).map(([key, color]) => {
           const isVisible = visibleLines[key as keyof typeof visibleLines];
 
           return (
@@ -153,18 +142,16 @@ export default function EmotionalChart({
               className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium transition-all duration-300
                 ${
                   isVisible
-                    ? "bg-white/60 backdrop-blur-sm shadow-sm border border-white/40"
-                    : "text-gray-400 hover:text-gray-600 hover:bg-white/30"
+                    ? 'bg-white/60 backdrop-blur-sm shadow-sm border border-white/40'
+                    : 'text-gray-400 hover:text-gray-600 hover:bg-white/30'
                 }`}
             >
               <div
                 className={`w-2.5 h-2.5 rounded-full transition-opacity duration-300
-                  ${isVisible ? "opacity-100" : "opacity-30"}`}
+                  ${isVisible ? 'opacity-100' : 'opacity-30'}`}
                 style={{ backgroundColor: color }}
               />
-              <span className="capitalize">
-                {lineLabels[key] ?? String(key).replace("_", " ")}
-              </span>
+              <span className="capitalize">{lineLabels[key] ?? String(key).replace('_', ' ')}</span>
             </button>
           );
         })}
@@ -177,14 +164,14 @@ export default function EmotionalChart({
             <CartesianGrid strokeDasharray="3 3" stroke="#e7e5e4" />
             <XAxis
               dataKey="date"
-              tick={{ fontSize: 11, fill: "#9ca3af" }}
-              axisLine={{ stroke: "#e7e5e4" }}
+              tick={{ fontSize: 11, fill: '#9ca3af' }}
+              axisLine={{ stroke: '#e7e5e4' }}
               tickLine={false}
             />
             <YAxis
               domain={[0, 10]}
-              tick={{ fontSize: 11, fill: "#9ca3af" }}
-              axisLine={{ stroke: "#e7e5e4" }}
+              tick={{ fontSize: 11, fill: '#9ca3af' }}
+              axisLine={{ stroke: '#e7e5e4' }}
               tickLine={false}
               width={30}
             />

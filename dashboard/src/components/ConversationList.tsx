@@ -1,9 +1,9 @@
-"use client";
+'use client';
 
-import { Brain, Stethoscope } from "lucide-react";
-import { formatDistanceToNow } from "date-fns";
-import { ptBR } from "date-fns/locale";
-import type { Conversation } from "@/lib/api";
+import { Brain, Stethoscope } from 'lucide-react';
+import { formatDistanceToNow } from 'date-fns';
+import { ptBR } from 'date-fns/locale';
+import type { Conversation } from '@/lib/api';
 
 interface ConversationListProps {
   conversations: Conversation[];
@@ -18,13 +18,13 @@ const roleIcons: Record<string, React.ReactNode> = {
 };
 
 const roleRingColor: Record<string, string> = {
-  psychologist: "ring-clarita-purple-400",
-  psychiatrist: "ring-clarita-green-400",
+  psychologist: 'ring-clarita-purple-400',
+  psychiatrist: 'ring-clarita-green-400',
 };
 
 const roleAvatarGradient: Record<string, string> = {
-  psychologist: "from-clarita-purple-100 to-clarita-purple-50",
-  psychiatrist: "from-clarita-green-100 to-clarita-green-50",
+  psychologist: 'from-clarita-purple-100 to-clarita-purple-50',
+  psychiatrist: 'from-clarita-green-100 to-clarita-green-50',
 };
 
 export default function ConversationList({
@@ -56,10 +56,11 @@ export default function ConversationList({
               addSuffix: true,
               locale: ptBR,
             })
-          : "";
+          : '';
         const isMyLastMessage = conv.last_message_sender_id === currentUserId;
-        const ringColor = roleRingColor[conv.other_role] || "ring-clarita-beige-300";
-        const avatarGradient = roleAvatarGradient[conv.other_role] || "from-clarita-beige-200 to-clarita-beige-100";
+        const ringColor = roleRingColor[conv.other_role] || 'ring-clarita-beige-300';
+        const avatarGradient =
+          roleAvatarGradient[conv.other_role] || 'from-clarita-beige-200 to-clarita-beige-100';
 
         return (
           <button
@@ -68,14 +69,16 @@ export default function ConversationList({
             className={`w-full text-left px-3.5 py-3 rounded-2xl transition-all duration-300 group
               ${
                 isActive
-                  ? "bg-white/80 backdrop-blur-sm shadow-soft border border-clarita-green-200/60"
-                  : "hover:bg-white/50 hover:backdrop-blur-sm hover:shadow-soft hover:-translate-y-0.5 border border-transparent"
+                  ? 'bg-white/80 backdrop-blur-sm shadow-soft border border-clarita-green-200/60'
+                  : 'hover:bg-white/50 hover:backdrop-blur-sm hover:shadow-soft hover:-translate-y-0.5 border border-transparent'
               }`}
           >
             <div className="flex items-start justify-between">
               <div className="flex items-center gap-3 min-w-0">
                 {/* Avatar with role-colored ring */}
-                <div className={`w-10 h-10 rounded-full bg-gradient-to-br ${avatarGradient} flex items-center justify-center flex-shrink-0 text-xs font-bold text-gray-600 ring-2 ${ringColor} ring-offset-2 ring-offset-white/70 transition-shadow duration-300 group-hover:shadow-md`}>
+                <div
+                  className={`w-10 h-10 rounded-full bg-gradient-to-br ${avatarGradient} flex items-center justify-center flex-shrink-0 text-xs font-bold text-gray-600 ring-2 ${ringColor} ring-offset-2 ring-offset-white/70 transition-shadow duration-300 group-hover:shadow-md`}
+                >
                   {conv.other_first_name[0]}
                   {conv.other_last_name[0]}
                 </div>
@@ -97,17 +100,21 @@ export default function ConversationList({
                   <span className="text-[10px] text-gray-400 font-medium">{timeAgo}</span>
                 )}
                 {conv.unread_count > 0 && (
-                  <span className="min-w-[22px] h-[22px] px-1.5 text-white text-[10px] font-bold rounded-full flex items-center justify-center shadow-md"
-                    style={{ background: "linear-gradient(135deg, #14b8a6, #8b5cf6)" }}>
-                    {conv.unread_count > 9 ? "9+" : conv.unread_count}
+                  <span
+                    className="min-w-[22px] h-[22px] px-1.5 text-white text-[10px] font-bold rounded-full flex items-center justify-center shadow-md"
+                    style={{ background: 'linear-gradient(135deg, #14b8a6, #8b5cf6)' }}
+                  >
+                    {conv.unread_count > 9 ? '9+' : conv.unread_count}
                   </span>
                 )}
               </div>
             </div>
 
             {conv.last_message && (
-              <p className={`text-xs mt-1.5 line-clamp-1 pl-[52px] ${conv.unread_count > 0 ? "text-gray-600 font-medium" : "text-gray-400"}`}>
-                {isMyLastMessage ? "Você: " : ""}
+              <p
+                className={`text-xs mt-1.5 line-clamp-1 pl-[52px] ${conv.unread_count > 0 ? 'text-gray-600 font-medium' : 'text-gray-400'}`}
+              >
+                {isMyLastMessage ? 'Você: ' : ''}
                 {conv.last_message}
               </p>
             )}

@@ -2,26 +2,26 @@
 // CLARITA API Client
 // ============================================================================
 
-const BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001/api";
+const BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api';
 
 // ---------------------------------------------------------------------------
 // Token helpers
 // ---------------------------------------------------------------------------
 
 export function getToken(): string | null {
-  if (typeof window === "undefined") return null;
-  return localStorage.getItem("clarita_token");
+  if (typeof window === 'undefined') return null;
+  return localStorage.getItem('clarita_token');
 }
 
 export function setToken(token: string): void {
-  if (typeof window !== "undefined") {
-    localStorage.setItem("clarita_token", token);
+  if (typeof window !== 'undefined') {
+    localStorage.setItem('clarita_token', token);
   }
 }
 
 export function removeToken(): void {
-  if (typeof window !== "undefined") {
-    localStorage.removeItem("clarita_token");
+  if (typeof window !== 'undefined') {
+    localStorage.removeItem('clarita_token');
   }
 }
 
@@ -33,7 +33,7 @@ export function getUserRoleFromToken(): string | null {
   const token = getToken();
   if (!token) return null;
   try {
-    const payload = JSON.parse(atob(token.split(".")[1]));
+    const payload = JSON.parse(atob(token.split('.')[1]));
     return payload.role || null;
   } catch {
     return null;
@@ -50,7 +50,7 @@ export class ApiError extends Error {
 
   constructor(status: number, detail: string) {
     super(detail);
-    this.name = "ApiError";
+    this.name = 'ApiError';
     this.status = status;
     this.detail = detail;
   }
@@ -60,19 +60,16 @@ export class ApiError extends Error {
 // Typed fetch wrapper
 // ---------------------------------------------------------------------------
 
-async function request<T>(
-  endpoint: string,
-  options: RequestInit = {}
-): Promise<T> {
+async function request<T>(endpoint: string, options: RequestInit = {}): Promise<T> {
   const token = getToken();
 
   const headers: Record<string, string> = {
-    "Content-Type": "application/json",
+    'Content-Type': 'application/json',
     ...(options.headers as Record<string, string>),
   };
 
   if (token) {
-    headers["Authorization"] = `Bearer ${token}`;
+    headers['Authorization'] = `Bearer ${token}`;
   }
 
   const response = await fetch(`${BASE_URL}${endpoint}`, {
@@ -85,12 +82,12 @@ async function request<T>(
       // Only redirect if we had a token (expired session), not on login failure
       const hadToken = !!getToken();
       removeToken();
-      if (hadToken && typeof window !== "undefined") {
-        window.location.href = "/login";
+      if (hadToken && typeof window !== 'undefined') {
+        window.location.href = '/login';
       }
     }
 
-    let detail = "An error occurred";
+    let detail = 'An error occurred';
     try {
       const errorBody = await response.json();
       detail = errorBody.detail || errorBody.message || errorBody.error || detail;
@@ -115,7 +112,7 @@ export interface Professional {
   id: string;
   email: string;
   full_name: string;
-  role: "psychiatrist" | "psychologist" | "therapist";
+  role: 'psychiatrist' | 'psychologist' | 'therapist';
   license_number: string;
   created_at: string;
 }
@@ -123,7 +120,7 @@ export interface Professional {
 export interface AuthUser {
   id: string;
   email: string;
-  role: "patient" | "psychologist" | "psychiatrist";
+  role: 'patient' | 'psychologist' | 'psychiatrist';
   first_name: string;
   last_name: string;
   phone?: string;
@@ -153,7 +150,7 @@ export interface Patient {
   phone: string;
   emergency_contact: string;
   diagnosis: string[];
-  status: "active" | "inactive" | "discharged";
+  status: 'active' | 'inactive' | 'discharged';
   last_check_in: string | null;
   mood_trend: number[];
   active_alerts: number;
@@ -176,18 +173,24 @@ export interface EmotionalLog {
 export interface TimelineEntry {
   id: string;
   patient_id: string;
-  type: "emotional_log" | "life_event" | "medication_change" | "symptom" | "symptom_report" | "assessment";
+  type:
+    | 'emotional_log'
+    | 'life_event'
+    | 'medication_change'
+    | 'symptom'
+    | 'symptom_report'
+    | 'assessment';
   title: string;
   description: string;
   timestamp: string;
-  severity?: "low" | "medium" | "high" | "critical";
+  severity?: 'low' | 'medium' | 'high' | 'critical';
   metadata?: Record<string, unknown>;
 }
 
 export interface Assessment {
   id: string;
   patient_id: string;
-  type: "PHQ-9" | "GAD-7";
+  type: 'PHQ-9' | 'GAD-7';
   score: number;
   severity: string;
   answers: Record<string, number>;
@@ -200,7 +203,7 @@ export interface ClinicalNote {
   patient_id: string;
   professional_id: string;
   professional_name: string;
-  type: "session" | "observation" | "treatment_plan" | "progress";
+  type: 'session' | 'observation' | 'treatment_plan' | 'progress';
   title: string;
   content: string;
   created_at: string;
@@ -215,7 +218,7 @@ export interface Medication {
   frequency: string;
   prescribed_by: string;
   prescribed_date: string;
-  status: "active" | "discontinued" | "adjusted";
+  status: 'active' | 'discontinued' | 'adjusted';
   adherence_rate: number;
   side_effects: string[];
   notes: string;
@@ -228,8 +231,8 @@ export interface Alert {
   type: string;
   title: string;
   description: string;
-  severity: "critical" | "high" | "medium" | "low";
-  status: "active" | "acknowledged" | "resolved";
+  severity: 'critical' | 'high' | 'medium' | 'low';
+  status: 'active' | 'acknowledged' | 'resolved';
   created_at: string;
   acknowledged_at: string | null;
   acknowledged_by: string | null;
@@ -242,7 +245,7 @@ export interface Insight {
   title: string;
   description: string;
   confidence: number;
-  impact: "high" | "medium" | "low";
+  impact: 'high' | 'medium' | 'low';
   recommendations: string[];
   generated_at: string;
 }
@@ -251,7 +254,7 @@ export interface DigitalTwinVariableState {
   current: number;
   avg_7d: number;
   avg_30d: number;
-  trend: "improving" | "worsening" | "stable";
+  trend: 'improving' | 'worsening' | 'stable';
   slope_7d: number;
 }
 
@@ -260,15 +263,15 @@ export interface DigitalTwinCorrelation {
   variable_b: string;
   pearson_r: number;
   p_value: number;
-  direction: "positive" | "negative";
-  strength: "strong" | "moderate" | "mild";
+  direction: 'positive' | 'negative';
+  strength: 'strong' | 'moderate' | 'mild';
   label_pt: string;
 }
 
 export interface DigitalTwinPrediction {
   variable: string;
-  prediction: "increase" | "decrease" | "stable";
-  risk_level: "low" | "moderate" | "high";
+  prediction: 'increase' | 'decrease' | 'stable';
+  risk_level: 'low' | 'moderate' | 'high';
   horizon_days: number;
   confidence: number;
   reasoning: string;
@@ -276,14 +279,14 @@ export interface DigitalTwinPrediction {
 }
 
 export interface TreatmentResponse {
-  intervention_type: "medication_change" | "therapy_sessions";
+  intervention_type: 'medication_change' | 'therapy_sessions';
   intervention_name: string;
   intervention_date: string;
   metrics_before: Record<string, number>;
   metrics_after: Record<string, number>;
   change_pct: Record<string, number>;
   evaluation_window_days: number;
-  status: "positive_response" | "negative_response" | "neutral" | "pending";
+  status: 'positive_response' | 'negative_response' | 'neutral' | 'pending';
 }
 
 export interface DigitalTwin {
@@ -402,7 +405,7 @@ export interface PatientDocument {
   patient_id: string;
   file_name: string;
   original_name: string;
-  file_type: "pdf" | "jpeg" | "png";
+  file_type: 'pdf' | 'jpeg' | 'png';
   file_size: number;
   document_type: string | null;
   document_date: string | null;
@@ -459,14 +462,14 @@ interface BaseRegisterData {
 }
 
 export interface ProfessionalRegisterData extends BaseRegisterData {
-  role: "psychologist" | "psychiatrist";
+  role: 'psychologist' | 'psychiatrist';
   license_number: string;
   specialization?: string;
   institution?: string;
 }
 
 export interface PatientRegisterData extends BaseRegisterData {
-  role: "patient";
+  role: 'patient';
   date_of_birth?: string;
   gender?: string;
 }
@@ -475,32 +478,32 @@ export type RegisterData = ProfessionalRegisterData | PatientRegisterData;
 
 export const authApi = {
   login: (email: string, password: string) =>
-    request<AuthResponse>("/auth/login", {
-      method: "POST",
+    request<AuthResponse>('/auth/login', {
+      method: 'POST',
       body: JSON.stringify({ email, password }),
     }),
 
   register: (data: RegisterData) =>
-    request<AuthResponse>("/auth/register", {
-      method: "POST",
+    request<AuthResponse>('/auth/register', {
+      method: 'POST',
       body: JSON.stringify(data),
     }),
 
-  me: () => request<{ user: AuthUser }>("/auth/me"),
+  me: () => request<{ user: AuthUser }>('/auth/me'),
 
   logout: () => {
     removeToken();
   },
 
   forgotPassword: (email: string) =>
-    request<{ message: string }>("/auth/forgot-password", {
-      method: "POST",
+    request<{ message: string }>('/auth/forgot-password', {
+      method: 'POST',
       body: JSON.stringify({ email }),
     }),
 
   resetPassword: (token: string, password: string) =>
-    request<{ message: string }>("/auth/reset-password", {
-      method: "POST",
+    request<{ message: string }>('/auth/reset-password', {
+      method: 'POST',
       body: JSON.stringify({ token, password }),
     }),
 };
@@ -512,36 +515,37 @@ export const authApi = {
 export const patientsApi = {
   list: (params?: { search?: string; status?: string; page?: number; per_page?: number }) => {
     const searchParams = new URLSearchParams();
-    if (params?.search) searchParams.set("search", params.search);
-    if (params?.status) searchParams.set("status", params.status);
-    if (params?.page) searchParams.set("page", String(params.page));
-    if (params?.per_page) searchParams.set("per_page", String(params.per_page));
+    if (params?.search) searchParams.set('search', params.search);
+    if (params?.status) searchParams.set('status', params.status);
+    if (params?.page) searchParams.set('page', String(params.page));
+    if (params?.per_page) searchParams.set('per_page', String(params.per_page));
     const query = searchParams.toString();
-    return request<PatientsListResponse>(`/patients${query ? `?${query}` : ""}`);
+    return request<PatientsListResponse>(`/patients${query ? `?${query}` : ''}`);
   },
 
   get: (id: string) => request<Patient>(`/patients/${id}`),
 
   getEmotionalLogs: (id: string, days?: number) => {
-    const query = days ? `?days=${days}` : "";
+    const query = days ? `?days=${days}` : '';
     return request<EmotionalLog[]>(`/emotional-logs/${id}${query}`);
   },
 
   getTimeline: (id: string, params?: { type?: string; page?: number }) => {
     const searchParams = new URLSearchParams();
-    if (params?.type) searchParams.set("type", params.type);
-    if (params?.page) searchParams.set("page", String(params.page));
+    if (params?.type) searchParams.set('type', params.type);
+    if (params?.page) searchParams.set('page', String(params.page));
     const query = searchParams.toString();
-    return request<PaginatedResponse<TimelineEntry>>(`/patients/${id}/timeline${query ? `?${query}` : ""}`);
+    return request<PaginatedResponse<TimelineEntry>>(
+      `/patients/${id}/timeline${query ? `?${query}` : ''}`
+    );
   },
 
-  getAssessments: (id: string, type?: "PHQ-9" | "GAD-7") => {
-    const query = type ? `?type=${type}` : "";
+  getAssessments: (id: string, type?: 'PHQ-9' | 'GAD-7') => {
+    const query = type ? `?type=${type}` : '';
     return request<Assessment[]>(`/assessment-results/${id}${query}`);
   },
 
-  getInsights: (id: string) =>
-    request<Insight[]>(`/insights/${id}`),
+  getInsights: (id: string) => request<Insight[]>(`/insights/${id}`),
 };
 
 // ---------------------------------------------------------------------------
@@ -549,24 +553,27 @@ export const patientsApi = {
 // ---------------------------------------------------------------------------
 
 export const notesApi = {
-  list: (patientId: string) =>
-    request<ClinicalNote[]>(`/clinical-notes/${patientId}`),
+  list: (patientId: string) => request<ClinicalNote[]>(`/clinical-notes/${patientId}`),
 
   create: (patientId: string, data: { type: string; title: string; content: string }) =>
     request<ClinicalNote>(`/clinical-notes`, {
-      method: "POST",
+      method: 'POST',
       body: JSON.stringify({ ...data, patient_id: patientId }),
     }),
 
-  update: (patientId: string, noteId: string, data: { title?: string; content?: string; type?: string }) =>
+  update: (
+    patientId: string,
+    noteId: string,
+    data: { title?: string; content?: string; type?: string }
+  ) =>
     request<ClinicalNote>(`/clinical-notes/${noteId}`, {
-      method: "PUT",
+      method: 'PUT',
       body: JSON.stringify(data),
     }),
 
   delete: (patientId: string, noteId: string) =>
     request<void>(`/clinical-notes/${noteId}`, {
-      method: "DELETE",
+      method: 'DELETE',
     }),
 };
 
@@ -578,30 +585,37 @@ export const medicationsApi = {
   list: (patientId: string) =>
     request<Medication[]>(`/patient-medications?patient_id=${patientId}`),
 
-  prescribe: (patientId: string, data: {
-    name: string;
-    dosage: string;
-    frequency: string;
-    notes?: string;
-  }) =>
+  prescribe: (
+    patientId: string,
+    data: {
+      name: string;
+      dosage: string;
+      frequency: string;
+      notes?: string;
+    }
+  ) =>
     request<Medication>(`/patients/${patientId}/medications`, {
-      method: "POST",
+      method: 'POST',
       body: JSON.stringify(data),
     }),
 
-  adjust: (patientId: string, medicationId: string, data: {
-    dosage?: string;
-    frequency?: string;
-    notes?: string;
-  }) =>
+  adjust: (
+    patientId: string,
+    medicationId: string,
+    data: {
+      dosage?: string;
+      frequency?: string;
+      notes?: string;
+    }
+  ) =>
     request<Medication>(`/patients/${patientId}/medications/${medicationId}`, {
-      method: "PUT",
+      method: 'PUT',
       body: JSON.stringify(data),
     }),
 
   discontinue: (patientId: string, medicationId: string) =>
     request<Medication>(`/patients/${patientId}/medications/${medicationId}/discontinue`, {
-      method: "POST",
+      method: 'POST',
     }),
 };
 
@@ -614,26 +628,26 @@ export const alertsApi = {
     // If patient_id provided, use the patient-specific endpoint
     if (params?.patient_id) {
       const searchParams = new URLSearchParams();
-      if (params?.status) searchParams.set("status", params.status);
-      if (params?.severity) searchParams.set("severity", params.severity);
+      if (params?.status) searchParams.set('status', params.status);
+      if (params?.severity) searchParams.set('severity', params.severity);
       const query = searchParams.toString();
-      return request<Alert[]>(`/alerts/${params.patient_id}${query ? `?${query}` : ""}`);
+      return request<Alert[]>(`/alerts/${params.patient_id}${query ? `?${query}` : ''}`);
     }
     const searchParams = new URLSearchParams();
-    if (params?.status) searchParams.set("status", params.status);
-    if (params?.severity) searchParams.set("severity", params.severity);
+    if (params?.status) searchParams.set('status', params.status);
+    if (params?.severity) searchParams.set('severity', params.severity);
     const query = searchParams.toString();
-    return request<Alert[]>(`/alerts${query ? `?${query}` : ""}`);
+    return request<Alert[]>(`/alerts${query ? `?${query}` : ''}`);
   },
 
   acknowledge: (alertId: string) =>
     request<Alert>(`/alerts/${alertId}/acknowledge`, {
-      method: "PUT",
+      method: 'PUT',
     }),
 
   resolve: (alertId: string) =>
     request<Alert>(`/alerts/${alertId}/resolve`, {
-      method: "PUT",
+      method: 'PUT',
     }),
 };
 
@@ -642,14 +656,11 @@ export const alertsApi = {
 // ---------------------------------------------------------------------------
 
 export const digitalTwinApi = {
-  get: (patientId: string) =>
-    request<DigitalTwin>(`/digital-twin/${patientId}`),
+  get: (patientId: string) => request<DigitalTwin>(`/digital-twin/${patientId}`),
 
   getHistory: (patientId: string, days?: number) => {
-    const query = days ? `?days=${days}` : "";
-    return request<{ history: DigitalTwin[] }>(
-      `/digital-twin/${patientId}/history${query}`
-    );
+    const query = days ? `?days=${days}` : '';
+    return request<{ history: DigitalTwin[] }>(`/digital-twin/${patientId}/history${query}`);
   },
 
   getPredictions: (patientId: string) =>
@@ -658,10 +669,9 @@ export const digitalTwinApi = {
     ),
 
   refresh: (patientId: string) =>
-    request<{ status: string; message: string }>(
-      `/digital-twin/${patientId}/refresh`,
-      { method: "POST" }
-    ),
+    request<{ status: string; message: string }>(`/digital-twin/${patientId}/refresh`, {
+      method: 'POST',
+    }),
 };
 
 // ---------------------------------------------------------------------------
@@ -710,19 +720,20 @@ export const journalApi = {
     sleep_hours?: number;
     journal_entry?: string;
   }) =>
-    request<{ journal: JournalEntryData }>("/journal", {
-      method: "POST",
+    request<{ journal: JournalEntryData }>('/journal', {
+      method: 'POST',
       body: JSON.stringify(data),
     }),
 
   list: (params?: { page?: number; limit?: number }) => {
     const searchParams = new URLSearchParams();
-    if (params?.page) searchParams.set("page", String(params.page));
-    if (params?.limit) searchParams.set("limit", String(params.limit));
+    if (params?.page) searchParams.set('page', String(params.page));
+    if (params?.limit) searchParams.set('limit', String(params.limit));
     const query = searchParams.toString();
-    return request<{ journals: JournalEntryData[]; pagination: { page: number; limit: number; total: number } }>(
-      `/journal${query ? `?${query}` : ""}`
-    );
+    return request<{
+      journals: JournalEntryData[];
+      pagination: { page: number; limit: number; total: number };
+    }>(`/journal${query ? `?${query}` : ''}`);
   },
 
   getForPatient: (patientId: string) =>
@@ -731,7 +742,7 @@ export const journalApi = {
 
 export const patientProfileApi = {
   getMyProfessionals: () =>
-    request<{ professionals: ProfessionalInfo[] }>("/patients/my-professionals"),
+    request<{ professionals: ProfessionalInfo[] }>('/patients/my-professionals'),
 
   updatePermissions: (
     patientId: string,
@@ -741,14 +752,14 @@ export const patientProfileApi = {
     request<{ permissions: Array<{ id: string; permission_type: string; granted: boolean }> }>(
       `/patients/${patientId}/permissions`,
       {
-        method: "PUT",
+        method: 'PUT',
         body: JSON.stringify({ professional_id: professionalId, permissions }),
       }
     ),
 
   revokeAccess: (professionalId: string) =>
-    request<{ relationship: unknown; message: string }>("/patients/revoke-access", {
-      method: "PUT",
+    request<{ relationship: unknown; message: string }>('/patients/revoke-access', {
+      method: 'PUT',
       body: JSON.stringify({ professional_id: professionalId }),
     }),
 };
@@ -765,8 +776,8 @@ export interface Goal {
   created_by_last_name: string;
   title: string;
   description: string | null;
-  status: "in_progress" | "achieved" | "paused" | "cancelled";
-  patient_status: "pending" | "accepted" | "rejected";
+  status: 'in_progress' | 'achieved' | 'paused' | 'cancelled';
+  patient_status: 'pending' | 'accepted' | 'rejected';
   rejection_reason: string | null;
   responded_at: string | null;
   target_date: string | null;
@@ -782,7 +793,7 @@ export interface Milestone {
   goal_title: string | null;
   title: string;
   description: string | null;
-  milestone_type: "positive" | "difficult";
+  milestone_type: 'positive' | 'difficult';
   event_date: string;
   created_by: string;
   created_by_first_name: string;
@@ -797,28 +808,30 @@ export const goalsApi = {
     description?: string;
     target_date?: string;
   }) =>
-    request<{ goal: Goal }>("/goals", {
-      method: "POST",
+    request<{ goal: Goal }>('/goals', {
+      method: 'POST',
       body: JSON.stringify(data),
     }),
 
-  list: (patientId: string) =>
-    request<{ goals: Goal[] }>(`/goals/${patientId}`),
+  list: (patientId: string) => request<{ goals: Goal[] }>(`/goals/${patientId}`),
 
-  update: (goalId: string, data: Partial<Pick<Goal, "title" | "description" | "status" | "target_date">>) =>
+  update: (
+    goalId: string,
+    data: Partial<Pick<Goal, 'title' | 'description' | 'status' | 'target_date'>>
+  ) =>
     request<{ goal: Goal }>(`/goals/${goalId}`, {
-      method: "PUT",
+      method: 'PUT',
       body: JSON.stringify(data),
     }),
 
   achieve: (goalId: string) =>
     request<{ goal: Goal }>(`/goals/${goalId}/achieve`, {
-      method: "PUT",
+      method: 'PUT',
     }),
 
-  respond: (goalId: string, action: "accept" | "reject", rejectionReason?: string) =>
+  respond: (goalId: string, action: 'accept' | 'reject', rejectionReason?: string) =>
     request<{ goal: Goal }>(`/goals/${goalId}/respond`, {
-      method: "PUT",
+      method: 'PUT',
       body: JSON.stringify({
         action,
         rejection_reason: rejectionReason,
@@ -831,12 +844,12 @@ export const milestonesApi = {
     patient_id: string;
     title: string;
     description?: string;
-    milestone_type: "positive" | "difficult";
+    milestone_type: 'positive' | 'difficult';
     event_date: string;
     goal_id?: string;
   }) =>
-    request<{ milestone: Milestone }>("/goals/milestones", {
-      method: "POST",
+    request<{ milestone: Milestone }>('/goals/milestones', {
+      method: 'POST',
       body: JSON.stringify(data),
     }),
 
@@ -876,37 +889,36 @@ export interface ChatMessage {
 }
 
 export const chatApi = {
-  listConversations: () =>
-    request<{ conversations: Conversation[] }>("/chat/conversations"),
+  listConversations: () => request<{ conversations: Conversation[] }>('/chat/conversations'),
 
   createConversation: (otherUserId: string, patientId: string) =>
-    request<{ conversation: { id: string; existing: boolean } }>("/chat/conversations", {
-      method: "POST",
+    request<{ conversation: { id: string; existing: boolean } }>('/chat/conversations', {
+      method: 'POST',
       body: JSON.stringify({ other_user_id: otherUserId, patient_id: patientId }),
     }),
 
   getMessages: (conversationId: string, page?: number) => {
     const params = new URLSearchParams();
-    if (page) params.set("page", String(page));
+    if (page) params.set('page', String(page));
     const query = params.toString();
-    return request<{ messages: ChatMessage[]; pagination: { page: number; limit: number; total: number } }>(
-      `/chat/conversations/${conversationId}/messages${query ? `?${query}` : ""}`
-    );
+    return request<{
+      messages: ChatMessage[];
+      pagination: { page: number; limit: number; total: number };
+    }>(`/chat/conversations/${conversationId}/messages${query ? `?${query}` : ''}`);
   },
 
   sendMessage: (conversationId: string, content: string) =>
     request<{ message: ChatMessage }>(`/chat/conversations/${conversationId}/messages`, {
-      method: "POST",
+      method: 'POST',
       body: JSON.stringify({ content }),
     }),
 
   markAsRead: (conversationId: string) =>
     request<{ success: boolean }>(`/chat/conversations/${conversationId}/read`, {
-      method: "PUT",
+      method: 'PUT',
     }),
 
-  getUnreadCount: () =>
-    request<{ unread_count: number }>("/chat/unread-count"),
+  getUnreadCount: () => request<{ unread_count: number }>('/chat/unread-count'),
 };
 
 // ---------------------------------------------------------------------------
@@ -967,12 +979,11 @@ export interface ProfessionalBrief {
 export const summariesApi = {
   generate: (patientId: string, periodDays?: number) =>
     request<{ summary: PatientSummary }>(`/summaries/${patientId}/generate`, {
-      method: "POST",
+      method: 'POST',
       body: JSON.stringify({ period_days: periodDays || 7 }),
     }),
 
-  list: (patientId: string) =>
-    request<{ summaries: PatientSummary[] }>(`/summaries/${patientId}`),
+  list: (patientId: string) => request<{ summaries: PatientSummary[] }>(`/summaries/${patientId}`),
 
   getBrief: (patientId: string) =>
     request<{ brief: ProfessionalBrief }>(`/summaries/${patientId}/brief`),
@@ -982,19 +993,16 @@ export const summariesApi = {
 // FormData fetch wrapper (for file uploads — no Content-Type header)
 // ---------------------------------------------------------------------------
 
-async function requestFormData<T>(
-  endpoint: string,
-  formData: FormData
-): Promise<T> {
+async function requestFormData<T>(endpoint: string, formData: FormData): Promise<T> {
   const token = getToken();
 
   const headers: Record<string, string> = {};
   if (token) {
-    headers["Authorization"] = `Bearer ${token}`;
+    headers['Authorization'] = `Bearer ${token}`;
   }
 
   const response = await fetch(`${BASE_URL}${endpoint}`, {
-    method: "POST",
+    method: 'POST',
     headers,
     body: formData,
   });
@@ -1003,12 +1011,12 @@ async function requestFormData<T>(
     if (response.status === 401) {
       const hadToken = !!getToken();
       removeToken();
-      if (hadToken && typeof window !== "undefined") {
-        window.location.href = "/login";
+      if (hadToken && typeof window !== 'undefined') {
+        window.location.href = '/login';
       }
     }
 
-    let detail = "An error occurred";
+    let detail = 'An error occurred';
     try {
       const errorBody = await response.json();
       detail = errorBody.detail || errorBody.message || errorBody.error || detail;
@@ -1030,8 +1038,7 @@ async function requestFormData<T>(
 // ---------------------------------------------------------------------------
 
 export const onboardingApi = {
-  get: () =>
-    request<{ profile: OnboardingProfile }>("/onboarding"),
+  get: () => request<{ profile: OnboardingProfile }>('/onboarding'),
 
   submit: (data: {
     personal?: OnboardingPersonal;
@@ -1048,8 +1055,8 @@ export const onboardingApi = {
     full_name?: string;
     email?: string;
   }) =>
-    request<{ profile: OnboardingProfile }>("/onboarding", {
-      method: "PUT",
+    request<{ profile: OnboardingProfile }>('/onboarding', {
+      method: 'PUT',
       body: JSON.stringify(data),
     }),
 };
@@ -1059,25 +1066,27 @@ export const onboardingApi = {
 // ---------------------------------------------------------------------------
 
 export const documentsApi = {
-  upload: (file: File, metadata?: {
-    document_type?: string;
-    document_date?: string;
-    notes?: string;
-  }) => {
+  upload: (
+    file: File,
+    metadata?: {
+      document_type?: string;
+      document_date?: string;
+      notes?: string;
+    }
+  ) => {
     const formData = new FormData();
-    formData.append("file", file);
-    if (metadata?.document_type) formData.append("document_type", metadata.document_type);
-    if (metadata?.document_date) formData.append("document_date", metadata.document_date);
-    if (metadata?.notes) formData.append("notes", metadata.notes);
-    return requestFormData<{ document: PatientDocument }>("/documents", formData);
+    formData.append('file', file);
+    if (metadata?.document_type) formData.append('document_type', metadata.document_type);
+    if (metadata?.document_date) formData.append('document_date', metadata.document_date);
+    if (metadata?.notes) formData.append('notes', metadata.notes);
+    return requestFormData<{ document: PatientDocument }>('/documents', formData);
   },
 
-  list: () =>
-    request<{ documents: PatientDocument[] }>("/documents"),
+  list: () => request<{ documents: PatientDocument[] }>('/documents'),
 
   delete: (documentId: string) =>
     request<void>(`/documents/${documentId}`, {
-      method: "DELETE",
+      method: 'DELETE',
     }),
 
   getFileUrl: (documentId: string) => {
@@ -1090,7 +1099,7 @@ export const documentsApi = {
 
   updateAccess: (documentId: string, professionalId: string, granted: boolean) =>
     request<{ access: DocumentAccess[] }>(`/documents/${documentId}/access`, {
-      method: "PUT",
+      method: 'PUT',
       body: JSON.stringify({ professional_id: professionalId, granted }),
     }),
 
@@ -1103,14 +1112,11 @@ export const documentsApi = {
 // ---------------------------------------------------------------------------
 
 export const examsApi = {
-  upload: (formData: FormData) =>
-    requestFormData<{ exam: Exam }>("/exams", formData),
+  upload: (formData: FormData) => requestFormData<{ exam: Exam }>('/exams', formData),
 
-  getMyExams: () =>
-    request<{ exams: Exam[] }>("/exams/my-exams"),
+  getMyExams: () => request<{ exams: Exam[] }>('/exams/my-exams'),
 
-  getPatientExams: (patientId: string) =>
-    request<{ exams: Exam[] }>(`/exams/patient/${patientId}`),
+  getPatientExams: (patientId: string) => request<{ exams: Exam[] }>(`/exams/patient/${patientId}`),
 
   download: async (examId: string) => {
     const token = getToken();
@@ -1118,17 +1124,16 @@ export const examsApi = {
       headers: token ? { Authorization: `Bearer ${token}` } : {},
     });
     if (!response.ok) {
-      throw new ApiError(response.status, "Erro ao baixar exame.");
+      throw new ApiError(response.status, 'Erro ao baixar exame.');
     }
     return response.blob();
   },
 
-  delete: (examId: string) =>
-    request<void>(`/exams/${examId}`, { method: "DELETE" }),
+  delete: (examId: string) => request<void>(`/exams/${examId}`, { method: 'DELETE' }),
 
   updatePermissions: (examId: string, professionalIds: string[]) =>
     request<{ permissions: ExamPermission[] }>(`/exams/${examId}/permissions`, {
-      method: "PUT",
+      method: 'PUT',
       body: JSON.stringify({ professional_ids: professionalIds }),
     }),
 };
@@ -1142,7 +1147,7 @@ export interface Invitation {
   patient_id: string;
   professional_id: string;
   relationship_type: string;
-  status: "pending" | "active" | "inactive";
+  status: 'pending' | 'active' | 'inactive';
   invited_by: string;
   invitation_message: string | null;
   created_at: string;
@@ -1173,26 +1178,24 @@ export interface UserSearchResult {
 
 export const invitationsApi = {
   send: (display_id: string, message?: string) =>
-    request<{ invitation: Invitation; reactivation: boolean }>("/invitations", {
-      method: "POST",
+    request<{ invitation: Invitation; reactivation: boolean }>('/invitations', {
+      method: 'POST',
       body: JSON.stringify({ display_id, message }),
     }),
 
-  listPending: () =>
-    request<{ invitations: Invitation[] }>("/invitations/pending"),
+  listPending: () => request<{ invitations: Invitation[] }>('/invitations/pending'),
 
-  listSent: () =>
-    request<{ invitations: Invitation[] }>("/invitations/sent"),
+  listSent: () => request<{ invitations: Invitation[] }>('/invitations/sent'),
 
-  respond: (id: string, action: "accept" | "reject") =>
+  respond: (id: string, action: 'accept' | 'reject') =>
     request<{ relationship: Invitation }>(`/invitations/${id}/respond`, {
-      method: "PUT",
+      method: 'PUT',
       body: JSON.stringify({ action }),
     }),
 
   cancel: (id: string) =>
     request<void>(`/invitations/${id}`, {
-      method: "DELETE",
+      method: 'DELETE',
     }),
 };
 
@@ -1202,5 +1205,7 @@ export const invitationsApi = {
 
 export const usersApi = {
   search: (display_id: string) =>
-    request<{ user: UserSearchResult }>(`/users/search?display_id=${encodeURIComponent(display_id)}`),
+    request<{ user: UserSearchResult }>(
+      `/users/search?display_id=${encodeURIComponent(display_id)}`
+    ),
 };

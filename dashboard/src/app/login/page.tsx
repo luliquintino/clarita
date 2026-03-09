@@ -1,37 +1,35 @@
-"use client";
+'use client';
 
-import { useState } from "react";
-import { useRouter } from "next/navigation";
-import Link from "next/link";
-import { Eye, EyeOff, Loader2, Heart } from "lucide-react";
-import Image from "next/image";
-import { authApi, setToken } from "@/lib/api";
+import { useState } from 'react';
+import { useRouter } from 'next/navigation';
+import Link from 'next/link';
+import { Eye, EyeOff, Loader2, Heart } from 'lucide-react';
+import Image from 'next/image';
+import { authApi, setToken } from '@/lib/api';
 
 export default function LoginPage() {
   const router = useRouter();
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
-  const [error, setError] = useState("");
+  const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError("");
+    setError('');
     setLoading(true);
 
     try {
       const response = await authApi.login(email, password);
       setToken(response.token);
-      if (response.user.role === "patient") {
-        router.push("/patient-home");
+      if (response.user.role === 'patient') {
+        router.push('/patient-home');
       } else {
-        router.push("/patients");
+        router.push('/patients');
       }
     } catch (err) {
-      setError(
-        err instanceof Error ? err.message : "Credenciais inválidas. Tente novamente."
-      );
+      setError(err instanceof Error ? err.message : 'Credenciais inválidas. Tente novamente.');
     } finally {
       setLoading(false);
     }
@@ -41,25 +39,37 @@ export default function LoginPage() {
     <div className="min-h-screen flex items-center justify-center relative overflow-hidden px-4">
       {/* Decorative blurred circles */}
       <div className="absolute top-[-10%] left-[-5%] w-[500px] h-[500px] rounded-full bg-clarita-green-200/40 blur-3xl animate-float" />
-      <div className="absolute bottom-[-15%] right-[-10%] w-[600px] h-[600px] rounded-full bg-clarita-purple-200/40 blur-3xl animate-float" style={{ animationDelay: "1.5s" }} />
-      <div className="absolute top-[40%] right-[15%] w-[300px] h-[300px] rounded-full bg-clarita-pink-200/30 blur-3xl animate-float" style={{ animationDelay: "0.8s" }} />
+      <div
+        className="absolute bottom-[-15%] right-[-10%] w-[600px] h-[600px] rounded-full bg-clarita-purple-200/40 blur-3xl animate-float"
+        style={{ animationDelay: '1.5s' }}
+      />
+      <div
+        className="absolute top-[40%] right-[15%] w-[300px] h-[300px] rounded-full bg-clarita-pink-200/30 blur-3xl animate-float"
+        style={{ animationDelay: '0.8s' }}
+      />
 
       <div className="w-full max-w-md relative z-10 animate-slide-up">
         {/* Logo */}
         <div className="text-center mb-8">
           <div className="inline-block p-2 mb-4">
-            <Image src="/logo-clarita.png" alt="Clarita" width={140} height={112} className="mx-auto drop-shadow-lg" priority />
+            <Image
+              src="/logo-clarita.png"
+              alt="Clarita"
+              width={140}
+              height={112}
+              className="mx-auto drop-shadow-lg"
+              priority
+            />
           </div>
           <p className="text-gray-500 text-sm font-light">Plataforma de Saúde Mental</p>
         </div>
 
         {/* Login Card */}
         <div className="bg-white/70 backdrop-blur-xl rounded-3xl shadow-2xl border border-white/40 p-8">
-          <h2 className="text-2xl font-semibold text-gray-800 mb-1">
-            Bem-vindo de volta
-          </h2>
+          <h2 className="text-2xl font-semibold text-gray-800 mb-1">Bem-vindo de volta</h2>
           <p className="text-sm text-gray-500 mb-8 flex items-center gap-1.5">
-            Que bom te ver por aqui <Heart size={14} className="text-clarita-purple-400 fill-clarita-purple-400" />
+            Que bom te ver por aqui{' '}
+            <Heart size={14} className="text-clarita-purple-400 fill-clarita-purple-400" />
           </p>
 
           <form onSubmit={handleSubmit} className="space-y-5">
@@ -71,10 +81,7 @@ export default function LoginPage() {
             )}
 
             <div>
-              <label
-                htmlFor="email"
-                className="block text-sm font-medium text-gray-600 mb-2"
-              >
+              <label htmlFor="email" className="block text-sm font-medium text-gray-600 mb-2">
                 Endereço de email
               </label>
               <input
@@ -91,16 +98,13 @@ export default function LoginPage() {
             </div>
 
             <div>
-              <label
-                htmlFor="password"
-                className="block text-sm font-medium text-gray-600 mb-2"
-              >
+              <label htmlFor="password" className="block text-sm font-medium text-gray-600 mb-2">
                 Senha
               </label>
               <div className="relative">
                 <input
                   id="password"
-                  type={showPassword ? "text" : "password"}
+                  type={showPassword ? 'text' : 'password'}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   className="input-field py-3.5 pr-11"
@@ -133,11 +137,7 @@ export default function LoginPage() {
               disabled={loading}
               className="btn-primary w-full py-3.5 text-base rounded-xl"
             >
-              {loading ? (
-                <Loader2 size={20} className="animate-spin" />
-              ) : (
-                "Entrar"
-              )}
+              {loading ? <Loader2 size={20} className="animate-spin" /> : 'Entrar'}
             </button>
           </form>
 

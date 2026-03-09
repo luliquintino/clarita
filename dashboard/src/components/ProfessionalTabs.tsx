@@ -1,6 +1,6 @@
-"use client";
+'use client';
 
-import { useState } from "react";
+import { useState } from 'react';
 import {
   Brain,
   Stethoscope,
@@ -13,13 +13,13 @@ import {
   UserMinus,
   Loader2,
   AlertTriangle,
-} from "lucide-react";
-import type { ProfessionalInfo, Invitation } from "@/lib/api";
-import { patientProfileApi } from "@/lib/api";
-import SharingControls from "./SharingControls";
-import DisplayIdBadge from "./DisplayIdBadge";
-import InvitationDialog from "./InvitationDialog";
-import PendingInvitations from "./PendingInvitations";
+} from 'lucide-react';
+import type { ProfessionalInfo, Invitation } from '@/lib/api';
+import { patientProfileApi } from '@/lib/api';
+import SharingControls from './SharingControls';
+import DisplayIdBadge from './DisplayIdBadge';
+import InvitationDialog from './InvitationDialog';
+import PendingInvitations from './PendingInvitations';
 
 interface ProfessionalTabsProps {
   professionals: ProfessionalInfo[];
@@ -39,23 +39,23 @@ const roleConfig: Record<
   { label: string; icon: React.ReactNode; color: string; bgColor: string }
 > = {
   psychologist: {
-    label: "Psic\u00f3logo(a)",
+    label: 'Psic\u00f3logo(a)',
     icon: <Brain size={18} />,
-    color: "text-clarita-purple-500",
-    bgColor: "bg-clarita-purple-50",
+    color: 'text-clarita-purple-500',
+    bgColor: 'bg-clarita-purple-50',
   },
   psychiatrist: {
-    label: "Psiquiatra",
+    label: 'Psiquiatra',
     icon: <Stethoscope size={18} />,
-    color: "text-clarita-green-500",
-    bgColor: "bg-clarita-green-50",
+    color: 'text-clarita-green-500',
+    bgColor: 'bg-clarita-green-50',
   },
 };
 
 const futureSpecialties = [
-  { label: "Neurologista", icon: <Microscope size={18} /> },
-  { label: "Nutricionista", icon: <Apple size={18} /> },
-  { label: "Endocrinologista", icon: <Activity size={18} /> },
+  { label: 'Neurologista', icon: <Microscope size={18} /> },
+  { label: 'Nutricionista', icon: <Apple size={18} /> },
+  { label: 'Endocrinologista', icon: <Activity size={18} /> },
 ];
 
 export default function ProfessionalTabs({
@@ -89,9 +89,7 @@ export default function ProfessionalTabs({
             <div className="w-9 h-9 bg-gradient-to-br from-clarita-orange-100 to-clarita-orange-50 rounded-xl flex items-center justify-center">
               <Users size={18} className="text-clarita-orange-500" />
             </div>
-            <h3 className="text-lg font-semibold text-gray-800">
-              Meus Profissionais
-            </h3>
+            <h3 className="text-lg font-semibold text-gray-800">Meus Profissionais</h3>
           </div>
           <button
             onClick={() => setShowInviteDialog(true)}
@@ -108,7 +106,9 @@ export default function ProfessionalTabs({
             <div className="flex items-center gap-1 bg-clarita-orange-50/60 rounded-xl p-1 mb-6 overflow-x-auto border border-clarita-orange-100/50">
               {professionals.map((prof, idx) => {
                 const config =
-                  roleConfig[prof.relationship_type] || roleConfig[prof.role] || roleConfig.psychologist;
+                  roleConfig[prof.relationship_type] ||
+                  roleConfig[prof.role] ||
+                  roleConfig.psychologist;
                 const isActive = activeTab === idx;
 
                 return (
@@ -118,13 +118,11 @@ export default function ProfessionalTabs({
                     className={`flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm font-medium transition-all whitespace-nowrap
                       ${
                         isActive
-                          ? "tab-orange-active"
-                          : "text-gray-500 hover:text-clarita-orange-600 hover:bg-clarita-orange-50/50"
+                          ? 'tab-orange-active'
+                          : 'text-gray-500 hover:text-clarita-orange-600 hover:bg-clarita-orange-50/50'
                       }`}
                   >
-                    <span className={isActive ? "text-clarita-orange-500" : ""}>
-                      {config.icon}
-                    </span>
+                    <span className={isActive ? 'text-clarita-orange-500' : ''}>{config.icon}</span>
                     {prof.first_name} {prof.last_name}
                   </button>
                 );
@@ -166,16 +164,11 @@ export default function ProfessionalTabs({
             <div className="w-14 h-14 bg-gradient-to-br from-clarita-orange-100 to-clarita-orange-50 rounded-2xl flex items-center justify-center mx-auto mb-3">
               <UserPlus size={24} className="text-clarita-orange-400" />
             </div>
-            <p className="text-gray-500 font-medium">
-              Nenhum profissional vinculado ainda.
-            </p>
+            <p className="text-gray-500 font-medium">Nenhum profissional vinculado ainda.</p>
             <p className="text-sm text-gray-400 mt-1 mb-4">
               Convide um profissional usando o ID Clarita dele.
             </p>
-            <button
-              onClick={() => setShowInviteDialog(true)}
-              className="btn-primary text-sm"
-            >
+            <button onClick={() => setShowInviteDialog(true)} className="btn-primary text-sm">
               <UserPlus size={16} className="mr-1.5" />
               Convidar Profissional
             </button>
@@ -235,9 +228,7 @@ function ProfessionalTabContent({
     <div className="animate-fade-in space-y-6">
       {/* Professional info */}
       <div className="flex items-start gap-4">
-        <div
-          className={`w-14 h-14 rounded-2xl flex items-center justify-center ${config.bgColor}`}
-        >
+        <div className={`w-14 h-14 rounded-2xl flex items-center justify-center ${config.bgColor}`}>
           <span className={`text-lg font-bold ${config.color}`}>
             {professional.first_name[0]}
             {professional.last_name[0]}
@@ -249,14 +240,10 @@ function ProfessionalTabContent({
           </h4>
           <p className="text-sm text-gray-500">{config.label}</p>
           {professional.specialization && (
-            <p className="text-xs text-gray-400 mt-0.5">
-              {professional.specialization}
-            </p>
+            <p className="text-xs text-gray-400 mt-0.5">{professional.specialization}</p>
           )}
           {professional.institution && (
-            <p className="text-xs text-gray-400">
-              {professional.institution}
-            </p>
+            <p className="text-xs text-gray-400">{professional.institution}</p>
           )}
           {professional.display_id && (
             <div className="mt-1.5">
@@ -268,9 +255,7 @@ function ProfessionalTabContent({
 
       {/* Sharing controls */}
       <div className="border-t border-clarita-beige-200/50 pt-4">
-        <h4 className="text-sm font-medium text-gray-700 mb-3">
-          Compartilhamento de dados
-        </h4>
+        <h4 className="text-sm font-medium text-gray-700 mb-3">Compartilhamento de dados</h4>
         <p className="text-xs text-gray-400 mb-4">
           Escolha quais informações deseja compartilhar com este profissional.
         </p>
@@ -292,9 +277,8 @@ function ProfessionalTabContent({
                   Remover acesso de {professional.first_name}?
                 </p>
                 <p className="text-xs text-red-600 mt-1">
-                  O profissional perder\u00e1 toda a visibilidade dos seus dados.
-                  Seus dados permanecem seguros e podem ser restaurados se voc\u00ea
-                  reconectar no futuro.
+                  O profissional perder\u00e1 toda a visibilidade dos seus dados. Seus dados
+                  permanecem seguros e podem ser restaurados se voc\u00ea reconectar no futuro.
                 </p>
               </div>
             </div>

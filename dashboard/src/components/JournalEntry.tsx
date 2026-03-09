@@ -1,7 +1,7 @@
-"use client";
+'use client';
 
-import { useState } from "react";
-import { Send, Smile, Frown, Meh, Zap, Moon, Heart } from "lucide-react";
+import { useState } from 'react';
+import { Send, Smile, Frown, Meh, Zap, Moon, Heart } from 'lucide-react';
 
 interface JournalEntryProps {
   onSubmit: (data: {
@@ -15,9 +15,9 @@ interface JournalEntryProps {
 }
 
 const moodEmojis = [
-  { min: 1, max: 3, icon: Frown, color: "text-red-400", label: "Difícil" },
-  { min: 4, max: 6, icon: Meh, color: "text-yellow-400", label: "Neutro" },
-  { min: 7, max: 10, icon: Smile, color: "text-clarita-green-500", label: "Bem" },
+  { min: 1, max: 3, icon: Frown, color: 'text-red-400', label: 'Difícil' },
+  { min: 4, max: 6, icon: Meh, color: 'text-yellow-400', label: 'Neutro' },
+  { min: 7, max: 10, icon: Smile, color: 'text-clarita-green-500', label: 'Bem' },
 ];
 
 function SliderField({
@@ -59,8 +59,14 @@ function SliderField({
         className="w-full"
       />
       <div className="flex justify-between mt-1.5">
-        <span className="text-xs text-gray-400">{lowEmoji ? `${lowEmoji} ` : ""}{lowLabel}</span>
-        <span className="text-xs text-gray-400">{highLabel}{highEmoji ? ` ${highEmoji}` : ""}</span>
+        <span className="text-xs text-gray-400">
+          {lowEmoji ? `${lowEmoji} ` : ''}
+          {lowLabel}
+        </span>
+        <span className="text-xs text-gray-400">
+          {highLabel}
+          {highEmoji ? ` ${highEmoji}` : ''}
+        </span>
       </div>
     </div>
   );
@@ -71,7 +77,7 @@ export default function JournalEntry({ onSubmit, saving = false }: JournalEntryP
   const [anxiety, setAnxiety] = useState(5);
   const [energy, setEnergy] = useState(5);
   const [sleepHours, setSleepHours] = useState(7);
-  const [journalText, setJournalText] = useState("");
+  const [journalText, setJournalText] = useState('');
   const [submitted, setSubmitted] = useState(false);
 
   const moodConfig = moodEmojis.find((e) => mood >= e.min && mood <= e.max) || moodEmojis[1];
@@ -87,7 +93,7 @@ export default function JournalEntry({ onSubmit, saving = false }: JournalEntryP
     });
     setSubmitted(true);
     setTimeout(() => setSubmitted(false), 3000);
-    setJournalText("");
+    setJournalText('');
   };
 
   return (
@@ -162,9 +168,7 @@ export default function JournalEntry({ onSubmit, saving = false }: JournalEntryP
           className="input-field min-h-[100px] resize-y"
           maxLength={10000}
         />
-        <p className="text-xs text-gray-400 mt-1 text-right">
-          {journalText.length}/10000
-        </p>
+        <p className="text-xs text-gray-400 mt-1 text-right">{journalText.length}/10000</p>
       </div>
 
       {/* Submit */}

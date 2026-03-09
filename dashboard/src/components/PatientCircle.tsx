@@ -1,4 +1,4 @@
-"use client";
+'use client';
 
 interface PatientCircleProps {
   patient: {
@@ -14,10 +14,10 @@ interface PatientCircleProps {
 }
 
 function getMoodRingColor(score: number | null | undefined): string {
-  if (score == null) return "ring-clarita-beige-300";
-  if (score >= 7) return "ring-clarita-green-400";
-  if (score >= 4) return "ring-yellow-400";
-  return "ring-red-400";
+  if (score == null) return 'ring-clarita-beige-300';
+  if (score >= 7) return 'ring-clarita-green-400';
+  if (score >= 4) return 'ring-yellow-400';
+  return 'ring-red-400';
 }
 
 export default function PatientCircle({
@@ -33,23 +33,19 @@ export default function PatientCircle({
     <button
       onClick={onClick}
       className={`group flex items-center gap-3 w-full rounded-xl transition-all duration-200
-        ${collapsed ? "justify-center px-0 py-2" : "px-3 py-2"}
-        ${
-          isActive
-            ? "bg-white/40 backdrop-blur-sm"
-            : "hover:bg-white/40 hover:backdrop-blur-sm"
-        }`}
+        ${collapsed ? 'justify-center px-0 py-2' : 'px-3 py-2'}
+        ${isActive ? 'bg-white/40 backdrop-blur-sm' : 'hover:bg-white/40 hover:backdrop-blur-sm'}`}
       title={collapsed ? `${patient.first_name} ${patient.last_name}` : undefined}
     >
       {/* Avatar circle with mood-colored ring */}
       <div
         className={`flex-shrink-0 flex items-center justify-center rounded-full text-xs font-bold transition-all
-          ${collapsed ? "w-9 h-9" : "w-8 h-8"}
+          ${collapsed ? 'w-9 h-9' : 'w-8 h-8'}
           ring-2 ${moodRing}
           ${
             isActive
-              ? "bg-clarita-green-400 text-white ring-offset-2"
-              : "bg-clarita-beige-200 text-gray-600 group-hover:bg-clarita-green-200 group-hover:text-clarita-green-700"
+              ? 'bg-clarita-green-400 text-white ring-offset-2'
+              : 'bg-clarita-beige-200 text-gray-600 group-hover:bg-clarita-green-200 group-hover:text-clarita-green-700'
           }`}
       >
         {patient.avatar_url ? (
@@ -68,7 +64,7 @@ export default function PatientCircle({
       {!collapsed && (
         <span
           className={`text-sm truncate animate-fade-in
-            ${isActive ? "text-clarita-green-700 font-medium" : "text-gray-600"}`}
+            ${isActive ? 'text-clarita-green-700 font-medium' : 'text-gray-600'}`}
         >
           {patient.first_name} {patient.last_name}
         </span>

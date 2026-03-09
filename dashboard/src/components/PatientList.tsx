@@ -1,7 +1,7 @@
-"use client";
+'use client';
 
-import { useState, useMemo } from "react";
-import Link from "next/link";
+import { useState, useMemo } from 'react';
+import Link from 'next/link';
 import {
   Search,
   SortAsc,
@@ -12,36 +12,36 @@ import {
   Minus,
   Calendar,
   Users,
-} from "lucide-react";
-import { formatDistanceToNow } from "date-fns";
-import type { Patient } from "@/lib/api";
+} from 'lucide-react';
+import { formatDistanceToNow } from 'date-fns';
+import type { Patient } from '@/lib/api';
 
 interface PatientListProps {
   patients: Patient[];
 }
 
-type SortField = "name" | "last_check_in" | "alerts" | "score";
-type SortDir = "asc" | "desc";
+type SortField = 'name' | 'last_check_in' | 'alerts' | 'score';
+type SortDir = 'asc' | 'desc';
 
 const SORT_LABELS: Record<SortField, string> = {
-  name: "Nome",
-  last_check_in: "Último acesso",
-  alerts: "Alertas",
-  score: "Pontuação",
+  name: 'Nome',
+  last_check_in: 'Último acesso',
+  alerts: 'Alertas',
+  score: 'Pontuação',
 };
 
 function getMoodColor(score: number | null): string {
-  if (score === null) return "border-l-gray-300";
-  if (score >= 7) return "border-l-clarita-green-400";
-  if (score >= 4) return "border-l-yellow-400";
-  return "border-l-red-400";
+  if (score === null) return 'border-l-gray-300';
+  if (score >= 7) return 'border-l-clarita-green-400';
+  if (score >= 4) return 'border-l-yellow-400';
+  return 'border-l-red-400';
 }
 
 function getMoodRingColor(score: number | null): string {
-  if (score === null) return "ring-gray-300";
-  if (score >= 7) return "ring-clarita-green-400";
-  if (score >= 4) return "ring-yellow-400";
-  return "ring-red-400";
+  if (score === null) return 'ring-gray-300';
+  if (score >= 7) return 'ring-clarita-green-400';
+  if (score >= 4) return 'ring-yellow-400';
+  return 'ring-red-400';
 }
 
 function getLatestMoodScore(moodTrend: number[]): number | null {
@@ -64,7 +64,7 @@ function MoodSparkline({ data }: { data: number[] }) {
       const y = height - ((val - min) / range) * height;
       return `${x},${y}`;
     })
-    .join(" ");
+    .join(' ');
 
   const trend = data[data.length - 1] - data[0];
 
@@ -74,7 +74,7 @@ function MoodSparkline({ data }: { data: number[] }) {
         <polyline
           points={points}
           fill="none"
-          stroke={trend >= 0 ? "#22c55e" : "#f59e0b"}
+          stroke={trend >= 0 ? '#22c55e' : '#f59e0b'}
           strokeWidth={2}
           strokeLinecap="round"
           strokeLinejoin="round"
@@ -92,17 +92,17 @@ function MoodSparkline({ data }: { data: number[] }) {
 }
 
 export default function PatientList({ patients }: PatientListProps) {
-  const [search, setSearch] = useState("");
-  const [sortField, setSortField] = useState<SortField>("name");
-  const [sortDir, setSortDir] = useState<SortDir>("asc");
-  const [statusFilter, setStatusFilter] = useState<string>("all");
+  const [search, setSearch] = useState('');
+  const [sortField, setSortField] = useState<SortField>('name');
+  const [sortDir, setSortDir] = useState<SortDir>('asc');
+  const [statusFilter, setStatusFilter] = useState<string>('all');
 
   const toggleSort = (field: SortField) => {
     if (sortField === field) {
-      setSortDir(sortDir === "asc" ? "desc" : "asc");
+      setSortDir(sortDir === 'asc' ? 'desc' : 'asc');
     } else {
       setSortField(field);
-      setSortDir("asc");
+      setSortDir('asc');
     }
   };
 
@@ -121,28 +121,23 @@ export default function PatientList({ patients }: PatientListProps) {
     }
 
     // Status filter
-    if (statusFilter !== "all") {
+    if (statusFilter !== 'all') {
       result = result.filter((p) => p.status === statusFilter);
     }
 
     // Sort
     result.sort((a, b) => {
-      const dir = sortDir === "asc" ? 1 : -1;
+      const dir = sortDir === 'asc' ? 1 : -1;
 
       switch (sortField) {
-        case "name":
+        case 'name':
           return a.full_name.localeCompare(b.full_name) * dir;
-        case "last_check_in":
-          return (
-            ((a.last_check_in || "").localeCompare(b.last_check_in || "")) * dir
-          );
-        case "alerts":
+        case 'last_check_in':
+          return (a.last_check_in || '').localeCompare(b.last_check_in || '') * dir;
+        case 'alerts':
           return (a.active_alerts - b.active_alerts) * dir;
-        case "score":
-          return (
-            ((a.mental_clarity_score || 0) - (b.mental_clarity_score || 0)) *
-            dir
-          );
+        case 'score':
+          return ((a.mental_clarity_score || 0) - (b.mental_clarity_score || 0)) * dir;
         default:
           return 0;
       }
@@ -155,10 +150,7 @@ export default function PatientList({ patients }: PatientListProps) {
     <div className="space-y-5">
       {/* Search Bar */}
       <div className="relative">
-        <Search
-          size={20}
-          className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400"
-        />
+        <Search size={20} className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" />
         <input
           type="text"
           value={search}
@@ -175,31 +167,29 @@ export default function PatientList({ patients }: PatientListProps) {
       <div className="flex flex-wrap items-center gap-3">
         <div className="flex items-center gap-1.5">
           <span className="text-xs text-gray-500 mr-1">Ordenar:</span>
-          {(["name", "last_check_in", "alerts", "score"] as SortField[]).map(
-            (field) => {
-              const isActive = sortField === field;
-              return (
-                <button
-                  key={field}
-                  onClick={() => toggleSort(field)}
-                  className={`px-3 py-1.5 rounded-full text-xs font-medium transition-all duration-300
+          {(['name', 'last_check_in', 'alerts', 'score'] as SortField[]).map((field) => {
+            const isActive = sortField === field;
+            return (
+              <button
+                key={field}
+                onClick={() => toggleSort(field)}
+                className={`px-3 py-1.5 rounded-full text-xs font-medium transition-all duration-300
                     ${
                       isActive
-                        ? "bg-white/70 backdrop-blur-sm text-clarita-green-600 shadow-sm border border-clarita-green-200/50"
-                        : "text-gray-500 hover:bg-white/40 hover:text-gray-700"
+                        ? 'bg-white/70 backdrop-blur-sm text-clarita-green-600 shadow-sm border border-clarita-green-200/50'
+                        : 'text-gray-500 hover:bg-white/40 hover:text-gray-700'
                     }`}
-                >
-                  {SORT_LABELS[field]}
-                  {isActive &&
-                    (sortDir === "asc" ? (
-                      <SortAsc size={12} className="inline ml-1" />
-                    ) : (
-                      <SortDesc size={12} className="inline ml-1" />
-                    ))}
-                </button>
-              );
-            }
-          )}
+              >
+                {SORT_LABELS[field]}
+                {isActive &&
+                  (sortDir === 'asc' ? (
+                    <SortAsc size={12} className="inline ml-1" />
+                  ) : (
+                    <SortDesc size={12} className="inline ml-1" />
+                  ))}
+              </button>
+            );
+          })}
         </div>
 
         <div className="ml-auto">
@@ -220,7 +210,7 @@ export default function PatientList({ patients }: PatientListProps) {
 
       {/* Results count */}
       <p className="text-sm text-gray-500">
-        {filtered.length} paciente{filtered.length !== 1 ? "s" : ""}
+        {filtered.length} paciente{filtered.length !== 1 ? 's' : ''}
       </p>
 
       {/* Patient Cards */}
@@ -228,10 +218,10 @@ export default function PatientList({ patients }: PatientListProps) {
         {filtered.map((patient) => {
           const latestMood = getLatestMoodScore(patient.mood_trend);
           const initials = patient.full_name
-            .split(" ")
+            .split(' ')
             .map((n) => n[0])
             .slice(0, 2)
-            .join("")
+            .join('')
             .toUpperCase();
 
           return (
@@ -261,8 +251,7 @@ export default function PatientList({ patients }: PatientListProps) {
                       {patient.diagnosis?.length > 0 && (
                         <span className="ml-1.5 text-gray-400">
                           &middot; {patient.diagnosis[0]}
-                          {patient.diagnosis.length > 1 &&
-                            ` +${patient.diagnosis.length - 1}`}
+                          {patient.diagnosis.length > 1 && ` +${patient.diagnosis.length - 1}`}
                         </span>
                       )}
                     </p>
@@ -272,7 +261,7 @@ export default function PatientList({ patients }: PatientListProps) {
                   {patient.active_alerts > 0 && (
                     <span
                       className={`flex items-center gap-1 flex-shrink-0 ml-1
-                        ${patient.active_alerts >= 3 ? "badge-red" : "badge-orange"}`}
+                        ${patient.active_alerts >= 3 ? 'badge-red' : 'badge-orange'}`}
                     >
                       <AlertCircle size={12} />
                       {patient.active_alerts}
@@ -294,7 +283,7 @@ export default function PatientList({ patients }: PatientListProps) {
                       ? formatDistanceToNow(new Date(patient.last_check_in), {
                           addSuffix: true,
                         })
-                      : "Sem check-ins"}
+                      : 'Sem check-ins'}
                   </div>
 
                   {patient.mental_clarity_score !== null && (
@@ -302,10 +291,10 @@ export default function PatientList({ patients }: PatientListProps) {
                       <div
                         className={`w-2 h-2 rounded-full ${
                           patient.mental_clarity_score >= 70
-                            ? "bg-clarita-green-400"
+                            ? 'bg-clarita-green-400'
                             : patient.mental_clarity_score >= 40
-                            ? "bg-yellow-400"
-                            : "bg-red-400"
+                              ? 'bg-yellow-400'
+                              : 'bg-red-400'
                         }`}
                       />
                       <span className="text-xs font-medium text-gray-600">
@@ -316,11 +305,11 @@ export default function PatientList({ patients }: PatientListProps) {
 
                   <span
                     className={`badge text-[10px] ${
-                      patient.status === "active"
-                        ? "bg-clarita-green-100 text-clarita-green-600"
-                        : patient.status === "inactive"
-                        ? "bg-gray-100 text-gray-500"
-                        : "bg-clarita-blue-100 text-clarita-blue-500"
+                      patient.status === 'active'
+                        ? 'bg-clarita-green-100 text-clarita-green-600'
+                        : patient.status === 'inactive'
+                          ? 'bg-gray-100 text-gray-500'
+                          : 'bg-clarita-blue-100 text-clarita-blue-500'
                     }`}
                   >
                     {patient.status}
@@ -338,19 +327,12 @@ export default function PatientList({ patients }: PatientListProps) {
           <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-white/60 backdrop-blur-sm border border-white/30 mb-4">
             <Users size={28} className="text-gray-400" />
           </div>
-          <p className="text-gray-500 font-medium mb-1">
-            Nenhum paciente encontrado
-          </p>
+          <p className="text-gray-500 font-medium mb-1">Nenhum paciente encontrado</p>
           <p className="text-gray-400 text-sm">
-            {search
-              ? "Tente ajustar os termos da busca"
-              : "Convide pacientes para começar"}
+            {search ? 'Tente ajustar os termos da busca' : 'Convide pacientes para começar'}
           </p>
           {search && (
-            <button
-              onClick={() => setSearch("")}
-              className="btn-ghost text-xs mt-3"
-            >
+            <button onClick={() => setSearch('')} className="btn-ghost text-xs mt-3">
               Limpar busca
             </button>
           )}

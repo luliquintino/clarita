@@ -1,8 +1,8 @@
-"use client";
+'use client';
 
-import React, { useState } from "react";
-import { X, Search, UserPlus, Loader2, AlertCircle, CheckCircle2 } from "lucide-react";
-import { usersApi, invitationsApi, UserSearchResult } from "@/lib/api";
+import React, { useState } from 'react';
+import { X, Search, UserPlus, Loader2, AlertCircle, CheckCircle2 } from 'lucide-react';
+import { usersApi, invitationsApi, UserSearchResult } from '@/lib/api';
 
 interface InvitationDialogProps {
   isOpen: boolean;
@@ -17,22 +17,22 @@ export default function InvitationDialog({
   onInvitationSent,
   senderRole,
 }: InvitationDialogProps) {
-  const [displayId, setDisplayId] = useState("");
-  const [message, setMessage] = useState("");
+  const [displayId, setDisplayId] = useState('');
+  const [message, setMessage] = useState('');
   const [searchResult, setSearchResult] = useState<UserSearchResult | null>(null);
   const [searching, setSearching] = useState(false);
   const [sending, setSending] = useState(false);
-  const [error, setError] = useState("");
-  const [success, setSuccess] = useState("");
+  const [error, setError] = useState('');
+  const [success, setSuccess] = useState('');
 
-  const targetLabel = senderRole === "patient" ? "profissional" : "paciente";
+  const targetLabel = senderRole === 'patient' ? 'profissional' : 'paciente';
 
   const resetState = () => {
-    setDisplayId("");
-    setMessage("");
+    setDisplayId('');
+    setMessage('');
     setSearchResult(null);
-    setError("");
-    setSuccess("");
+    setError('');
+    setSuccess('');
     setSearching(false);
     setSending(false);
   };
@@ -44,11 +44,11 @@ export default function InvitationDialog({
 
   const handleSearch = async () => {
     if (!displayId.trim()) {
-      setError("Digite o ID do usu\u00e1rio");
+      setError('Digite o ID do usu\u00e1rio');
       return;
     }
 
-    setError("");
+    setError('');
     setSearchResult(null);
     setSearching(true);
 
@@ -57,13 +57,13 @@ export default function InvitationDialog({
       const user = data.user;
 
       // Validate the pairing
-      const isPatient = senderRole === "patient";
-      const targetIsPatient = user.role === "patient";
+      const isPatient = senderRole === 'patient';
+      const targetIsPatient = user.role === 'patient';
       if (isPatient === targetIsPatient) {
         setError(
           isPatient
-            ? "Este ID pertence a outro paciente. Insira o ID de um profissional."
-            : "Este ID pertence a outro profissional. Insira o ID de um paciente."
+            ? 'Este ID pertence a outro paciente. Insira o ID de um profissional.'
+            : 'Este ID pertence a outro profissional. Insira o ID de um paciente.'
         );
         return;
       }
@@ -72,9 +72,9 @@ export default function InvitationDialog({
     } catch (err: unknown) {
       const apiErr = err as { status?: number; detail?: string };
       if (apiErr.status === 404) {
-        setError("Nenhum usu\u00e1rio encontrado com este ID");
+        setError('Nenhum usu\u00e1rio encontrado com este ID');
       } else {
-        setError(apiErr.detail || "Erro ao buscar usu\u00e1rio");
+        setError(apiErr.detail || 'Erro ao buscar usu\u00e1rio');
       }
     } finally {
       setSearching(false);
@@ -85,11 +85,11 @@ export default function InvitationDialog({
     if (!searchResult) return;
 
     setSending(true);
-    setError("");
+    setError('');
 
     try {
       await invitationsApi.send(searchResult.display_id, message || undefined);
-      setSuccess("Convite enviado com sucesso!");
+      setSuccess('Convite enviado com sucesso!');
       setTimeout(() => {
         handleClose();
         onInvitationSent();
@@ -97,9 +97,9 @@ export default function InvitationDialog({
     } catch (err: unknown) {
       const apiErr = err as { status?: number; detail?: string };
       if (apiErr.status === 409) {
-        setError("J\u00e1 existe um v\u00ednculo ou convite pendente com este usu\u00e1rio");
+        setError('J\u00e1 existe um v\u00ednculo ou convite pendente com este usu\u00e1rio');
       } else {
-        setError(apiErr.detail || "Erro ao enviar convite");
+        setError(apiErr.detail || 'Erro ao enviar convite');
       }
     } finally {
       setSending(false);
@@ -108,10 +108,14 @@ export default function InvitationDialog({
 
   const roleLabel = (role: string) => {
     switch (role) {
-      case "psychologist": return "Psic\u00f3logo(a)";
-      case "psychiatrist": return "Psiquiatra";
-      case "patient": return "Paciente";
-      default: return role;
+      case 'psychologist':
+        return 'Psic\u00f3logo(a)';
+      case 'psychiatrist':
+        return 'Psiquiatra';
+      case 'patient':
+        return 'Paciente';
+      default:
+        return role;
     }
   };
 
@@ -124,16 +128,14 @@ export default function InvitationDialog({
         <div
           className="px-5 py-4 flex items-center justify-between"
           style={{
-            background: "linear-gradient(135deg, #14b8a6 0%, #8b5cf6 100%)",
+            background: 'linear-gradient(135deg, #14b8a6 0%, #8b5cf6 100%)',
           }}
         >
           <div className="flex items-center gap-2.5">
             <div className="w-8 h-8 bg-white/20 backdrop-blur-sm rounded-xl flex items-center justify-center">
               <UserPlus size={18} className="text-white" />
             </div>
-            <h3 className="text-lg font-semibold text-white">
-              Convidar {targetLabel}
-            </h3>
+            <h3 className="text-lg font-semibold text-white">Convidar {targetLabel}</h3>
           </div>
           <button
             onClick={handleClose}
@@ -166,16 +168,19 @@ export default function InvitationDialog({
                     </span>
                     <input
                       type="text"
-                      value={displayId.replace(/^CLA-/i, "")}
+                      value={displayId.replace(/^CLA-/i, '')}
                       onChange={(e) => {
-                        const val = e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, "").slice(0, 8);
-                        setDisplayId("CLA-" + val);
+                        const val = e.target.value
+                          .toUpperCase()
+                          .replace(/[^A-Z0-9]/g, '')
+                          .slice(0, 8);
+                        setDisplayId('CLA-' + val);
                         setSearchResult(null);
-                        setError("");
+                        setError('');
                       }}
                       placeholder="XXXXXX"
                       className="input-field pl-12 font-mono uppercase"
-                      onKeyDown={(e) => e.key === "Enter" && handleSearch()}
+                      onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
                     />
                   </div>
                   <button
@@ -209,7 +214,8 @@ export default function InvitationDialog({
                   <div className="flex items-center gap-3">
                     <div className="w-10 h-10 bg-gradient-to-br from-clarita-green-100 to-clarita-green-200 rounded-full flex items-center justify-center">
                       <span className="text-clarita-green-700 font-semibold text-sm">
-                        {searchResult.first_name[0]}{searchResult.last_name[0]}
+                        {searchResult.first_name[0]}
+                        {searchResult.last_name[0]}
                       </span>
                     </div>
                     <div className="flex-1">
@@ -254,11 +260,7 @@ export default function InvitationDialog({
               Cancelar
             </button>
             {searchResult && (
-              <button
-                onClick={handleSend}
-                disabled={sending}
-                className="btn-primary"
-              >
+              <button onClick={handleSend} disabled={sending} className="btn-primary">
                 {sending ? (
                   <>
                     <Loader2 size={16} className="animate-spin mr-2" />

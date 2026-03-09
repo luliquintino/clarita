@@ -1,6 +1,6 @@
-"use client";
+'use client';
 
-import React, { useState } from "react";
+import React, { useState } from 'react';
 import {
   UserCheck,
   UserX,
@@ -11,8 +11,8 @@ import {
   ChevronUp,
   X,
   Send,
-} from "lucide-react";
-import { invitationsApi, Invitation } from "@/lib/api";
+} from 'lucide-react';
+import { invitationsApi, Invitation } from '@/lib/api';
 
 interface PendingInvitationsProps {
   received: Invitation[];
@@ -31,7 +31,7 @@ export default function PendingInvitations({
   const [cancelling, setCancelling] = useState<string | null>(null);
   const [showSent, setShowSent] = useState(false);
 
-  const handleRespond = async (id: string, action: "accept" | "reject") => {
+  const handleRespond = async (id: string, action: 'accept' | 'reject') => {
     setResponding(id);
     try {
       await invitationsApi.respond(id, action);
@@ -57,10 +57,14 @@ export default function PendingInvitations({
 
   const roleLabel = (role: string) => {
     switch (role) {
-      case "psychologist": return "Psic\u00f3logo(a)";
-      case "psychiatrist": return "Psiquiatra";
-      case "patient": return "Paciente";
-      default: return role;
+      case 'psychologist':
+        return 'Psic\u00f3logo(a)';
+      case 'psychiatrist':
+        return 'Psiquiatra';
+      case 'patient':
+        return 'Paciente';
+      default:
+        return role;
     }
   };
 
@@ -71,11 +75,11 @@ export default function PendingInvitations({
     const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
     const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
 
-    if (diffHours < 1) return "agora mesmo";
+    if (diffHours < 1) return 'agora mesmo';
     if (diffHours < 24) return `h\u00e1 ${diffHours}h`;
-    if (diffDays === 1) return "ontem";
+    if (diffDays === 1) return 'ontem';
     if (diffDays < 7) return `h\u00e1 ${diffDays} dias`;
-    return date.toLocaleDateString("pt-BR", { day: "2-digit", month: "short" });
+    return date.toLocaleDateString('pt-BR', { day: '2-digit', month: 'short' });
   };
 
   if (received.length === 0 && sent.length === 0) return null;
@@ -89,12 +93,8 @@ export default function PendingInvitations({
             <div className="w-8 h-8 bg-gradient-to-br from-clarita-green-100 to-clarita-green-50 rounded-xl flex items-center justify-center">
               <Mail size={16} className="text-clarita-green-600" />
             </div>
-            <h3 className="text-sm font-semibold text-gray-800">
-              Convites Recebidos
-            </h3>
-            <span className="badge-green">
-              {received.length}
-            </span>
+            <h3 className="text-sm font-semibold text-gray-800">Convites Recebidos</h3>
+            <span className="badge-green">{received.length}</span>
           </div>
 
           <div className="space-y-3">
@@ -121,7 +121,7 @@ export default function PendingInvitations({
                     <p className="text-xs text-gray-500">
                       {roleLabel(inv.other_role)}
                       {inv.specialization && ` \u00b7 ${inv.specialization}`}
-                      {" \u00b7 "}
+                      {' \u00b7 '}
                       <span className="font-mono">{inv.other_display_id}</span>
                     </p>
                     {inv.invitation_message && (
@@ -139,7 +139,7 @@ export default function PendingInvitations({
                   {!isSender && (
                     <div className="flex items-center gap-2 shrink-0">
                       <button
-                        onClick={() => handleRespond(inv.id, "accept")}
+                        onClick={() => handleRespond(inv.id, 'accept')}
                         disabled={responding === inv.id}
                         className="btn-primary text-xs px-3 py-1.5"
                       >
@@ -151,7 +151,7 @@ export default function PendingInvitations({
                         Aceitar
                       </button>
                       <button
-                        onClick={() => handleRespond(inv.id, "reject")}
+                        onClick={() => handleRespond(inv.id, 'reject')}
                         disabled={responding === inv.id}
                         className="btn-secondary text-xs px-3 py-1.5"
                       >
@@ -177,12 +177,8 @@ export default function PendingInvitations({
             <div className="w-8 h-8 bg-gradient-to-br from-orange-100 to-orange-50 rounded-xl flex items-center justify-center">
               <Send size={14} className="text-orange-500" />
             </div>
-            <span className="text-sm font-semibold text-gray-800 flex-1">
-              Convites Enviados
-            </span>
-            <span className="badge-orange mr-2">
-              {sent.length}
-            </span>
+            <span className="text-sm font-semibold text-gray-800 flex-1">Convites Enviados</span>
+            <span className="badge-orange mr-2">{sent.length}</span>
             {showSent ? (
               <ChevronUp size={16} className="text-gray-400" />
             ) : (
@@ -209,9 +205,9 @@ export default function PendingInvitations({
                     </p>
                     <p className="text-xs text-gray-400">
                       {roleLabel(inv.other_role)}
-                      {" \u00b7 "}
+                      {' \u00b7 '}
                       <span className="text-orange-500 font-medium">Aguardando resposta</span>
-                      {" \u00b7 "}
+                      {' \u00b7 '}
                       {formatDate(inv.created_at)}
                     </p>
                   </div>

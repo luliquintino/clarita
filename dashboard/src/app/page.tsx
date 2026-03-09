@@ -1,18 +1,18 @@
-"use client";
+'use client';
 
-import { useEffect } from "react";
-import { useRouter } from "next/navigation";
-import { isAuthenticated } from "@/lib/api";
-import { Loader2 } from "lucide-react";
+import { useEffect } from 'react';
+import { useRouter } from 'next/navigation';
+import { isAuthenticated } from '@/lib/api';
+import { Loader2 } from 'lucide-react';
 
 export default function HomePage() {
   const router = useRouter();
 
   useEffect(() => {
     if (isAuthenticated()) {
-      router.replace("/patients");
+      router.replace('/patients');
     } else {
-      router.replace("/login");
+      router.replace('/login');
     }
   }, [router]);
 

@@ -1,8 +1,8 @@
-"use client";
+'use client';
 
-import { useState } from "react";
-import { format } from "date-fns";
-import { ptBR } from "date-fns/locale";
+import { useState } from 'react';
+import { format } from 'date-fns';
+import { ptBR } from 'date-fns/locale';
 import {
   Sparkles,
   RefreshCw,
@@ -13,8 +13,8 @@ import {
   TrendingDown,
   Minus,
   AlertTriangle,
-} from "lucide-react";
-import type { PatientSummary } from "@/lib/api";
+} from 'lucide-react';
+import type { PatientSummary } from '@/lib/api';
 
 interface AISummaryCardProps {
   summaries: PatientSummary[];
@@ -24,8 +24,8 @@ interface AISummaryCardProps {
 }
 
 function TrendIcon({ trend }: { trend: string }) {
-  if (trend === "melhora") return <TrendingUp size={14} className="text-clarita-green-500" />;
-  if (trend === "declínio") return <TrendingDown size={14} className="text-red-400" />;
+  if (trend === 'melhora') return <TrendingUp size={14} className="text-clarita-green-500" />;
+  if (trend === 'declínio') return <TrendingDown size={14} className="text-red-400" />;
   return <Minus size={14} className="text-gray-400" />;
 }
 
@@ -64,9 +64,7 @@ export default function AISummaryCard({
           <h3 className="text-lg font-semibold text-gray-800">
             Resumo <span className="text-gradient font-bold">IA</span>
           </h3>
-          <span className="badge-purple text-[10px]">
-            Gerado por IA
-          </span>
+          <span className="badge-purple text-[10px]">Gerado por IA</span>
         </div>
         <div className="flex items-center gap-2">
           {onGenerate && (
@@ -80,7 +78,7 @@ export default function AISummaryCard({
               ) : (
                 <RefreshCw size={12} />
               )}
-              {generating ? "Gerando..." : "Gerar novo"}
+              {generating ? 'Gerando...' : 'Gerar novo'}
             </button>
           )}
           <button
@@ -110,12 +108,13 @@ export default function AISummaryCard({
                   {/* Period badge */}
                   <div className="flex items-center gap-2 text-xs text-gray-400">
                     <span>
-                      {format(new Date(summary.period_start), "d MMM", { locale: ptBR })} -{" "}
-                      {format(new Date(summary.period_end), "d MMM yyyy", { locale: ptBR })}
+                      {format(new Date(summary.period_start), 'd MMM', { locale: ptBR })} -{' '}
+                      {format(new Date(summary.period_end), 'd MMM yyyy', { locale: ptBR })}
                     </span>
                     <span>·</span>
                     <span>
-                      Gerado {format(new Date(summary.generated_at), "d/MM HH:mm", { locale: ptBR })}
+                      Gerado{' '}
+                      {format(new Date(summary.generated_at), 'd/MM HH:mm', { locale: ptBR })}
                     </span>
                   </div>
 
@@ -170,8 +169,8 @@ export default function AISummaryCard({
                   className="btn-ghost text-xs text-clarita-purple-500 hover:text-clarita-purple-600"
                 >
                   {showAll
-                    ? "Mostrar menos"
-                    : `Ver ${summaries.length - 1} resumo${summaries.length - 1 > 1 ? "s" : ""} anterior${summaries.length - 1 > 1 ? "es" : ""}`}
+                    ? 'Mostrar menos'
+                    : `Ver ${summaries.length - 1} resumo${summaries.length - 1 > 1 ? 's' : ''} anterior${summaries.length - 1 > 1 ? 'es' : ''}`}
                 </button>
               )}
             </div>
@@ -206,10 +205,7 @@ function SummaryText({ text }: { text: string }) {
           }
 
           return (
-            <p
-              key={i}
-              className={isWarning ? 'text-orange-600 font-medium mt-2' : ''}
-            >
+            <p key={i} className={isWarning ? 'text-orange-600 font-medium mt-2' : ''}>
               {parts}
             </p>
           );
@@ -224,7 +220,7 @@ function MetricCard({
   value,
   max,
   color,
-  suffix = "",
+  suffix = '',
   warning = false,
   extra,
 }: {
@@ -251,10 +247,7 @@ function MetricCard({
         {suffix && <span className="text-xs text-gray-400 font-normal">{suffix}</span>}
       </p>
       <div className="w-full h-1 bg-gray-100 rounded-full mt-1">
-        <div
-          className={`h-1 rounded-full bg-${color}-400`}
-          style={{ width: `${percentage}%` }}
-        />
+        <div className={`h-1 rounded-full bg-${color}-400`} style={{ width: `${percentage}%` }} />
       </div>
       {extra && <div className="mt-1">{extra}</div>}
     </div>

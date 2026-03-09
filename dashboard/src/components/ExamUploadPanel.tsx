@@ -1,6 +1,6 @@
-"use client";
+'use client';
 
-import { useState, useEffect, useCallback, useRef } from "react";
+import { useState, useEffect, useCallback, useRef } from 'react';
 import {
   Upload,
   FileText,
@@ -14,22 +14,19 @@ import {
   X,
   Loader2,
   ClipboardList,
-} from "lucide-react";
-import {
-  examsApi,
-  patientProfileApi,
-} from "@/lib/api";
-import type { Exam, ProfessionalInfo } from "@/lib/api";
+} from 'lucide-react';
+import { examsApi, patientProfileApi } from '@/lib/api';
+import type { Exam, ProfessionalInfo } from '@/lib/api';
 
 const EXAM_TYPES = [
-  "Hemograma",
-  "Glicemia",
-  "Colesterol",
-  "Tireoide",
-  "Vitaminas",
-  "Imagem / Raio-X",
-  "Ressonância",
-  "Outro",
+  'Hemograma',
+  'Glicemia',
+  'Colesterol',
+  'Tireoide',
+  'Vitaminas',
+  'Imagem / Raio-X',
+  'Ressonância',
+  'Outro',
 ];
 
 function formatFileSize(bytes: number): string {
@@ -42,7 +39,7 @@ function formatDate(dateStr: string): string {
   // Handle both ISO strings (2026-03-01T03:00:00.000Z) and date-only (2026-03-01)
   const d = new Date(dateStr);
   if (isNaN(d.getTime())) return dateStr;
-  return d.toLocaleDateString("pt-BR", { day: "2-digit", month: "short", year: "numeric" });
+  return d.toLocaleDateString('pt-BR', { day: '2-digit', month: 'short', year: 'numeric' });
 }
 
 export default function ExamUploadPanel() {
@@ -56,9 +53,9 @@ export default function ExamUploadPanel() {
 
   // Upload form state
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
-  const [examType, setExamType] = useState("");
-  const [examDate, setExamDate] = useState("");
-  const [notes, setNotes] = useState("");
+  const [examType, setExamType] = useState('');
+  const [examDate, setExamDate] = useState('');
+  const [notes, setNotes] = useState('');
   const [selectedProfessionals, setSelectedProfessionals] = useState<string[]>([]);
 
   // Expanded exam cards
@@ -77,7 +74,7 @@ export default function ExamUploadPanel() {
       setExams(examsRes.exams);
       setProfessionals(profsRes.professionals);
     } catch {
-      setError("Erro ao carregar dados.");
+      setError('Erro ao carregar dados.');
     } finally {
       setLoading(false);
     }
@@ -91,7 +88,7 @@ export default function ExamUploadPanel() {
     const file = e.target.files?.[0];
     if (file) {
       if (file.size > 10 * 1024 * 1024) {
-        setError("Arquivo muito grande. Máximo: 10MB.");
+        setError('Arquivo muito grande. Máximo: 10MB.');
         return;
       }
       setSelectedFile(file);
@@ -103,13 +100,13 @@ export default function ExamUploadPanel() {
     e.preventDefault();
     const file = e.dataTransfer.files[0];
     if (file) {
-      const allowed = ["application/pdf", "image/jpeg", "image/png"];
+      const allowed = ['application/pdf', 'image/jpeg', 'image/png'];
       if (!allowed.includes(file.type)) {
-        setError("Tipo de arquivo não permitido. Use PDF, JPEG ou PNG.");
+        setError('Tipo de arquivo não permitido. Use PDF, JPEG ou PNG.');
         return;
       }
       if (file.size > 10 * 1024 * 1024) {
-        setError("Arquivo muito grande. Máximo: 10MB.");
+        setError('Arquivo muito grande. Máximo: 10MB.');
         return;
       }
       setSelectedFile(file);
@@ -119,7 +116,7 @@ export default function ExamUploadPanel() {
 
   const handleUpload = async () => {
     if (!selectedFile || !examType || !examDate) {
-      setError("Preencha todos os campos obrigatórios.");
+      setError('Preencha todos os campos obrigatórios.');
       return;
     }
 
@@ -128,30 +125,30 @@ export default function ExamUploadPanel() {
       setError(null);
 
       const formData = new FormData();
-      formData.append("file", selectedFile);
-      formData.append("exam_type", examType);
-      formData.append("exam_date", examDate);
-      if (notes) formData.append("notes", notes);
-      formData.append("professional_ids", JSON.stringify(selectedProfessionals));
+      formData.append('file', selectedFile);
+      formData.append('exam_type', examType);
+      formData.append('exam_date', examDate);
+      if (notes) formData.append('notes', notes);
+      formData.append('professional_ids', JSON.stringify(selectedProfessionals));
 
       await examsApi.upload(formData);
 
       // Reset form
       setSelectedFile(null);
-      setExamType("");
-      setExamDate("");
-      setNotes("");
+      setExamType('');
+      setExamDate('');
+      setNotes('');
       setSelectedProfessionals([]);
-      if (fileInputRef.current) fileInputRef.current.value = "";
+      if (fileInputRef.current) fileInputRef.current.value = '';
 
-      setSuccess("Exame enviado com sucesso!");
+      setSuccess('Exame enviado com sucesso!');
       setTimeout(() => setSuccess(null), 3000);
 
       // Reload exams
       const examsRes = await examsApi.getMyExams();
       setExams(examsRes.exams);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Erro ao enviar exame.");
+      setError(err instanceof Error ? err.message : 'Erro ao enviar exame.');
     } finally {
       setUploading(false);
     }
@@ -161,10 +158,10 @@ export default function ExamUploadPanel() {
     try {
       const blob = await examsApi.download(exam.id);
       const url = URL.createObjectURL(blob);
-      window.open(url, "_blank");
+      window.open(url, '_blank');
       setTimeout(() => URL.revokeObjectURL(url), 60000);
     } catch {
-      setError("Erro ao baixar exame.");
+      setError('Erro ao baixar exame.');
     }
   };
 
@@ -173,14 +170,18 @@ export default function ExamUploadPanel() {
       await examsApi.delete(examId);
       setExams((prev) => prev.filter((e) => e.id !== examId));
       setDeletingId(null);
-      setSuccess("Exame removido.");
+      setSuccess('Exame removido.');
       setTimeout(() => setSuccess(null), 3000);
     } catch {
-      setError("Erro ao remover exame.");
+      setError('Erro ao remover exame.');
     }
   };
 
-  const handlePermissionToggle = async (examId: string, profId: string, currentPerms: Exam["permissions"]) => {
+  const handlePermissionToggle = async (
+    examId: string,
+    profId: string,
+    currentPerms: Exam['permissions']
+  ) => {
     const currentIds = (currentPerms || []).map((p) => p.professional_id);
     const newIds = currentIds.includes(profId)
       ? currentIds.filter((id) => id !== profId)
@@ -189,17 +190,15 @@ export default function ExamUploadPanel() {
     try {
       const res = await examsApi.updatePermissions(examId, newIds);
       setExams((prev) =>
-        prev.map((e) =>
-          e.id === examId ? { ...e, permissions: res.permissions } : e
-        )
+        prev.map((e) => (e.id === examId ? { ...e, permissions: res.permissions } : e))
       );
     } catch {
-      setError("Erro ao atualizar permissões.");
+      setError('Erro ao atualizar permissões.');
     }
   };
 
   const getFileIcon = (mimeType: string) => {
-    if (mimeType === "application/pdf") return <FileText className="w-5 h-5 text-red-500" />;
+    if (mimeType === 'application/pdf') return <FileText className="w-5 h-5 text-red-500" />;
     return <ImageIcon className="w-5 h-5 text-blue-500" />;
   };
 
@@ -225,7 +224,9 @@ export default function ExamUploadPanel() {
           <div className="flex items-center gap-2 p-3 mb-4 rounded-xl bg-red-50 border border-red-200 text-red-700 text-sm">
             <AlertCircle className="w-4 h-4 flex-shrink-0" />
             <span>{error}</span>
-            <button onClick={() => setError(null)} className="ml-auto"><X className="w-4 h-4" /></button>
+            <button onClick={() => setError(null)} className="ml-auto">
+              <X className="w-4 h-4" />
+            </button>
           </div>
         )}
         {success && (
@@ -241,9 +242,10 @@ export default function ExamUploadPanel() {
           onDrop={handleDrop}
           onClick={() => fileInputRef.current?.click()}
           className={`border-2 border-dashed rounded-xl p-6 text-center cursor-pointer transition-all duration-300 mb-4
-            ${selectedFile
-              ? "border-clarita-green-300 bg-clarita-green-50/50"
-              : "border-gray-300 hover:border-clarita-green-300 hover:bg-clarita-green-50/30"
+            ${
+              selectedFile
+                ? 'border-clarita-green-300 bg-clarita-green-50/50'
+                : 'border-gray-300 hover:border-clarita-green-300 hover:bg-clarita-green-50/30'
             }`}
         >
           <input
@@ -261,7 +263,11 @@ export default function ExamUploadPanel() {
                 <p className="text-xs text-gray-500">{formatFileSize(selectedFile.size)}</p>
               </div>
               <button
-                onClick={(e) => { e.stopPropagation(); setSelectedFile(null); if (fileInputRef.current) fileInputRef.current.value = ""; }}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setSelectedFile(null);
+                  if (fileInputRef.current) fileInputRef.current.value = '';
+                }}
                 className="ml-2 p-1 rounded-lg hover:bg-red-50 text-gray-400 hover:text-red-500"
               >
                 <X className="w-4 h-4" />
@@ -287,7 +293,9 @@ export default function ExamUploadPanel() {
             >
               <option value="">Selecione...</option>
               {EXAM_TYPES.map((t) => (
-                <option key={t} value={t}>{t}</option>
+                <option key={t} value={t}>
+                  {t}
+                </option>
               ))}
             </select>
           </div>
@@ -328,23 +336,30 @@ export default function ExamUploadPanel() {
                     checked={selectedProfessionals.includes(prof.id)}
                     onChange={() =>
                       setSelectedProfessionals((prev) =>
-                        prev.includes(prof.id) ? prev.filter((id) => id !== prof.id) : [...prev, prof.id]
+                        prev.includes(prof.id)
+                          ? prev.filter((id) => id !== prof.id)
+                          : [...prev, prof.id]
                       )
                     }
                     className="w-4 h-4 rounded border-gray-300 text-clarita-green-500 focus:ring-clarita-green-300"
                   />
                   <div className="flex items-center gap-2">
-                    <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold text-white ${
-                      prof.role === "psychiatrist" ? "bg-clarita-purple-400" : "bg-clarita-green-400"
-                    }`}>
-                      {prof.first_name[0]}{prof.last_name[0]}
+                    <div
+                      className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold text-white ${
+                        prof.role === 'psychiatrist'
+                          ? 'bg-clarita-purple-400'
+                          : 'bg-clarita-green-400'
+                      }`}
+                    >
+                      {prof.first_name[0]}
+                      {prof.last_name[0]}
                     </div>
                     <div>
                       <span className="text-sm font-medium text-gray-700">
                         {prof.first_name} {prof.last_name}
                       </span>
                       <span className="text-xs text-gray-500 ml-2">
-                        {prof.role === "psychiatrist" ? "Psiquiatra" : "Psicólogo(a)"}
+                        {prof.role === 'psychiatrist' ? 'Psiquiatra' : 'Psicólogo(a)'}
                       </span>
                     </div>
                   </div>
@@ -361,9 +376,13 @@ export default function ExamUploadPanel() {
           className="btn-primary w-full"
         >
           {uploading ? (
-            <><Loader2 className="w-4 h-4 animate-spin" /> Enviando...</>
+            <>
+              <Loader2 className="w-4 h-4 animate-spin" /> Enviando...
+            </>
           ) : (
-            <><Upload className="w-4 h-4" /> Enviar Exame</>
+            <>
+              <Upload className="w-4 h-4" /> Enviar Exame
+            </>
           )}
         </button>
       </div>
@@ -380,12 +399,17 @@ export default function ExamUploadPanel() {
           <div className="text-center py-8">
             <FileText className="w-10 h-10 mx-auto mb-3 text-gray-300" />
             <p className="text-sm text-gray-500">Nenhum exame enviado ainda.</p>
-            <p className="text-xs text-gray-400 mt-1">Use o formulário acima para enviar seu primeiro exame.</p>
+            <p className="text-xs text-gray-400 mt-1">
+              Use o formulário acima para enviar seu primeiro exame.
+            </p>
           </div>
         ) : (
           <div className="space-y-3">
             {exams.map((exam) => (
-              <div key={exam.id} className="bg-white/60 backdrop-blur-sm rounded-xl border border-white/40 overflow-hidden transition-all duration-300">
+              <div
+                key={exam.id}
+                className="bg-white/60 backdrop-blur-sm rounded-xl border border-white/40 overflow-hidden transition-all duration-300"
+              >
                 <div className="flex items-center gap-3 p-3">
                   {getFileIcon(exam.mime_type)}
                   <div className="flex-1 min-w-0">
@@ -409,7 +433,11 @@ export default function ExamUploadPanel() {
                       className="p-2 rounded-lg hover:bg-gray-100 text-gray-400 transition-colors"
                       title="Detalhes"
                     >
-                      {expandedExam === exam.id ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+                      {expandedExam === exam.id ? (
+                        <ChevronUp className="w-4 h-4" />
+                      ) : (
+                        <ChevronDown className="w-4 h-4" />
+                      )}
                     </button>
                     {deletingId === exam.id ? (
                       <div className="flex items-center gap-1">
@@ -466,14 +494,16 @@ export default function ExamUploadPanel() {
                                 <input
                                   type="checkbox"
                                   checked={hasAccess}
-                                  onChange={() => handlePermissionToggle(exam.id, prof.id, exam.permissions)}
+                                  onChange={() =>
+                                    handlePermissionToggle(exam.id, prof.id, exam.permissions)
+                                  }
                                   className="w-3.5 h-3.5 rounded border-gray-300 text-clarita-green-500 focus:ring-clarita-green-300"
                                 />
                                 <span className="text-sm text-gray-700">
                                   {prof.first_name} {prof.last_name}
                                 </span>
                                 <span className="text-xs text-gray-400">
-                                  {prof.role === "psychiatrist" ? "Psiquiatra" : "Psicólogo(a)"}
+                                  {prof.role === 'psychiatrist' ? 'Psiquiatra' : 'Psicólogo(a)'}
                                 </span>
                               </label>
                             );

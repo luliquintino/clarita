@@ -1,7 +1,7 @@
-"use client";
+'use client';
 
-import { useState } from "react";
-import { format } from "date-fns";
+import { useState } from 'react';
+import { format } from 'date-fns';
 import {
   Plus,
   Edit3,
@@ -13,17 +13,13 @@ import {
   Stethoscope,
   ClipboardList,
   TrendingUp,
-} from "lucide-react";
-import type { ClinicalNote } from "@/lib/api";
+} from 'lucide-react';
+import type { ClinicalNote } from '@/lib/api';
 
 interface ClinicalNotesProps {
   notes: ClinicalNote[];
   patientId: string;
-  onSave: (data: {
-    type: string;
-    title: string;
-    content: string;
-  }) => Promise<void>;
+  onSave: (data: { type: string; title: string; content: string }) => Promise<void>;
   onUpdate: (
     noteId: string,
     data: { type?: string; title?: string; content?: string }
@@ -43,31 +39,31 @@ const noteTypeConfig: Record<
 > = {
   session: {
     icon: <FileText size={14} />,
-    label: "Nota de Sessao",
-    badgeClass: "badge-green",
-    activeBg: "bg-clarita-green-100 ring-2 ring-offset-1 ring-clarita-green-300/30",
-    activeText: "text-clarita-green-700",
+    label: 'Nota de Sessao',
+    badgeClass: 'badge-green',
+    activeBg: 'bg-clarita-green-100 ring-2 ring-offset-1 ring-clarita-green-300/30',
+    activeText: 'text-clarita-green-700',
   },
   observation: {
     icon: <Eye size={14} />,
-    label: "Observacao",
-    badgeClass: "badge-blue",
-    activeBg: "bg-clarita-blue-100 ring-2 ring-offset-1 ring-clarita-blue-300/30",
-    activeText: "text-clarita-blue-500",
+    label: 'Observacao',
+    badgeClass: 'badge-blue',
+    activeBg: 'bg-clarita-blue-100 ring-2 ring-offset-1 ring-clarita-blue-300/30',
+    activeText: 'text-clarita-blue-500',
   },
   treatment_plan: {
     icon: <ClipboardList size={14} />,
-    label: "Plano de Tratamento",
-    badgeClass: "badge-purple",
-    activeBg: "bg-purple-100 ring-2 ring-offset-1 ring-purple-300/30",
-    activeText: "text-purple-600",
+    label: 'Plano de Tratamento',
+    badgeClass: 'badge-purple',
+    activeBg: 'bg-purple-100 ring-2 ring-offset-1 ring-purple-300/30',
+    activeText: 'text-purple-600',
   },
   progress: {
     icon: <TrendingUp size={14} />,
-    label: "Nota de Progresso",
-    badgeClass: "badge-orange",
-    activeBg: "bg-orange-100 ring-2 ring-offset-1 ring-orange-300/30",
-    activeText: "text-orange-600",
+    label: 'Nota de Progresso',
+    badgeClass: 'badge-orange',
+    activeBg: 'bg-orange-100 ring-2 ring-offset-1 ring-orange-300/30',
+    activeText: 'text-orange-600',
   },
 };
 
@@ -83,14 +79,14 @@ export default function ClinicalNotes({
   const [saving, setSaving] = useState(false);
   const [expandedId, setExpandedId] = useState<string | null>(null);
 
-  const [formType, setFormType] = useState("session");
-  const [formTitle, setFormTitle] = useState("");
-  const [formContent, setFormContent] = useState("");
+  const [formType, setFormType] = useState('session');
+  const [formTitle, setFormTitle] = useState('');
+  const [formContent, setFormContent] = useState('');
 
   const resetForm = () => {
-    setFormType("session");
-    setFormTitle("");
-    setFormContent("");
+    setFormType('session');
+    setFormTitle('');
+    setFormContent('');
     setIsCreating(false);
     setEditingId(null);
   };
@@ -123,18 +119,18 @@ export default function ClinicalNotes({
       }
       resetForm();
     } catch (err) {
-      console.error("Failed to save note:", err);
+      console.error('Failed to save note:', err);
     } finally {
       setSaving(false);
     }
   };
 
   const handleDelete = async (noteId: string) => {
-    if (!confirm("Tem certeza de que deseja excluir esta nota?")) return;
+    if (!confirm('Tem certeza de que deseja excluir esta nota?')) return;
     try {
       await onDelete(noteId);
     } catch (err) {
-      console.error("Failed to delete note:", err);
+      console.error('Failed to delete note:', err);
     }
   };
 
@@ -164,7 +160,7 @@ export default function ClinicalNotes({
           <div className="bg-white/40 backdrop-blur-sm rounded-2xl p-4 border border-clarita-green-200/50 animate-scale-in">
             <div className="flex items-center justify-between mb-4">
               <h4 className="font-medium text-gray-800">
-                {editingId ? "Editar Nota" : "Nova Nota Clinica"}
+                {editingId ? 'Editar Nota' : 'Nova Nota Clinica'}
               </h4>
               <button
                 onClick={resetForm}
@@ -177,9 +173,7 @@ export default function ClinicalNotes({
             <div className="space-y-4">
               {/* Note type selector */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Tipo de Nota
-                </label>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Tipo de Nota</label>
                 <div className="flex flex-wrap gap-2">
                   {Object.entries(noteTypeConfig).map(([type, config]) => {
                     const isSelected = formType === type;
@@ -192,7 +186,7 @@ export default function ClinicalNotes({
                           ${
                             isSelected
                               ? `${config.activeBg} ${config.activeText}`
-                              : "bg-white/30 text-gray-500 hover:bg-white/50"
+                              : 'bg-white/30 text-gray-500 hover:bg-white/50'
                           }`}
                       >
                         {config.icon}
@@ -205,9 +199,7 @@ export default function ClinicalNotes({
 
               {/* Title */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1.5">
-                  Titulo
-                </label>
+                <label className="block text-sm font-medium text-gray-700 mb-1.5">Titulo</label>
                 <input
                   type="text"
                   value={formTitle}
@@ -219,9 +211,7 @@ export default function ClinicalNotes({
 
               {/* Content */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1.5">
-                  Conteudo
-                </label>
+                <label className="block text-sm font-medium text-gray-700 mb-1.5">Conteudo</label>
                 <textarea
                   value={formContent}
                   onChange={(e) => setFormContent(e.target.value)}
@@ -235,17 +225,11 @@ export default function ClinicalNotes({
               <div className="flex items-center gap-3 pt-2">
                 <button
                   onClick={handleSave}
-                  disabled={
-                    saving || !formTitle.trim() || !formContent.trim()
-                  }
+                  disabled={saving || !formTitle.trim() || !formContent.trim()}
                   className="btn-primary flex items-center gap-2"
                 >
                   <Save size={16} />
-                  {saving
-                    ? "Salvando..."
-                    : editingId
-                      ? "Atualizar Nota"
-                      : "Salvar Nota"}
+                  {saving ? 'Salvando...' : editingId ? 'Atualizar Nota' : 'Salvar Nota'}
                 </button>
                 <button onClick={resetForm} className="btn-ghost">
                   Cancelar
@@ -258,8 +242,7 @@ export default function ClinicalNotes({
         {/* Notes list */}
         <div className="space-y-3">
           {notes.map((note) => {
-            const config =
-              noteTypeConfig[note.type] ?? noteTypeConfig.session;
+            const config = noteTypeConfig[note.type] ?? noteTypeConfig.session;
             const isExpanded = expandedId === note.id;
             const isLong = note.content.length > 200;
 
@@ -274,9 +257,7 @@ export default function ClinicalNotes({
                       {config.icon}
                       <span className="ml-1">{config.label}</span>
                     </span>
-                    <span className="text-xs text-gray-400">
-                      por {note.professional_name}
-                    </span>
+                    <span className="text-xs text-gray-400">por {note.professional_name}</span>
                   </div>
 
                   <div className="flex items-center gap-1">
@@ -297,14 +278,12 @@ export default function ClinicalNotes({
                   </div>
                 </div>
 
-                <h4 className="font-semibold text-gray-800 mb-1">
-                  {note.title}
-                </h4>
+                <h4 className="font-semibold text-gray-800 mb-1">{note.title}</h4>
 
                 {/* Expandable content with smooth transition */}
                 <div
                   className={`overflow-hidden transition-all duration-300 ease-in-out ${
-                    isExpanded || !isLong ? "max-h-[2000px]" : "max-h-[4.5rem]"
+                    isExpanded || !isLong ? 'max-h-[2000px]' : 'max-h-[4.5rem]'
                   }`}
                 >
                   <p className="text-sm text-gray-600 whitespace-pre-wrap leading-relaxed">
@@ -317,19 +296,17 @@ export default function ClinicalNotes({
                     onClick={() => toggleExpand(note.id)}
                     className="text-xs text-clarita-green-500 hover:text-clarita-green-600 font-medium mt-1 transition-colors"
                   >
-                    {isExpanded ? "Ver menos" : "Ver mais..."}
+                    {isExpanded ? 'Ver menos' : 'Ver mais...'}
                   </button>
                 )}
 
                 <div className="flex items-center gap-3 mt-3 pt-3 border-t border-white/30">
                   <span className="text-xs text-gray-400">
-                    Criado em{" "}
-                    {format(new Date(note.created_at), "dd/MM/yyyy HH:mm")}
+                    Criado em {format(new Date(note.created_at), 'dd/MM/yyyy HH:mm')}
                   </span>
                   {note.updated_at !== note.created_at && (
                     <span className="text-xs text-gray-400">
-                      &middot; Atualizado em{" "}
-                      {format(new Date(note.updated_at), "dd/MM/yyyy HH:mm")}
+                      &middot; Atualizado em {format(new Date(note.updated_at), 'dd/MM/yyyy HH:mm')}
                     </span>
                   )}
                 </div>
@@ -341,9 +318,7 @@ export default function ClinicalNotes({
         {notes.length === 0 && !isCreating && (
           <div className="text-center py-12">
             <Stethoscope size={32} className="mx-auto text-gray-300 mb-3" />
-            <p className="text-sm text-gray-400">
-              Nenhuma nota clinica ainda
-            </p>
+            <p className="text-sm text-gray-400">Nenhuma nota clinica ainda</p>
             <button
               onClick={() => setIsCreating(true)}
               className="btn-ghost text-xs mt-2 text-clarita-green-500"

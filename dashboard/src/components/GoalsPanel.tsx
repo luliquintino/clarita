@@ -1,8 +1,8 @@
-"use client";
+'use client';
 
-import { useState } from "react";
-import { format } from "date-fns";
-import { ptBR } from "date-fns/locale";
+import { useState } from 'react';
+import { format } from 'date-fns';
+import { ptBR } from 'date-fns/locale';
 import {
   Target,
   Trophy,
@@ -15,8 +15,8 @@ import {
   Loader2,
   X,
   Clock,
-} from "lucide-react";
-import type { Goal } from "@/lib/api";
+} from 'lucide-react';
+import type { Goal } from '@/lib/api';
 
 interface GoalsPanelProps {
   goals: Goal[];
@@ -32,33 +32,30 @@ interface GoalsPanelProps {
   onAchieveGoal?: (goalId: string) => Promise<void>;
   onUpdateGoal?: (
     goalId: string,
-    data: Partial<Pick<Goal, "title" | "description" | "status" | "target_date">>
+    data: Partial<Pick<Goal, 'title' | 'description' | 'status' | 'target_date'>>
   ) => Promise<void>;
 }
 
-const statusConfig: Record<
-  string,
-  { label: string; icon: React.ReactNode; badgeClass: string }
-> = {
+const statusConfig: Record<string, { label: string; icon: React.ReactNode; badgeClass: string }> = {
   in_progress: {
-    label: "Em andamento",
+    label: 'Em andamento',
     icon: <Target size={14} />,
-    badgeClass: "badge-blue",
+    badgeClass: 'badge-blue',
   },
   achieved: {
-    label: "Conquistada",
+    label: 'Conquistada',
     icon: <Trophy size={14} />,
-    badgeClass: "badge-green",
+    badgeClass: 'badge-green',
   },
   paused: {
-    label: "Pausada",
+    label: 'Pausada',
     icon: <Pause size={14} />,
-    badgeClass: "badge-yellow",
+    badgeClass: 'badge-yellow',
   },
   cancelled: {
-    label: "Cancelada",
+    label: 'Cancelada',
     icon: <X size={14} />,
-    badgeClass: "bg-gray-100 text-gray-400 badge",
+    badgeClass: 'bg-gray-100 text-gray-400 badge',
   },
 };
 
@@ -72,21 +69,19 @@ export default function GoalsPanel({
   onUpdateGoal,
 }: GoalsPanelProps) {
   const [showForm, setShowForm] = useState(false);
-  const [newTitle, setNewTitle] = useState("");
-  const [newDescription, setNewDescription] = useState("");
-  const [newTargetDate, setNewTargetDate] = useState("");
+  const [newTitle, setNewTitle] = useState('');
+  const [newDescription, setNewDescription] = useState('');
+  const [newTargetDate, setNewTargetDate] = useState('');
   const [saving, setSaving] = useState(false);
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [showRejected, setShowRejected] = useState(false);
 
-  const pendingAcceptance = goals.filter((g) => g.patient_status === "pending");
+  const pendingAcceptance = goals.filter((g) => g.patient_status === 'pending');
   const inProgress = goals.filter(
-    (g) => g.patient_status === "accepted" && (g.status === "in_progress" || g.status === "paused")
+    (g) => g.patient_status === 'accepted' && (g.status === 'in_progress' || g.status === 'paused')
   );
-  const achieved = goals.filter(
-    (g) => g.patient_status === "accepted" && g.status === "achieved"
-  );
-  const rejected = goals.filter((g) => g.patient_status === "rejected");
+  const achieved = goals.filter((g) => g.patient_status === 'accepted' && g.status === 'achieved');
+  const rejected = goals.filter((g) => g.patient_status === 'rejected');
 
   const handleCreate = async () => {
     if (!newTitle.trim() || !onCreateGoal) return;
@@ -98,9 +93,9 @@ export default function GoalsPanel({
         description: newDescription.trim() || undefined,
         target_date: newTargetDate || undefined,
       });
-      setNewTitle("");
-      setNewDescription("");
-      setNewTargetDate("");
+      setNewTitle('');
+      setNewDescription('');
+      setNewTargetDate('');
       setShowForm(false);
     } finally {
       setSaving(false);
@@ -179,12 +174,9 @@ export default function GoalsPanel({
                 className="btn-primary text-sm flex items-center gap-1"
               >
                 {saving ? <Loader2 size={14} className="animate-spin" /> : <Check size={14} />}
-                {saving ? "Criando..." : "Criar meta"}
+                {saving ? 'Criando...' : 'Criar meta'}
               </button>
-              <button
-                onClick={() => setShowForm(false)}
-                className="btn-secondary text-sm"
-              >
+              <button onClick={() => setShowForm(false)} className="btn-secondary text-sm">
                 Cancelar
               </button>
             </div>
@@ -314,7 +306,7 @@ function GoalCard({
   onAchieve?: () => void;
   onUpdateGoal?: (
     goalId: string,
-    data: Partial<Pick<Goal, "title" | "description" | "status" | "target_date">>
+    data: Partial<Pick<Goal, 'title' | 'description' | 'status' | 'target_date'>>
   ) => Promise<void>;
 }) {
   const config = statusConfig[goal.status] || statusConfig.in_progress;
@@ -322,7 +314,7 @@ function GoalCard({
   return (
     <div
       className={`bg-white/40 backdrop-blur-sm rounded-2xl p-4 border border-white/30 cursor-pointer transition-all duration-300 hover:bg-white/60 hover:shadow-soft animate-fade-in ${
-        goal.status === "achieved" ? "opacity-80" : ""
+        goal.status === 'achieved' ? 'opacity-80' : ''
       }`}
       onClick={onToggle}
     >
@@ -333,34 +325,40 @@ function GoalCard({
             {goal.target_date && (
               <span className="inline-flex items-center gap-1 text-xs text-gray-400">
                 <Calendar size={10} />
-                {format(new Date(goal.target_date), "dd/MM/yyyy")}
+                {format(new Date(goal.target_date), 'dd/MM/yyyy')}
               </span>
             )}
           </div>
-          <h4 className={`font-medium ${goal.status === "achieved" ? "text-gray-500 line-through" : "text-gray-800"}`}>
+          <h4
+            className={`font-medium ${goal.status === 'achieved' ? 'text-gray-500 line-through' : 'text-gray-800'}`}
+          >
             {goal.title}
           </h4>
           {goal.achieved_at && (
             <p className="text-xs text-clarita-green-500 mt-1">
-              Conquistada em {format(new Date(goal.achieved_at), "d 'de' MMMM 'de' yyyy", { locale: ptBR })}
+              Conquistada em{' '}
+              {format(new Date(goal.achieved_at), "d 'de' MMMM 'de' yyyy", { locale: ptBR })}
             </p>
           )}
         </div>
 
         <div className="flex items-center gap-2 ml-2 flex-shrink-0">
-          {!readOnly && goal.status === "in_progress" && goal.patient_status === "accepted" && onAchieve && (
-            <button
-              onClick={(e) => {
-                e.stopPropagation();
-                onAchieve();
-              }}
-              className="badge-green flex items-center gap-1 px-2 py-1 text-xs hover:shadow-glow-green transition-shadow"
-              title="Marcar como conquista"
-            >
-              <Trophy size={12} />
-              Conquistar
-            </button>
-          )}
+          {!readOnly &&
+            goal.status === 'in_progress' &&
+            goal.patient_status === 'accepted' &&
+            onAchieve && (
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onAchieve();
+                }}
+                className="badge-green flex items-center gap-1 px-2 py-1 text-xs hover:shadow-glow-green transition-shadow"
+                title="Marcar como conquista"
+              >
+                <Trophy size={12} />
+                Conquistar
+              </button>
+            )}
           <span className="text-gray-400">
             {expanded ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
           </span>
@@ -370,61 +368,66 @@ function GoalCard({
       {/* Expanded content */}
       {expanded && (
         <div className="mt-3 pt-3 border-t border-white/30 animate-fade-in">
-          {goal.description && (
-            <p className="text-sm text-gray-600 mb-2">{goal.description}</p>
-          )}
-          {goal.patient_status === "rejected" && goal.rejection_reason && (
+          {goal.description && <p className="text-sm text-gray-600 mb-2">{goal.description}</p>}
+          {goal.patient_status === 'rejected' && goal.rejection_reason && (
             <div className="p-2.5 bg-red-50/80 rounded-xl mb-2 border border-red-100/50">
               <p className="text-xs text-red-600">
                 <span className="font-semibold">Motivo da recusa:</span> {goal.rejection_reason}
               </p>
             </div>
           )}
-          {goal.patient_status === "rejected" && goal.responded_at && (
+          {goal.patient_status === 'rejected' && goal.responded_at && (
             <p className="text-xs text-red-400 mb-2">
-              Recusada em {format(new Date(goal.responded_at), "d 'de' MMMM 'de' yyyy", { locale: ptBR })}
+              Recusada em{' '}
+              {format(new Date(goal.responded_at), "d 'de' MMMM 'de' yyyy", { locale: ptBR })}
             </p>
           )}
           <p className="text-xs text-gray-400">
             Criada por {goal.created_by_first_name} {goal.created_by_last_name}
-            {" · "}
+            {' · '}
             {format(new Date(goal.created_at), "d 'de' MMMM 'de' yyyy", { locale: ptBR })}
           </p>
-          {!readOnly && goal.status === "in_progress" && goal.patient_status === "accepted" && onUpdateGoal && (
-            <div className="flex items-center gap-2 mt-3">
-              <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  onUpdateGoal(goal.id, { status: "paused" });
-                }}
-                className="btn-ghost text-xs text-yellow-600"
-              >
-                Pausar
-              </button>
-              <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  onUpdateGoal(goal.id, { status: "cancelled" });
-                }}
-                className="btn-ghost text-xs text-gray-400"
-              >
-                Cancelar
-              </button>
-            </div>
-          )}
-          {!readOnly && goal.status === "paused" && goal.patient_status === "accepted" && onUpdateGoal && (
-            <div className="flex items-center gap-2 mt-3">
-              <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  onUpdateGoal(goal.id, { status: "in_progress" });
-                }}
-                className="btn-ghost text-xs text-clarita-blue-500"
-              >
-                Retomar
-              </button>
-            </div>
-          )}
+          {!readOnly &&
+            goal.status === 'in_progress' &&
+            goal.patient_status === 'accepted' &&
+            onUpdateGoal && (
+              <div className="flex items-center gap-2 mt-3">
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onUpdateGoal(goal.id, { status: 'paused' });
+                  }}
+                  className="btn-ghost text-xs text-yellow-600"
+                >
+                  Pausar
+                </button>
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onUpdateGoal(goal.id, { status: 'cancelled' });
+                  }}
+                  className="btn-ghost text-xs text-gray-400"
+                >
+                  Cancelar
+                </button>
+              </div>
+            )}
+          {!readOnly &&
+            goal.status === 'paused' &&
+            goal.patient_status === 'accepted' &&
+            onUpdateGoal && (
+              <div className="flex items-center gap-2 mt-3">
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onUpdateGoal(goal.id, { status: 'in_progress' });
+                  }}
+                  className="btn-ghost text-xs text-clarita-blue-500"
+                >
+                  Retomar
+                </button>
+              </div>
+            )}
         </div>
       )}
     </div>
@@ -438,7 +441,7 @@ function PatientStatusBadge({
   goal: Goal;
   config: { label: string; icon: React.ReactNode; badgeClass: string };
 }) {
-  if (goal.patient_status === "pending") {
+  if (goal.patient_status === 'pending') {
     return (
       <span className="badge-yellow text-xs">
         <Clock size={12} />
@@ -447,7 +450,7 @@ function PatientStatusBadge({
     );
   }
 
-  if (goal.patient_status === "rejected") {
+  if (goal.patient_status === 'rejected') {
     return (
       <span className="badge-red text-xs">
         <X size={12} />
