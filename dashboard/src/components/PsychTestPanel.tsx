@@ -39,8 +39,8 @@ export default function PsychTestPanel({ patientId, role, assessmentFilter }: Ps
       ? [...SHARED_CATEGORIES, 'psychological']
       : [...SHARED_CATEGORIES, 'clinical', 'psychological']; // sem filtro = todos
 
-  const filteredCatalog = catalog.filter(
-    (t) => !assessmentFilter || allowedCategories.includes(t.category)
+  const filteredCatalog = catalog.filter((t) =>
+    allowedCategories.includes(t.category)
   );
 
   useEffect(() => {
