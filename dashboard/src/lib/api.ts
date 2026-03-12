@@ -232,6 +232,35 @@ export interface Medication {
   notes: string;
 }
 
+export interface PatientMedication {
+  id: string;
+  patient_id: string;
+  medication_id: string;
+  prescribed_by: string;
+  dosage: string;
+  frequency: string;
+  start_date: string;
+  end_date: string | null;
+  notes: string | null;
+  status: 'active' | 'discontinued' | 'adjusted';
+  medication_name: string;
+  medication_category: string | null;
+  prescriber_first_name: string | null;
+  prescriber_last_name: string | null;
+}
+
+export interface MedicationLog {
+  id: string;
+  patient_medication_id: string;
+  taken_at: string;
+  skipped: boolean;
+  skip_reason: string | null;
+  notes: string | null;
+  medication_name: string;
+  dosage: string;
+  frequency: string;
+}
+
 export interface Alert {
   id: string;
   patient_id: string;
@@ -631,6 +660,43 @@ export const medicationsApi = {
     request<Medication>(`/patients/${patientId}/medications/${medicationId}/discontinue`, {
       method: 'POST',
     }),
+};
+
+// ---------------------------------------------------------------------------
+// Patient Medications API (for the patient themselves)
+// ---------------------------------------------------------------------------
+
+export const patientMedicationsApi = {
+  /** List the current patient's own medications. Role=patient reads from JWT. */
+  listMine: (status?: 'active' | 'discontinued' | 'adjusted') => {
+    const params = status ? `?status=${status}` : '';
+    return request<{ patient_medications: PatientMedication[] }>(`/patient-medications${params}`);
+  },
+};
+
+// ---------------------------------------------------------------------------
+// Medication Logs API
+// ---------------------------------------------------------------------------
+
+export const medicationLogsApi = {
+  /** Log a medication as taken or skipped for the current patient. */
+  log: (patientMedicationId: string, skipped: boolean, skipReason?: string) =>
+    request<{ medication_log: MedicationLog }>('/medication-logs', {
+      method: 'POST',
+      body: JSON.stringify({
+        patient_medication_id: patientMedicationId,
+        skipped,
+        skip_reason: skipReason,
+      }),
+    }),
+
+  /** Get today's medication logs for the current patient. */
+  getToday: () => {
+    const today = new Date().toISOString().split('T')[0]; // e.g., "YYYY-MM-DD"
+    return request<{ medication_logs: MedicationLog[]; summary: { total: number; taken: number; skipped: number; adherence_rate: number | null } }>(
+      `/medication-logs?start_date=${today}T00:00:00&end_date=${today}T23:59:59`
+    );
+  },
 };
 
 // ---------------------------------------------------------------------------
@@ -1462,6 +1528,11 @@ export const prescriptionsApi = {
 
   get: (id: string) =>
     request<{ prescription: Prescription }>(`/prescriptions/detail/${id}`),
+
+  getMy: (page = 1, limit = 20) =>
+    request<{ prescriptions: Prescription[]; pagination: { page: number; limit: number; total: number } }>(
+      `/prescriptions/my?page=${page}&limit=${limit}`
+    ),
 };
 
 // ---------------------------------------------------------------------------
