@@ -52,6 +52,7 @@ import {
   summariesApi,
   getUserRoleFromToken,
 } from '@/lib/api';
+import { getRoleCapabilities } from '@/lib/roleConfig';
 import type {
   Patient,
   EmotionalLog,
@@ -456,6 +457,7 @@ export default function PatientDetailPage() {
   const [activeTab, setActiveTab] = useState<Tab>('overview');
   const [loading, setLoading] = useState(true);
   const [userRole] = useState(() => getUserRoleFromToken() || 'psychologist');
+  const caps = getRoleCapabilities(userRole);
 
   // Conditions states
   const [editingConditions, setEditingConditions] = useState(false);
@@ -1313,7 +1315,11 @@ export default function PatientDetailPage() {
               <div className="space-y-8">
                 <AssessmentHistory assessments={assessments} />
                 <div className="border-t border-gray-200/60 pt-8">
-                  <PsychTestPanel patientId={patientId} role={userRole} />
+                  <PsychTestPanel
+                    patientId={patientId}
+                    role={userRole}
+                    assessmentFilter={caps.assessment_filter}
+                  />
                 </div>
               </div>
             )}
@@ -1336,7 +1342,9 @@ export default function PatientDetailPage() {
               </div>
             )}
 
-            {activeTab === 'exams' && <PatientExamsPanel patientId={patientId} />}
+            {activeTab === 'exams' && (
+              <PatientExamsPanel patientId={patientId} readOnly={!caps.can_request_exams} />
+            )}
 
             {activeTab === 'anamnesis' && (
               <AnamnesisPanel patientId={patientId} role={userRole} />
@@ -1348,6 +1356,7 @@ export default function PatientDetailPage() {
                   medications={medications}
                   patientId={patientId}
                   role={userRole as 'psychiatrist' | 'psychologist' | 'therapist'}
+                  readOnly={!caps.can_prescribe}
                   onPrescribe={handlePrescribe}
                   onAdjust={handleAdjustMedication}
                   onDiscontinue={handleDiscontinueMedication}
