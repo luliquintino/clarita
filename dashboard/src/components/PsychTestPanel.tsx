@@ -7,9 +7,10 @@ import { psychTestsApi, PsychTest, TestSession } from '@/lib/api';
 interface PsychTestPanelProps {
   patientId?: string;
   role: string;
+  assessmentFilter?: 'clinical' | 'psychological';
 }
 
-export default function PsychTestPanel({ patientId, role }: PsychTestPanelProps) {
+export default function PsychTestPanel({ patientId, role, assessmentFilter }: PsychTestPanelProps) {
   const [catalog, setCatalog] = useState<PsychTest[]>([]);
   const [sessions, setSessions] = useState<TestSession[]>([]);
   const [loading, setLoading] = useState(true);
@@ -26,6 +27,21 @@ export default function PsychTestPanel({ patientId, role }: PsychTestPanelProps)
   const [result, setResult] = useState<any>(null);
 
   const isPatient = role === 'patient';
+
+  // Categorias de testes visíveis por papel
+  // 'depression', 'anxiety', 'general' são compartilhadas por ambos
+  // 'clinical' é exclusiva do psiquiatra (HAM-D, BPRS etc. — adicionados futuramente)
+  // 'psychological' é exclusiva do psicólogo (SATEPSI — adicionados futuramente)
+  const SHARED_CATEGORIES = ['depression', 'anxiety', 'general'];
+  const allowedCategories: string[] = assessmentFilter === 'clinical'
+    ? [...SHARED_CATEGORIES, 'clinical']
+    : assessmentFilter === 'psychological'
+      ? [...SHARED_CATEGORIES, 'psychological']
+      : [...SHARED_CATEGORIES, 'clinical', 'psychological']; // sem filtro = todos
+
+  const filteredCatalog = catalog.filter(
+    (t) => !assessmentFilter || allowedCategories.includes(t.category)
+  );
 
   useEffect(() => {
     loadData();
@@ -297,11 +313,11 @@ export default function PsychTestPanel({ patientId, role }: PsychTestPanelProps)
       <div className="space-y-4 animate-fade-in">
         <button onClick={() => setView('list')} className="text-sm text-indigo-600 hover:text-indigo-500">← Voltar</button>
         <h3 className="text-lg font-semibold text-gray-900">Catálogo de Testes</h3>
-        {catalog.length === 0 ? (
+        {filteredCatalog.length === 0 ? (
           <p className="text-gray-400 text-sm py-4 text-center">Nenhum teste disponível. Execute o seed de dados.</p>
         ) : (
           <div className="space-y-2">
-            {catalog.map((test) => (
+            {filteredCatalog.map((test) => (
               <div key={test.id} className="bg-gray-50 border border-gray-200 rounded-xl p-4">
                 <div className="flex items-center justify-between">
                   <div>
