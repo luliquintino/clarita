@@ -66,37 +66,6 @@ export default function PatientHomePage() {
     loadProfile();
   }, [router]);
 
-  const loadProfile = async () => {
-    try {
-      const response = await authApi.me();
-      if (response.user.role !== 'patient') {
-        router.replace('/patients');
-        return;
-      }
-
-      try {
-        const onboardingRes = await onboardingApi.get();
-        if (!onboardingRes.profile.onboarding_completed) {
-          router.replace('/onboarding');
-          return;
-        }
-      } catch {
-        // If onboarding check fails, continue to home
-      }
-
-      setUser(response.user);
-      loadJournals();
-      loadProfessionals();
-      loadGoals(response.user.id);
-      loadInvitations();
-      loadMedications();
-    } catch {
-      router.replace('/login');
-    } finally {
-      setLoading(false);
-    }
-  };
-
   const loadJournals = async () => {
     setJournalsLoading(true);
     try {
@@ -163,6 +132,37 @@ export default function PatientHomePage() {
       setMedications([]);
     }
   }, []);
+
+  const loadProfile = async () => {
+    try {
+      const response = await authApi.me();
+      if (response.user.role !== 'patient') {
+        router.replace('/patients');
+        return;
+      }
+
+      try {
+        const onboardingRes = await onboardingApi.get();
+        if (!onboardingRes.profile.onboarding_completed) {
+          router.replace('/onboarding');
+          return;
+        }
+      } catch {
+        // If onboarding check fails, continue to home
+      }
+
+      setUser(response.user);
+      loadJournals();
+      loadProfessionals();
+      loadGoals(response.user.id);
+      loadInvitations();
+      loadMedications();
+    } catch {
+      router.replace('/login');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleInvitationsUpdate = useCallback(async () => {
     await Promise.all([loadInvitations(), loadProfessionals()]);
@@ -290,7 +290,7 @@ export default function PatientHomePage() {
           {/* ── HOME ── */}
           {activeSection === 'home' && (
             <div className="grid grid-cols-1 md:grid-cols-5 gap-6 md:gap-8">
-              {/* Left: check-in + medication */}
+              {/* Left: check-in */}
               <div className="md:col-span-3 space-y-4">
                 <JournalEntry onSubmit={handleJournalSubmit} saving={saving} medications={medications} />
               </div>
