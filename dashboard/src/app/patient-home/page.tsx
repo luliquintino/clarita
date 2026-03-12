@@ -233,7 +233,7 @@ export default function PatientHomePage() {
       <div className="flex-1 min-w-0 md:ml-56 pb-24 md:pb-8">
         {/* Mobile-only header */}
         <header className="md:hidden sticky top-0 z-30 glass rounded-none border-b border-white/30">
-          <div className="max-w-5xl mx-auto flex items-center justify-between px-4 md:px-8 py-3">
+          <div className="max-w-5xl mx-auto flex items-center justify-between px-4 py-3">
             <div className="flex items-center gap-3">
               <Image
                 src="/logo-clarita.png"
@@ -251,9 +251,7 @@ export default function PatientHomePage() {
             </div>
             <div className="flex items-center gap-3">
               {user?.display_id && (
-                <div className="hidden sm:block">
-                  <DisplayIdBadge displayId={user.display_id} size="sm" />
-                </div>
+                <DisplayIdBadge displayId={user.display_id} size="sm" />
               )}
               <button
                 type="button"
@@ -328,7 +326,7 @@ export default function PatientHomePage() {
         <p className="text-center text-xs text-gray-400 pt-6 pb-2">
           Informações protegidas &middot; Conformidade LGPD
         </p>
-      </main>
+        </main>
 
       {/* Mobile BottomNav */}
       <BottomNav
