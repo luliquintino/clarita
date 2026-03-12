@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
-import { LogOut, Loader2, Smile, Target, BookOpen, Users, FileText, ClipboardList, FlaskConical } from 'lucide-react';
+import { LogOut, Loader2 } from 'lucide-react';
 import Image from 'next/image';
 import {
   authApi,
@@ -24,58 +24,9 @@ import ExamUploadPanel from '@/components/ExamUploadPanel';
 import DisplayIdBadge from '@/components/DisplayIdBadge';
 import AnamnesisPanel from '@/components/AnamnesisPanel';
 import PsychTestPanel from '@/components/PsychTestPanel';
-
-const tabConfig = [
-  {
-    key: 'checkin' as const,
-    label: 'Check-in',
-    icon: Smile,
-    activeClass: 'tab-green-active',
-    color: 'text-clarita-green-500',
-  },
-  {
-    key: 'goals' as const,
-    label: 'Metas',
-    icon: Target,
-    activeClass: 'tab-purple-active',
-    color: 'text-clarita-purple-500',
-  },
-  {
-    key: 'history' as const,
-    label: 'Histórico',
-    icon: BookOpen,
-    activeClass: 'tab-blue-active',
-    color: 'text-clarita-blue-500',
-  },
-  {
-    key: 'exams' as const,
-    label: 'Exames',
-    icon: FileText,
-    activeClass: 'tab-green-active',
-    color: 'text-clarita-green-600',
-  },
-  {
-    key: 'anamnesis' as const,
-    label: 'Anamnese',
-    icon: ClipboardList,
-    activeClass: 'tab-button bg-teal-500/20 text-teal-700 shadow-sm border border-teal-500/30',
-    color: 'text-teal-500',
-  },
-  {
-    key: 'tests' as const,
-    label: 'Testes',
-    icon: FlaskConical,
-    activeClass: 'tab-button bg-indigo-500/20 text-indigo-700 shadow-sm border border-indigo-500/30',
-    color: 'text-indigo-500',
-  },
-  {
-    key: 'professionals' as const,
-    label: 'Profissionais',
-    icon: Users,
-    activeClass: 'tab-orange-active',
-    color: 'text-orange-500',
-  },
-];
+import MedicationCheckCard from '@/components/MedicationCheckCard';
+import MyPrescriptionsPanel from '@/components/MyPrescriptionsPanel';
+import BottomNav, { type PatientSection } from '@/components/BottomNav';
 
 export default function PatientHomePage() {
   const router = useRouter();
@@ -95,9 +46,7 @@ export default function PatientHomePage() {
   const [pendingInvitations, setPendingInvitations] = useState<Invitation[]>([]);
   const [sentInvitations, setSentInvitations] = useState<Invitation[]>([]);
 
-  const [activeSection, setActiveSection] = useState<
-    'checkin' | 'history' | 'goals' | 'exams' | 'anamnesis' | 'tests' | 'professionals'
-  >('checkin');
+  const [activeSection, setActiveSection] = useState<PatientSection>('home');
 
   useEffect(() => {
     if (!isAuthenticated()) {
@@ -158,7 +107,7 @@ export default function PatientHomePage() {
     }
   };
 
-  const loadProfessionals = async () => {
+  const loadProfessionals = useCallback(async () => {
     setProfessionalsLoading(true);
     try {
       const data = await patientProfileApi.getMyProfessionals();
@@ -170,7 +119,7 @@ export default function PatientHomePage() {
     } finally {
       setProfessionalsLoading(false);
     }
-  };
+  }, []);
 
   const loadGoals = async (userId: string) => {
     setGoalsLoading(true);
@@ -186,7 +135,7 @@ export default function PatientHomePage() {
     }
   };
 
-  const loadInvitations = async () => {
+  const loadInvitations = useCallback(async () => {
     try {
       const [pendingData, sentData] = await Promise.all([
         invitationsApi.listPending(),
@@ -198,11 +147,11 @@ export default function PatientHomePage() {
       setPendingInvitations([]);
       setSentInvitations([]);
     }
-  };
+  }, []);
 
-  const handleInvitationsUpdate = async () => {
+  const handleInvitationsUpdate = useCallback(async () => {
     await Promise.all([loadInvitations(), loadProfessionals()]);
-  };
+  }, [loadInvitations, loadProfessionals]);
 
   const handleGoalRespond = async (
     goalId: string,
@@ -212,8 +161,6 @@ export default function PatientHomePage() {
     await goalsApi.respond(goalId, action, reason);
     if (user) await loadGoals(user.id);
   };
-
-  const pendingGoalsCount = goals.filter((g) => g.patient_status === 'pending').length;
 
   const handleJournalSubmit = async (data: {
     mood_score: number;
@@ -240,7 +187,7 @@ export default function PatientHomePage() {
       await patientProfileApi.updatePermissions(user.id, professionalId, permissions);
       await loadProfessionals();
     },
-    [user]
+    [user, loadProfessionals]
   );
 
   const handleLogout = () => {
@@ -259,15 +206,18 @@ export default function PatientHomePage() {
     );
   }
 
-  const getBadge = (key: string) => {
-    if (key === 'goals') return pendingGoalsCount;
-    if (key === 'professionals')
-      return pendingInvitations.filter((inv) => inv.invited_by !== user?.id).length;
-    return 0;
+  const pendingGoalsCount = goals.filter((g) => g.patient_status === 'pending').length;
+  const pendingInvitationsCount = pendingInvitations.filter(
+    (inv) => inv.invited_by !== user?.id
+  ).length;
+
+  const navBadges: Partial<Record<PatientSection, number>> = {
+    goals: pendingGoalsCount > 0 ? pendingGoalsCount : undefined,
+    home: pendingInvitationsCount > 0 ? pendingInvitationsCount : undefined,
   };
 
   return (
-    <div className="min-h-screen">
+    <div className="min-h-screen pb-24"> {/* pb-24 = space for fixed BottomNav */}
       {/* Header */}
       <header className="sticky top-0 z-30 glass rounded-none border-b border-white/30">
         <div className="max-w-5xl mx-auto flex items-center justify-between px-4 md:px-8 py-3">
@@ -293,6 +243,7 @@ export default function PatientHomePage() {
               </div>
             )}
             <button
+              type="button"
               onClick={handleLogout}
               className="flex items-center gap-1.5 px-3 py-2 text-gray-400 hover:text-red-500 hover:bg-red-50/50 rounded-xl transition-all"
               title="Sair"
@@ -305,103 +256,73 @@ export default function PatientHomePage() {
 
       {/* Content */}
       <main className="max-w-5xl mx-auto px-4 md:px-8 py-6 md:py-8">
-        {/* Mobile section tabs */}
-        <div className="flex md:hidden items-center gap-1.5 bg-white/50 backdrop-blur-sm rounded-2xl p-1.5 mb-6 border border-white/30">
-          {tabConfig.map((tab) => {
-            const Icon = tab.icon;
-            const badge = getBadge(tab.key);
-            return (
-              <button
-                key={tab.key}
-                onClick={() => setActiveSection(tab.key)}
-                className={`flex-1 flex items-center justify-center gap-1.5 py-2.5 text-xs font-medium rounded-xl transition-all duration-300 ${
-                  activeSection === tab.key ? tab.activeClass : 'text-gray-400'
-                }`}
-              >
-                <Icon size={15} />
-                <span className="hidden min-[400px]:inline">{tab.label}</span>
-                {badge > 0 && (
-                  <span className="ml-0.5 inline-flex items-center justify-center w-4 h-4 text-[9px] font-bold bg-gradient-to-r from-clarita-purple-400 to-clarita-green-400 text-white rounded-full">
-                    {badge}
-                  </span>
-                )}
-              </button>
-            );
-          })}
-        </div>
-
-        {/* Desktop: two-column layout / Mobile: single column based on tab */}
-        <div className="grid grid-cols-1 md:grid-cols-5 gap-6 md:gap-8">
-          {/* Left column */}
-          <div
-            className={`md:col-span-3 space-y-6 ${
-              activeSection !== 'checkin' &&
-              activeSection !== 'goals' &&
-              activeSection !== 'history' &&
-              activeSection !== 'exams' &&
-              activeSection !== 'anamnesis' &&
-              activeSection !== 'tests'
-                ? 'hidden md:block'
-                : ''
-            }`}
-          >
-            <div className={activeSection !== 'checkin' ? 'hidden md:block' : ''}>
+        {/* ── HOME ── */}
+        {activeSection === 'home' && (
+          <div className="grid grid-cols-1 md:grid-cols-5 gap-6 md:gap-8">
+            {/* Left: check-in + medication */}
+            <div className="md:col-span-3 space-y-4">
               <JournalEntry onSubmit={handleJournalSubmit} saving={saving} />
+              <MedicationCheckCard />
             </div>
 
-            <div className={activeSection !== 'goals' ? 'hidden md:block' : ''}>
-              <PatientGoalsPanel
-                goals={goals}
-                loading={goalsLoading}
-                onRespond={handleGoalRespond}
-              />
-            </div>
-
-            <div className={activeSection !== 'history' ? 'hidden md:block' : ''}>
-              <JournalHistory entries={journals} loading={journalsLoading} />
-            </div>
-
-            <div className={activeSection !== 'exams' ? 'hidden md:block' : ''}>
-              <ExamUploadPanel />
-            </div>
-
-            <div className={activeSection !== 'anamnesis' ? 'hidden md:block' : ''}>
-              <AnamnesisPanel role="patient" />
-            </div>
-
-            <div className={activeSection !== 'tests' ? 'hidden md:block' : ''}>
-              <PsychTestPanel role="patient" />
+            {/* Right: professionals */}
+            <div className="md:col-span-2">
+              {professionalsLoading ? (
+                <div className="card flex items-center justify-center py-12">
+                  <Loader2 size={24} className="animate-spin text-clarita-green-400" />
+                </div>
+              ) : (
+                <ProfessionalTabs
+                  professionals={professionals}
+                  patientId={user?.id || ''}
+                  onPermissionChange={handlePermissionChange}
+                  pendingInvitations={pendingInvitations}
+                  sentInvitations={sentInvitations}
+                  onInvitationsUpdate={handleInvitationsUpdate}
+                  currentUserId={user?.id || ''}
+                />
+              )}
             </div>
           </div>
+        )}
 
-          {/* Right column */}
-          <div
-            className={`md:col-span-2 ${
-              activeSection !== 'professionals' ? 'hidden md:block' : ''
-            }`}
-          >
-            {professionalsLoading ? (
-              <div className="card flex items-center justify-center py-12">
-                <Loader2 size={24} className="animate-spin text-clarita-green-400" />
-              </div>
-            ) : (
-              <ProfessionalTabs
-                professionals={professionals}
-                patientId={user?.id || ''}
-                onPermissionChange={handlePermissionChange}
-                pendingInvitations={pendingInvitations}
-                sentInvitations={sentInvitations}
-                onInvitationsUpdate={handleInvitationsUpdate}
-                currentUserId={user?.id || ''}
-              />
-            )}
-          </div>
-        </div>
+        {/* ── EXAMES ── */}
+        {activeSection === 'exams' && <ExamUploadPanel />}
+
+        {/* ── PRESCRIÇÕES ── */}
+        {activeSection === 'prescriptions' && <MyPrescriptionsPanel />}
+
+        {/* ── TESTES ── */}
+        {activeSection === 'tests' && <PsychTestPanel role="patient" />}
+
+        {/* ── ANAMNESE ── */}
+        {activeSection === 'anamnesis' && <AnamnesisPanel role="patient" />}
+
+        {/* ── METAS ── */}
+        {activeSection === 'goals' && (
+          <PatientGoalsPanel
+            goals={goals}
+            loading={goalsLoading}
+            onRespond={handleGoalRespond}
+          />
+        )}
+
+        {/* ── HISTÓRICO ── */}
+        {activeSection === 'history' && (
+          <JournalHistory entries={journals} loading={journalsLoading} />
+        )}
+
+        <p className="text-center text-xs text-gray-400 pt-6 pb-2">
+          Informações protegidas &middot; Conformidade LGPD
+        </p>
       </main>
 
-      <p className="text-center text-xs text-gray-400 pb-8">
-        Informações protegidas &middot; Conformidade LGPD
-      </p>
+      {/* Bottom Navigation */}
+      <BottomNav
+        active={activeSection}
+        onChange={setActiveSection}
+        badges={navBadges}
+      />
     </div>
   );
 }
