@@ -2,8 +2,12 @@
 
 const router = require('express').Router();
 const { query } = require('../config/database');
+const authenticate = require('../middleware/auth');
 const { requireRole, requirePatientAccess, requireOwnership } = require('../middleware/rbac');
 const { handleValidation, isUUID } = require('../validators');
+
+// All routes require authentication
+router.use(authenticate);
 
 // ---------------------------------------------------------------------------
 // POST /api/anamnesis/templates
