@@ -267,74 +267,74 @@ export default function PatientHomePage() {
 
         {/* Content */}
         <main className="max-w-5xl mx-auto px-4 md:px-8 py-6 md:py-8">
-        {/* ── HOME ── */}
-        {activeSection === 'home' && (
-          <div className="grid grid-cols-1 md:grid-cols-5 gap-6 md:gap-8">
-            {/* Left: check-in + medication */}
-            <div className="md:col-span-3 space-y-4">
-              <JournalEntry onSubmit={handleJournalSubmit} saving={saving} />
-              <MedicationCheckCard />
+          {/* ── HOME ── */}
+          {activeSection === 'home' && (
+            <div className="grid grid-cols-1 md:grid-cols-5 gap-6 md:gap-8">
+              {/* Left: check-in + medication */}
+              <div className="md:col-span-3 space-y-4">
+                <JournalEntry onSubmit={handleJournalSubmit} saving={saving} />
+                <MedicationCheckCard />
+              </div>
+
+              {/* Right: professionals */}
+              <div className="md:col-span-2">
+                {professionalsLoading ? (
+                  <div className="card flex items-center justify-center py-12">
+                    <Loader2 size={24} className="animate-spin text-clarita-green-400" />
+                  </div>
+                ) : (
+                  <ProfessionalTabs
+                    professionals={professionals}
+                    patientId={user?.id || ''}
+                    onPermissionChange={handlePermissionChange}
+                    pendingInvitations={pendingInvitations}
+                    sentInvitations={sentInvitations}
+                    onInvitationsUpdate={handleInvitationsUpdate}
+                    currentUserId={user?.id || ''}
+                  />
+                )}
+              </div>
             </div>
+          )}
 
-            {/* Right: professionals */}
-            <div className="md:col-span-2">
-              {professionalsLoading ? (
-                <div className="card flex items-center justify-center py-12">
-                  <Loader2 size={24} className="animate-spin text-clarita-green-400" />
-                </div>
-              ) : (
-                <ProfessionalTabs
-                  professionals={professionals}
-                  patientId={user?.id || ''}
-                  onPermissionChange={handlePermissionChange}
-                  pendingInvitations={pendingInvitations}
-                  sentInvitations={sentInvitations}
-                  onInvitationsUpdate={handleInvitationsUpdate}
-                  currentUserId={user?.id || ''}
-                />
-              )}
-            </div>
-          </div>
-        )}
+          {/* ── EXAMES ── */}
+          {activeSection === 'exams' && <ExamUploadPanel />}
 
-        {/* ── EXAMES ── */}
-        {activeSection === 'exams' && <ExamUploadPanel />}
+          {/* ── PRESCRIÇÕES ── */}
+          {activeSection === 'prescriptions' && <MyPrescriptionsPanel />}
 
-        {/* ── PRESCRIÇÕES ── */}
-        {activeSection === 'prescriptions' && <MyPrescriptionsPanel />}
+          {/* ── TESTES ── */}
+          {activeSection === 'tests' && <PsychTestPanel role="patient" />}
 
-        {/* ── TESTES ── */}
-        {activeSection === 'tests' && <PsychTestPanel role="patient" />}
+          {/* ── ANAMNESE ── */}
+          {activeSection === 'anamnesis' && <AnamnesisPanel role="patient" />}
 
-        {/* ── ANAMNESE ── */}
-        {activeSection === 'anamnesis' && <AnamnesisPanel role="patient" />}
+          {/* ── METAS ── */}
+          {activeSection === 'goals' && (
+            <PatientGoalsPanel
+              goals={goals}
+              loading={goalsLoading}
+              onRespond={handleGoalRespond}
+            />
+          )}
 
-        {/* ── METAS ── */}
-        {activeSection === 'goals' && (
-          <PatientGoalsPanel
-            goals={goals}
-            loading={goalsLoading}
-            onRespond={handleGoalRespond}
-          />
-        )}
+          {/* ── HISTÓRICO ── */}
+          {activeSection === 'history' && (
+            <JournalHistory entries={journals} loading={journalsLoading} />
+          )}
 
-        {/* ── HISTÓRICO ── */}
-        {activeSection === 'history' && (
-          <JournalHistory entries={journals} loading={journalsLoading} />
-        )}
-
-        <p className="text-center text-xs text-gray-400 pt-6 pb-2">
-          Informações protegidas &middot; Conformidade LGPD
-        </p>
+          <p className="text-center text-xs text-gray-400 pt-6 pb-2">
+            Informações protegidas &middot; Conformidade LGPD
+          </p>
         </main>
 
-      {/* Mobile BottomNav */}
-      <BottomNav
-        active={activeSection}
-        onChange={setActiveSection}
-        badges={navBadges}
-      />
-    </div>
+        {/* Mobile BottomNav */}
+        <BottomNav
+          active={activeSection}
+          onChange={setActiveSection}
+          badges={navBadges}
+        />
+      </div>
     </div>
   );
 }
