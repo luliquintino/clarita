@@ -9,6 +9,7 @@ interface MedicationManagerProps {
   medications: Medication[];
   patientId: string;
   role: 'psychiatrist' | 'psychologist' | 'therapist';
+  readOnly?: boolean;
   onPrescribe?: (data: {
     name: string;
     dosage: string;
@@ -77,6 +78,7 @@ export default function MedicationManager({
   medications,
   patientId,
   role,
+  readOnly = false,
   onPrescribe,
   onAdjust,
   onDiscontinue,
@@ -99,7 +101,7 @@ export default function MedicationManager({
   const [editingSideEffects, setEditingSideEffects] = useState<string | null>(null);
   const [newEffect, setNewEffect] = useState('');
 
-  const isPrescriber = true; // All professionals can manage medications
+  const isPrescriber = !readOnly;
 
   const resetPrescribeForm = () => {
     setMedName('');
@@ -200,6 +202,16 @@ export default function MedicationManager({
       {/* Header */}
       <div className="flex items-center justify-between mb-6">
         <h3 className="section-title mb-0">Medicamentos</h3>
+        {readOnly && (
+          <div className="flex items-start gap-3 p-3 mb-4 rounded-xl bg-amber-50 border border-amber-200/60">
+            <AlertTriangle size={16} className="text-amber-500 flex-shrink-0 mt-0.5" />
+            <p className="text-xs text-amber-700 leading-relaxed">
+              <span className="font-semibold">Visualização clínica.</span>{' '}
+              Prescrição de medicamentos é competência exclusiva do psiquiatra.
+              Os dados abaixo estão disponíveis para contexto do acompanhamento.
+            </p>
+          </div>
+        )}
         {isPrescriber && !showPrescribeForm && (
           <button
             onClick={() => {
