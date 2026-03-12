@@ -54,6 +54,23 @@ router.post(
 );
 
 // ---------------------------------------------------------------------------
+// GET /api/prescriptions/my
+// Patient lists their own prescriptions (reads patient_id from JWT)
+// ---------------------------------------------------------------------------
+router.get(
+  '/my',
+  requireRole('patient'),
+  async (req, res, next) => {
+    try {
+      const data = await listPrescriptions(req.user.id, { page: req.query.page, limit: req.query.limit });
+      res.json(data);
+    } catch (err) {
+      next(err);
+    }
+  }
+);
+
+// ---------------------------------------------------------------------------
 // GET /api/prescriptions/:patientId
 // List prescriptions for a patient
 // ---------------------------------------------------------------------------
