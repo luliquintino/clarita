@@ -27,6 +27,7 @@ import PsychTestPanel from '@/components/PsychTestPanel';
 import MedicationCheckCard from '@/components/MedicationCheckCard';
 import MyPrescriptionsPanel from '@/components/MyPrescriptionsPanel';
 import BottomNav from '@/components/BottomNav';
+import SideNav from '@/components/SideNav';
 import { type PatientSection } from '@/components/nav-items';
 
 export default function PatientHomePage() {
@@ -218,45 +219,56 @@ export default function PatientHomePage() {
   };
 
   return (
-    <div className="min-h-screen pb-24"> {/* pb-24 = space for fixed BottomNav */}
-      {/* Header */}
-      <header className="sticky top-0 z-30 glass rounded-none border-b border-white/30">
-        <div className="max-w-5xl mx-auto flex items-center justify-between px-4 md:px-8 py-3">
-          <div className="flex items-center gap-3">
-            <Image
-              src="/logo-clarita.png"
-              alt="Clarita"
-              width={36}
-              height={28}
-              className="drop-shadow-sm"
-            />
-            <div>
-              <h1 className="text-base font-semibold text-gray-800">
-                Olá, {user?.first_name || 'Paciente'}!
-              </h1>
-              <p className="text-xs text-gray-400">Como você está hoje?</p>
+    <div className="min-h-screen md:flex md:flex-row">
+      {/* Desktop sidebar */}
+      <SideNav
+        user={user}
+        active={activeSection}
+        onChange={setActiveSection}
+        badges={navBadges}
+        onLogout={handleLogout}
+      />
+
+      {/* Page content column */}
+      <div className="flex-1 min-w-0 md:ml-56 pb-24 md:pb-8">
+        {/* Mobile-only header */}
+        <header className="md:hidden sticky top-0 z-30 glass rounded-none border-b border-white/30">
+          <div className="max-w-5xl mx-auto flex items-center justify-between px-4 md:px-8 py-3">
+            <div className="flex items-center gap-3">
+              <Image
+                src="/logo-clarita.png"
+                alt="Clarita"
+                width={36}
+                height={28}
+                className="drop-shadow-sm"
+              />
+              <div>
+                <h1 className="text-base font-semibold text-gray-800">
+                  Olá, {user?.first_name || 'Paciente'}!
+                </h1>
+                <p className="text-xs text-gray-400">Como você está hoje?</p>
+              </div>
+            </div>
+            <div className="flex items-center gap-3">
+              {user?.display_id && (
+                <div className="hidden sm:block">
+                  <DisplayIdBadge displayId={user.display_id} size="sm" />
+                </div>
+              )}
+              <button
+                type="button"
+                onClick={handleLogout}
+                className="flex items-center gap-1.5 px-3 py-2 text-gray-400 hover:text-red-500 hover:bg-red-50/50 rounded-xl transition-all"
+                title="Sair"
+              >
+                <LogOut size={18} />
+              </button>
             </div>
           </div>
-          <div className="flex items-center gap-3">
-            {user?.display_id && (
-              <div className="hidden sm:block">
-                <DisplayIdBadge displayId={user.display_id} size="sm" />
-              </div>
-            )}
-            <button
-              type="button"
-              onClick={handleLogout}
-              className="flex items-center gap-1.5 px-3 py-2 text-gray-400 hover:text-red-500 hover:bg-red-50/50 rounded-xl transition-all"
-              title="Sair"
-            >
-              <LogOut size={18} />
-            </button>
-          </div>
-        </div>
-      </header>
+        </header>
 
-      {/* Content */}
-      <main className="max-w-5xl mx-auto px-4 md:px-8 py-6 md:py-8">
+        {/* Content */}
+        <main className="max-w-5xl mx-auto px-4 md:px-8 py-6 md:py-8">
         {/* ── HOME ── */}
         {activeSection === 'home' && (
           <div className="grid grid-cols-1 md:grid-cols-5 gap-6 md:gap-8">
@@ -318,12 +330,13 @@ export default function PatientHomePage() {
         </p>
       </main>
 
-      {/* Bottom Navigation */}
+      {/* Mobile BottomNav */}
       <BottomNav
         active={activeSection}
         onChange={setActiveSection}
         badges={navBadges}
       />
+    </div>
     </div>
   );
 }
