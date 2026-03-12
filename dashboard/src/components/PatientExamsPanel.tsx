@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import { FileText, Image as ImageIcon, Download, Loader2, ClipboardList } from 'lucide-react';
+import { FileText, Image as ImageIcon, Download, Loader2, ClipboardList, Info } from 'lucide-react';
 import { examsApi } from '@/lib/api';
 import type { Exam } from '@/lib/api';
 
@@ -19,9 +19,10 @@ function formatDate(dateStr: string): string {
 
 interface PatientExamsPanelProps {
   patientId: string;
+  readOnly?: boolean;
 }
 
-export default function PatientExamsPanel({ patientId }: PatientExamsPanelProps) {
+export default function PatientExamsPanel({ patientId, readOnly = false }: PatientExamsPanelProps) {
   const [exams, setExams] = useState<Exam[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -82,6 +83,17 @@ export default function PatientExamsPanel({ patientId }: PatientExamsPanelProps)
         <h3 className="section-title mb-0">Exames Compartilhados</h3>
         <span className="badge badge-blue ml-auto">{exams.length}</span>
       </div>
+
+      {readOnly && (
+        <div className="flex items-start gap-3 p-3 mb-4 rounded-xl bg-blue-50 border border-blue-200/60">
+          <Info size={16} className="text-blue-400 flex-shrink-0 mt-0.5" />
+          <p className="text-xs text-blue-700 leading-relaxed">
+            <span className="font-semibold">Visualização clínica.</span>{' '}
+            Solicitação de exames é realizada pelo psiquiatra.
+            Os exames abaixo estão disponíveis para consulta do acompanhamento.
+          </p>
+        </div>
+      )}
 
       {exams.length === 0 ? (
         <div className="text-center py-8">
