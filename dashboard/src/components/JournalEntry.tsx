@@ -1,7 +1,8 @@
 'use client';
 
 import { useState } from 'react';
-import { Send, Smile, Frown, Meh, Zap, Moon, Heart } from 'lucide-react';
+import { Send, Smile, Frown, Meh, Zap, Moon, Heart, CheckCircle2, XCircle, Pill } from 'lucide-react';
+import type { PatientMedication } from '@/lib/api';
 
 interface JournalEntryProps {
   onSubmit: (data: {
@@ -10,8 +11,10 @@ interface JournalEntryProps {
     energy_score: number;
     sleep_hours?: number;
     journal_entry?: string;
+    medication_logs?: Array<{ patient_medication_id: string; skipped: boolean }>;
   }) => Promise<void>;
   saving?: boolean;
+  medications?: PatientMedication[];
 }
 
 const moodEmojis = [
@@ -72,26 +75,35 @@ function SliderField({
   );
 }
 
-export default function JournalEntry({ onSubmit, saving = false }: JournalEntryProps) {
+export default function JournalEntry({ onSubmit, saving = false, medications }: JournalEntryProps) {
   const [mood, setMood] = useState(5);
   const [anxiety, setAnxiety] = useState(5);
   const [energy, setEnergy] = useState(5);
   const [sleepHours, setSleepHours] = useState(7);
   const [journalText, setJournalText] = useState('');
   const [submitted, setSubmitted] = useState(false);
+  const [medAnswers, setMedAnswers] = useState<Record<string, boolean>>({});
 
   const moodConfig = moodEmojis.find((e) => mood >= e.min && mood <= e.max) || moodEmojis[1];
   const MoodIcon = moodConfig.icon;
 
   const handleSubmit = async () => {
+    const medication_logs = Object.entries(medAnswers).map(([id, taken]) => ({
+      patient_medication_id: id,
+      skipped: !taken,
+    }));
+
     await onSubmit({
       mood_score: mood,
       anxiety_score: anxiety,
       energy_score: energy,
       sleep_hours: sleepHours,
       journal_entry: journalText || undefined,
+      medication_logs: medication_logs.length > 0 ? medication_logs : undefined,
     });
+
     setSubmitted(true);
+    setMedAnswers({});
     setTimeout(() => setSubmitted(false), 3000);
     setJournalText('');
   };
@@ -170,6 +182,58 @@ export default function JournalEntry({ onSubmit, saving = false }: JournalEntryP
         />
         <p className="text-xs text-gray-400 mt-1 text-right">{journalText.length}/10000</p>
       </div>
+
+      {/* Medication check */}
+      {medications && medications.length > 0 && (
+        <div className="bg-indigo-50/50 rounded-2xl p-4 border border-indigo-100 space-y-3">
+          <div className="flex items-center gap-2">
+            <Pill size={16} className="text-indigo-500" />
+            <p className="text-sm font-medium text-gray-700">Você tomou sua medicação hoje?</p>
+          </div>
+          <div className="space-y-2">
+            {medications.map((med) => {
+              const answer = medAnswers[med.id];
+              return (
+                <div
+                  key={med.id}
+                  className="flex items-center justify-between bg-white/60 rounded-xl px-3 py-2.5 border border-white/60"
+                >
+                  <div className="min-w-0 mr-3">
+                    <p className="text-sm font-medium text-gray-800 truncate">{med.medication_name}</p>
+                    <p className="text-xs text-gray-400">{med.dosage} · {med.frequency}</p>
+                  </div>
+                  <div className="flex items-center gap-1.5 flex-shrink-0">
+                    <button
+                      type="button"
+                      onClick={() => setMedAnswers((prev) => ({ ...prev, [med.id]: true }))}
+                      aria-label={`Sim, tomei ${med.medication_name}`}
+                      className={`flex items-center gap-1 px-2.5 py-1.5 rounded-xl text-xs font-medium border transition-colors ${
+                        answer === true
+                          ? 'bg-green-100 text-green-700 border-green-300'
+                          : 'bg-green-50 text-green-600 border-green-200 hover:bg-green-100'
+                      }`}
+                    >
+                      <CheckCircle2 size={13} /> Sim
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setMedAnswers((prev) => ({ ...prev, [med.id]: false }))}
+                      aria-label={`Não tomei ${med.medication_name}`}
+                      className={`flex items-center gap-1 px-2.5 py-1.5 rounded-xl text-xs font-medium border transition-colors ${
+                        answer === false
+                          ? 'bg-red-100 text-red-600 border-red-300'
+                          : 'bg-red-50 text-red-500 border-red-100 hover:bg-red-100'
+                      }`}
+                    >
+                      <XCircle size={13} /> Não
+                    </button>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
 
       {/* Submit */}
       <div className="flex items-center gap-3">

@@ -14,8 +14,10 @@ import {
   goalsApi,
   invitationsApi,
   onboardingApi,
+  patientMedicationsApi,
+  medicationLogsApi,
 } from '@/lib/api';
-import type { AuthUser, JournalEntryData, ProfessionalInfo, Goal, Invitation } from '@/lib/api';
+import type { AuthUser, JournalEntryData, ProfessionalInfo, Goal, Invitation, PatientMedication } from '@/lib/api';
 import JournalEntry from '@/components/JournalEntry';
 import JournalHistory from '@/components/JournalHistory';
 import ProfessionalTabs from '@/components/ProfessionalTabs';
@@ -24,7 +26,6 @@ import ExamUploadPanel from '@/components/ExamUploadPanel';
 import DisplayIdBadge from '@/components/DisplayIdBadge';
 import AnamnesisPanel from '@/components/AnamnesisPanel';
 import PsychTestPanel from '@/components/PsychTestPanel';
-import MedicationCheckCard from '@/components/MedicationCheckCard';
 import MyPrescriptionsPanel from '@/components/MyPrescriptionsPanel';
 import BottomNav from '@/components/BottomNav';
 import SideNav from '@/components/SideNav';
@@ -44,6 +45,8 @@ export default function PatientHomePage() {
 
   const [goals, setGoals] = useState<Goal[]>([]);
   const [goalsLoading, setGoalsLoading] = useState(true);
+
+  const [medications, setMedications] = useState<PatientMedication[]>([]);
 
   const [pendingInvitations, setPendingInvitations] = useState<Invitation[]>([]);
   const [sentInvitations, setSentInvitations] = useState<Invitation[]>([]);
@@ -86,6 +89,7 @@ export default function PatientHomePage() {
       loadProfessionals();
       loadGoals(response.user.id);
       loadInvitations();
+      loadMedications();
     } catch {
       router.replace('/login');
     } finally {
@@ -151,6 +155,15 @@ export default function PatientHomePage() {
     }
   }, []);
 
+  const loadMedications = useCallback(async () => {
+    try {
+      const res = await patientMedicationsApi.listMine('active');
+      setMedications(res.patient_medications ?? []);
+    } catch {
+      setMedications([]);
+    }
+  }, []);
+
   const handleInvitationsUpdate = useCallback(async () => {
     await Promise.all([loadInvitations(), loadProfessionals()]);
   }, [loadInvitations, loadProfessionals]);
@@ -170,10 +183,17 @@ export default function PatientHomePage() {
     energy_score: number;
     sleep_hours?: number;
     journal_entry?: string;
+    medication_logs?: Array<{ patient_medication_id: string; skipped: boolean }>;
   }) => {
     setSaving(true);
     try {
-      await journalApi.create(data);
+      const { medication_logs, ...journalData } = data;
+      await journalApi.create(journalData);
+      if (medication_logs && medication_logs.length > 0) {
+        await Promise.all(
+          medication_logs.map((log) => medicationLogsApi.log(log.patient_medication_id, log.skipped))
+        );
+      }
       await loadJournals();
     } finally {
       setSaving(false);
@@ -272,8 +292,7 @@ export default function PatientHomePage() {
             <div className="grid grid-cols-1 md:grid-cols-5 gap-6 md:gap-8">
               {/* Left: check-in + medication */}
               <div className="md:col-span-3 space-y-4">
-                <JournalEntry onSubmit={handleJournalSubmit} saving={saving} />
-                <MedicationCheckCard />
+                <JournalEntry onSubmit={handleJournalSubmit} saving={saving} medications={medications} />
               </div>
 
               {/* Right: professionals */}
