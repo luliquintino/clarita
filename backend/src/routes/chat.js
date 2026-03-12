@@ -6,6 +6,9 @@ const authenticate = require('../middleware/auth');
 const { requireRole } = require('../middleware/rbac');
 const { handleValidation, isUUID } = require('../validators');
 const { body } = require('express-validator');
+const { uploadChatFile } = require('../middleware/upload');
+const fs = require('fs');
+const path = require('path');
 
 // All routes require authentication & professional role
 router.use(authenticate);
@@ -144,9 +147,12 @@ router.get(
       }
 
       const result = await query(
-        `SELECT m.*, u.first_name AS sender_first_name, u.last_name AS sender_last_name
+        `SELECT m.*, u.first_name AS sender_first_name, u.last_name AS sender_last_name,
+                ca.id AS attachment_id, ca.original_name AS attachment_name,
+                ca.mime_type AS attachment_mime_type, ca.file_size AS attachment_file_size
          FROM messages m
          JOIN users u ON u.id = m.sender_id
+         LEFT JOIN chat_attachments ca ON ca.message_id = m.id
          WHERE m.conversation_id = $1
          ORDER BY m.created_at ASC
          LIMIT $2 OFFSET $3`,
@@ -250,5 +256,123 @@ router.get('/unread-count', async (req, res, next) => {
     next(err);
   }
 });
+
+// ---------------------------------------------------------------------------
+// POST /api/chat/conversations/:conversationId/messages/file
+// Send a message with file attachment
+// ---------------------------------------------------------------------------
+
+router.post(
+  '/conversations/:conversationId/messages/file',
+  isUUID('conversationId'),
+  handleValidation,
+  async (req, res, next) => {
+    const { conversationId } = req.params;
+
+    // Verify participation first
+    const participant = await query(
+      'SELECT 1 FROM conversation_participants WHERE conversation_id = $1 AND user_id = $2',
+      [conversationId, req.user.id]
+    );
+    if (participant.rows.length === 0) {
+      return res.status(403).json({ error: 'Acesso negado a esta conversa' });
+    }
+
+    uploadChatFile(req, res, async (err) => {
+      if (err) {
+        if (err.code === 'LIMIT_FILE_SIZE') {
+          return res.status(400).json({ error: 'Arquivo muito grande. Máximo: 10MB.' });
+        }
+        return res.status(400).json({ error: err.message });
+      }
+
+      if (!req.file) {
+        return res.status(400).json({ error: 'Nenhum arquivo enviado.' });
+      }
+
+      try {
+        // Create message with file name as content
+        const msgResult = await query(
+          'INSERT INTO messages (conversation_id, sender_id, content) VALUES ($1, $2, $3) RETURNING *',
+          [conversationId, req.user.id, `📎 ${req.file.originalname}`]
+        );
+
+        // Create attachment record
+        const attachResult = await query(
+          `INSERT INTO chat_attachments (message_id, file_name, original_name, mime_type, file_size, storage_path)
+           VALUES ($1, $2, $3, $4, $5, $6)
+           RETURNING *`,
+          [
+            msgResult.rows[0].id,
+            req.file.filename,
+            req.file.originalname,
+            req.file.mimetype,
+            req.file.size,
+            req.file.path,
+          ]
+        );
+
+        res.status(201).json({
+          message: msgResult.rows[0],
+          attachment: attachResult.rows[0],
+        });
+      } catch (error) {
+        if (req.file && req.file.path) {
+          fs.unlink(req.file.path, () => {});
+        }
+        next(error);
+      }
+    });
+  }
+);
+
+// ---------------------------------------------------------------------------
+// GET /api/chat/attachments/:id/file
+// Download a chat attachment
+// ---------------------------------------------------------------------------
+
+router.get(
+  '/attachments/:id/file',
+  isUUID('id'),
+  handleValidation,
+  async (req, res, next) => {
+    try {
+      // Get attachment and verify access
+      const attachResult = await query(
+        `SELECT ca.*, m.conversation_id
+         FROM chat_attachments ca
+         JOIN messages m ON m.id = ca.message_id
+         WHERE ca.id = $1`,
+        [req.params.id]
+      );
+
+      if (attachResult.rows.length === 0) {
+        return res.status(404).json({ error: 'Arquivo não encontrado' });
+      }
+
+      const attachment = attachResult.rows[0];
+
+      // Verify user is participant in the conversation
+      const participant = await query(
+        'SELECT 1 FROM conversation_participants WHERE conversation_id = $1 AND user_id = $2',
+        [attachment.conversation_id, req.user.id]
+      );
+      if (participant.rows.length === 0) {
+        return res.status(403).json({ error: 'Acesso negado' });
+      }
+
+      const filePath = attachment.storage_path;
+      if (!fs.existsSync(filePath)) {
+        return res.status(404).json({ error: 'Arquivo não encontrado no disco' });
+      }
+
+      res.setHeader('Content-Type', attachment.mime_type);
+      res.setHeader('Content-Disposition', `attachment; filename="${attachment.original_name}"`);
+      res.sendFile(path.resolve(filePath));
+    } catch (err) {
+      next(err);
+    }
+  }
+);
 
 module.exports = router;

@@ -95,7 +95,7 @@ export default function PatientList({ patients }: PatientListProps) {
   const [search, setSearch] = useState('');
   const [sortField, setSortField] = useState<SortField>('name');
   const [sortDir, setSortDir] = useState<SortDir>('asc');
-  const [statusFilter, setStatusFilter] = useState<string>('all');
+  const [statusFilter, setStatusFilter] = useState<string>('active');
 
   const toggleSort = (field: SortField) => {
     if (sortField === field) {

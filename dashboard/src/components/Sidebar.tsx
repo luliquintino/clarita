@@ -31,6 +31,15 @@ interface SidebarPatient {
   avatar_url?: string | null;
 }
 
+// Mock patients for sidebar when backend is unavailable (active patients only)
+const mockSidebarPatients: SidebarPatient[] = [
+  { id: '1', first_name: 'Ana', last_name: 'Silva', avatar_url: null },
+  { id: '2', first_name: 'Carlos', last_name: 'Mendes', avatar_url: null },
+  { id: '3', first_name: 'Beatriz', last_name: 'Oliveira', avatar_url: null },
+  { id: '4', first_name: 'Roberto', last_name: 'Santos', avatar_url: null },
+  { id: '5', first_name: 'Julia', last_name: 'Costa', avatar_url: null },
+];
+
 interface SidebarProps {
   alertCount?: number;
 }
@@ -67,7 +76,7 @@ export default function Sidebar({ alertCount = 0 }: SidebarProps) {
         );
       setPatients(patientsList);
     } catch {
-      setPatients([]);
+      setPatients(mockSidebarPatients);
     } finally {
       setPatientsLoading(false);
     }

@@ -29,6 +29,7 @@ module.exports = async () => {
     'migration_onboarding_documents.sql',
     'migration_invitations.sql',
     'migration_exams.sql',
+    'migration_clinical_modules.sql',
   ];
   const migrationFiles = migrationOrder.filter((f) =>
     fs.existsSync(path.join(migrationsDir, f))

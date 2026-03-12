@@ -152,100 +152,46 @@ export default function AlertsPanel({
   ];
 
   return (
-    <div className="space-y-8 animate-fade-in">
-      {/* Summary counters — glassmorphism cards with severity glow */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-        {(['critical', 'high', 'medium', 'low'] as const).map((severity, idx) => {
+    <div className="space-y-5 animate-fade-in">
+      {/* Compact severity chips — filter + summary in one row */}
+      <div className="flex items-center gap-2 flex-wrap">
+        <button
+          onClick={() => setActiveFilter('all')}
+          className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium transition-all duration-200 border
+            ${activeFilter === 'all'
+              ? 'bg-gray-800 text-white border-gray-800 shadow-sm'
+              : 'bg-white/70 text-gray-500 border-gray-200/60 hover:bg-white/90 hover:text-gray-700'
+            }`}
+        >
+          <Filter size={11} />
+          Todos
+        </button>
+        {(['critical', 'high', 'medium', 'low'] as const).map((severity) => {
           const config = severityConfig[severity];
           const count = groupedAlerts[severity].length;
-
+          const isActive = activeFilter === severity;
           return (
             <button
               key={severity}
-              onClick={() => setActiveFilter(activeFilter === severity ? 'all' : severity)}
-              className={`
-                relative bg-white/70 backdrop-blur-xl rounded-3xl p-5 text-center
-                border transition-all duration-300 group cursor-pointer
-                ${activeFilter === severity ? `${config.glowShadow} ${config.summaryBorder} ring-1 ring-white/50` : `border-white/40 hover:${config.glowShadow} ${config.summaryBorder}`}
-                animate-fade-in
-              `}
-              style={{ animationDelay: `${idx * 80}ms`, animationFillMode: 'backwards' }}
+              onClick={() => setActiveFilter(isActive ? 'all' : severity)}
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium transition-all duration-200 border
+                ${isActive
+                  ? `${config.summaryIconBg} border-current shadow-sm`
+                  : count > 0
+                    ? 'bg-white/70 border-gray-200/60 hover:bg-white/90'
+                    : 'bg-white/40 border-gray-100/60 opacity-40 cursor-default'
+                }`}
             >
-              {/* Severity gradient tint overlay */}
-              <div
-                className={`absolute inset-0 rounded-3xl ${config.summaryGradient} opacity-40 pointer-events-none`}
-              />
-
-              <div className="relative z-10">
-                <div
-                  className={`inline-flex items-center justify-center w-10 h-10 rounded-2xl ${config.summaryIconBg} mb-3 mx-auto transition-transform duration-300 group-hover:scale-110`}
-                >
-                  {config.icon}
-                </div>
-                <p className="text-3xl font-bold text-gray-800 mb-0.5">{count}</p>
-                <p className="text-xs font-medium text-gray-500 uppercase tracking-wide">
-                  {config.label}
-                </p>
-              </div>
-
-              {/* Active indicator ring */}
-              {activeFilter === severity && (
-                <div className="absolute -top-0.5 -right-0.5 w-3 h-3 rounded-full bg-gradient-to-br from-clarita-green-400 to-clarita-purple-400 border-2 border-white animate-scale-in" />
-              )}
+              <span className={isActive ? '' : config.counterColor}>{config.iconSmall}</span>
+              <span className={`font-bold ${isActive ? '' : count > 0 ? config.counterColor : 'text-gray-400'}`}>
+                {count}
+              </span>
+              <span className={isActive ? '' : count > 0 ? 'text-gray-600' : 'text-gray-400'}>
+                {config.label}
+              </span>
             </button>
           );
         })}
-      </div>
-
-      {/* Pill-style filter bar */}
-      <div className="bg-white/50 backdrop-blur-md rounded-2xl p-2 border border-white/30 shadow-soft">
-        <div className="flex items-center gap-2">
-          <div className="flex items-center gap-1.5 px-3 text-gray-400">
-            <Filter size={14} />
-            <span className="text-xs font-medium hidden sm:inline">Filtrar:</span>
-          </div>
-          <div className="flex items-center gap-1.5 flex-wrap">
-            {filterOptions.map((opt) => {
-              const isActive = activeFilter === opt.key;
-              const severityConf = opt.key !== 'all' ? severityConfig[opt.key] : null;
-              return (
-                <button
-                  key={opt.key}
-                  onClick={() => setActiveFilter(opt.key)}
-                  className={`
-                    px-4 py-1.5 rounded-full text-xs font-semibold transition-all duration-300
-                    ${
-                      isActive
-                        ? opt.key === 'all'
-                          ? 'bg-gradient-to-r from-clarita-green-500 to-clarita-purple-500 text-white shadow-md'
-                          : severityConf!.pillActive
-                        : 'text-gray-500 hover:bg-white/60 hover:text-gray-700'
-                    }
-                  `}
-                >
-                  <span className="flex items-center gap-1.5">
-                    {opt.key !== 'all' && severityConf && (
-                      <span className={isActive ? 'text-white/90' : severityConf.pillText}>
-                        {severityConf.iconSmall}
-                      </span>
-                    )}
-                    {opt.label}
-                    {opt.key !== 'all' && (
-                      <span
-                        className={`
-                        inline-flex items-center justify-center min-w-[18px] h-[18px] rounded-full text-[10px] font-bold
-                        ${isActive ? 'bg-white/25 text-white' : 'bg-gray-100 text-gray-500'}
-                      `}
-                      >
-                        {groupedAlerts[opt.key as SeverityKey].length}
-                      </span>
-                    )}
-                  </span>
-                </button>
-              );
-            })}
-          </div>
-        </div>
       </div>
 
       {/* Active alerts by severity */}
@@ -266,8 +212,8 @@ export default function AlertsPanel({
                 <div
                   key={alert.id}
                   className={`
-                    bg-white/70 backdrop-blur-xl rounded-3xl p-5
-                    border border-white/40 border-l-4 ${config.borderColor}
+                    bg-white/95 backdrop-blur-xl rounded-3xl p-5
+                    border border-gray-200/60 border-l-4 ${config.borderColor}
                     ${config.cardGradient}
                     transition-all duration-300
                     hover:shadow-lg hover:bg-white/80 hover:-translate-y-0.5
@@ -291,12 +237,12 @@ export default function AlertsPanel({
 
                       <div className="flex items-center gap-3 flex-wrap">
                         {showPatientName && (
-                          <span className="inline-flex items-center gap-1.5 text-xs text-gray-400 bg-white/50 rounded-full px-2.5 py-1">
-                            <User size={12} className="text-gray-400" />
+                          <span className="inline-flex items-center gap-1.5 text-xs text-gray-500 bg-white/80 rounded-full px-2.5 py-1">
+                            <User size={12} className="text-gray-500" />
                             {alert.patient_name}
                           </span>
                         )}
-                        <span className="inline-flex items-center gap-1.5 text-xs text-gray-400">
+                        <span className="inline-flex items-center gap-1.5 text-xs text-gray-500">
                           <Clock size={12} />
                           {formatDistanceToNow(new Date(alert.created_at), {
                             addSuffix: true,
@@ -324,19 +270,19 @@ export default function AlertsPanel({
 
       {/* Empty state — when no alerts match filter or no active alerts */}
       {activeAlerts.length === 0 && (
-        <div className="bg-white/70 backdrop-blur-xl rounded-3xl border border-white/40 shadow-soft py-16 text-center animate-scale-in">
+        <div className="bg-white/95 backdrop-blur-xl rounded-3xl border border-gray-200/60 shadow-soft py-16 text-center animate-scale-in">
           <div className="inline-flex items-center justify-center w-16 h-16 rounded-3xl bg-clarita-green-100/60 mb-4">
             <CheckCircle size={32} className="text-clarita-green-400" />
           </div>
           <p className="text-sm font-medium text-gray-600">Nenhum alerta ativo</p>
-          <p className="text-xs text-gray-400 mt-1">
+          <p className="text-xs text-gray-500 mt-1">
             Todos os pacientes estao dentro dos parametros normais
           </p>
         </div>
       )}
 
       {activeFilter !== 'all' && severitiesToShow.length === 0 && activeAlerts.length > 0 && (
-        <div className="bg-white/50 backdrop-blur-md rounded-3xl border border-white/30 py-12 text-center animate-fade-in">
+        <div className="bg-white/80 backdrop-blur-md rounded-3xl border border-gray-200/40 py-12 text-center animate-fade-in">
           <div className="inline-flex items-center justify-center w-12 h-12 rounded-2xl bg-gray-100/60 mb-3">
             <Filter size={20} className="text-gray-400" />
           </div>
@@ -356,7 +302,7 @@ export default function AlertsPanel({
       {/* Acknowledged alerts */}
       {acknowledgedAlerts.length > 0 && (
         <div className="animate-fade-in">
-          <h4 className="text-sm font-medium text-gray-400 mb-3 flex items-center gap-2">
+          <h4 className="text-sm font-medium text-gray-500 mb-3 flex items-center gap-2">
             <ShieldCheck size={16} className="text-clarita-green-400" />
             Reconhecidos Recentemente ({acknowledgedAlerts.length})
           </h4>
@@ -364,7 +310,7 @@ export default function AlertsPanel({
             {acknowledgedAlerts.slice(0, 5).map((alert) => (
               <div
                 key={alert.id}
-                className="bg-white/40 backdrop-blur-sm rounded-2xl py-3 px-4 border border-white/20 opacity-60 hover:opacity-80 transition-all duration-300"
+                className="bg-white/80 backdrop-blur-sm rounded-2xl py-3 px-4 border border-gray-200/40 opacity-60 hover:opacity-80 transition-all duration-300"
               >
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2.5">
@@ -373,10 +319,10 @@ export default function AlertsPanel({
                     </div>
                     <span className="text-sm text-gray-600">{alert.title}</span>
                     {showPatientName && (
-                      <span className="text-xs text-gray-400">&middot; {alert.patient_name}</span>
+                      <span className="text-xs text-gray-500">&middot; {alert.patient_name}</span>
                     )}
                   </div>
-                  <span className="text-xs text-gray-400">
+                  <span className="text-xs text-gray-500">
                     {alert.acknowledged_by && `por ${alert.acknowledged_by}`}
                   </span>
                 </div>

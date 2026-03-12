@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { format } from 'date-fns';
-import { Pill, Plus, X, Save, AlertTriangle, CheckCircle, Clock, Ban } from 'lucide-react';
+import { Pill, Plus, X, Save, AlertTriangle, CheckCircle, Clock, Ban, Tag } from 'lucide-react';
 import type { Medication } from '@/lib/api';
 
 interface MedicationManagerProps {
@@ -20,6 +20,7 @@ interface MedicationManagerProps {
     data: { dosage?: string; frequency?: string; notes?: string }
   ) => Promise<void>;
   onDiscontinue?: (medicationId: string) => Promise<void>;
+  onUpdateSideEffects?: (medicationId: string, sideEffects: string[]) => Promise<void>;
 }
 
 function AdherenceBar({ rate }: { rate: number }) {
@@ -79,6 +80,7 @@ export default function MedicationManager({
   onPrescribe,
   onAdjust,
   onDiscontinue,
+  onUpdateSideEffects,
 }: MedicationManagerProps) {
   const [showPrescribeForm, setShowPrescribeForm] = useState(false);
   const [adjustingId, setAdjustingId] = useState<string | null>(null);
@@ -93,7 +95,11 @@ export default function MedicationManager({
   const [adjFrequency, setAdjFrequency] = useState('');
   const [adjNotes, setAdjNotes] = useState('');
 
-  const isPrescriber = role === 'psychiatrist';
+  // Side effects editing state: medicationId → new effect input
+  const [editingSideEffects, setEditingSideEffects] = useState<string | null>(null);
+  const [newEffect, setNewEffect] = useState('');
+
+  const isPrescriber = true; // All professionals can manage medications
 
   const resetPrescribeForm = () => {
     setMedName('');
@@ -153,6 +159,28 @@ export default function MedicationManager({
       await onDiscontinue(medId);
     } catch (err) {
       console.error('Failed to discontinue:', err);
+    }
+  };
+
+  const handleAddSideEffect = async (med: Medication) => {
+    const effect = newEffect.trim();
+    if (!effect || !onUpdateSideEffects) return;
+    const updated = [...med.side_effects, effect];
+    try {
+      await onUpdateSideEffects(med.id, updated);
+    } catch {
+      // optimistic handled by parent
+    }
+    setNewEffect('');
+  };
+
+  const handleRemoveSideEffect = async (med: Medication, effect: string) => {
+    if (!onUpdateSideEffects) return;
+    const updated = med.side_effects.filter((e) => e !== effect);
+    try {
+      await onUpdateSideEffects(med.id, updated);
+    } catch {
+      // optimistic handled by parent
     }
   };
 
@@ -366,21 +394,56 @@ export default function MedicationManager({
                       </div>
 
                       {/* Side effects */}
-                      {med.side_effects.length > 0 && (
-                        <div className="mb-3">
-                          <div className="flex items-center gap-1 mb-1">
-                            <AlertTriangle size={12} className="text-clarita-orange-400" />
-                            <p className="text-xs text-gray-500">Efeitos colaterais</p>
-                          </div>
-                          <div className="flex flex-wrap gap-1">
-                            {med.side_effects.map((effect) => (
-                              <span key={effect} className="badge-orange text-[10px]">
-                                {effect}
-                              </span>
-                            ))}
-                          </div>
+                      <div className="mb-3">
+                        <div className="flex items-center gap-1.5 mb-1.5">
+                          <AlertTriangle size={12} className="text-clarita-orange-400" />
+                          <p className="text-xs text-gray-500">Efeitos colaterais</p>
+                          <button
+                            onClick={() => setEditingSideEffects(editingSideEffects === med.id ? null : med.id)}
+                            className="ml-auto text-[10px] text-clarita-purple-500 hover:text-clarita-purple-700 flex items-center gap-0.5 transition-colors"
+                          >
+                            <Tag size={10} />
+                            {editingSideEffects === med.id ? 'Fechar' : 'Editar'}
+                          </button>
                         </div>
-                      )}
+                        <div className="flex flex-wrap gap-1 mb-1">
+                          {med.side_effects.map((effect) => (
+                            <span key={effect} className="badge-orange text-[10px] flex items-center gap-1">
+                              {effect}
+                              {editingSideEffects === med.id && (
+                                <button
+                                  onClick={() => handleRemoveSideEffect(med, effect)}
+                                  className="hover:text-red-600 transition-colors"
+                                >
+                                  <X size={10} />
+                                </button>
+                              )}
+                            </span>
+                          ))}
+                          {med.side_effects.length === 0 && editingSideEffects !== med.id && (
+                            <span className="text-xs text-gray-400 italic">Nenhum relatado</span>
+                          )}
+                        </div>
+                        {editingSideEffects === med.id && (
+                          <div className="flex items-center gap-2 mt-1.5 animate-fade-in">
+                            <input
+                              type="text"
+                              value={newEffect}
+                              onChange={(e) => setNewEffect(e.target.value)}
+                              onKeyDown={(e) => e.key === 'Enter' && handleAddSideEffect(med)}
+                              placeholder="Adicionar efeito colateral..."
+                              className="flex-1 text-xs px-2.5 py-1.5 bg-white/60 border border-gray-200/60 rounded-xl focus:outline-none focus:ring-1 focus:ring-clarita-purple-300"
+                            />
+                            <button
+                              onClick={() => handleAddSideEffect(med)}
+                              disabled={!newEffect.trim()}
+                              className="text-xs px-2.5 py-1.5 bg-clarita-purple-100 text-clarita-purple-600 rounded-xl hover:bg-clarita-purple-200 transition-colors disabled:opacity-40"
+                            >
+                              <Plus size={12} />
+                            </button>
+                          </div>
+                        )}
+                      </div>
 
                       {/* Footer */}
                       <div className="flex items-center justify-between pt-3 border-t border-white/30">

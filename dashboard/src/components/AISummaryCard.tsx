@@ -83,7 +83,7 @@ export default function AISummaryCard({
           )}
           <button
             onClick={() => setExpanded(!expanded)}
-            className="btn-ghost p-2 text-gray-400 hover:text-gray-600"
+            className="btn-ghost p-2 text-gray-500 hover:text-gray-700"
           >
             {expanded ? <ChevronUp size={18} /> : <ChevronDown size={18} />}
           </button>
@@ -97,7 +97,7 @@ export default function AISummaryCard({
             <div className="text-center py-6">
               <Sparkles size={32} className="mx-auto text-clarita-purple-200 mb-3" />
               <p className="text-gray-500 text-sm">Nenhum resumo gerado ainda</p>
-              <p className="text-xs text-gray-400 mt-1">
+              <p className="text-xs text-gray-500 mt-1">
                 Clique em &quot;Gerar novo&quot; para criar um resumo dos dados recentes.
               </p>
             </div>
@@ -106,7 +106,7 @@ export default function AISummaryCard({
               {displaySummaries.map((summary) => (
                 <div key={summary.id} className="space-y-3 animate-scale-in">
                   {/* Period badge */}
-                  <div className="flex items-center gap-2 text-xs text-gray-400">
+                  <div className="flex items-center gap-2 text-xs text-gray-500">
                     <span>
                       {format(new Date(summary.period_start), 'd MMM', { locale: ptBR })} -{' '}
                       {format(new Date(summary.period_end), 'd MMM yyyy', { locale: ptBR })}
@@ -183,7 +183,7 @@ export default function AISummaryCard({
 
 function SummaryText({ text }: { text: string }) {
   return (
-    <div className="bg-white/40 backdrop-blur-sm rounded-2xl p-4 border border-white/30">
+    <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-4 border border-gray-200/60">
       <div className="text-sm text-gray-700 whitespace-pre-line leading-relaxed">
         {text.split('\n').map((line, i) => {
           const isWarning = line.startsWith('\u26A0\uFE0F');
@@ -235,16 +235,16 @@ function MetricCard({
   const percentage = Math.min((value / max) * 100, 100);
 
   return (
-    <div className="bg-white/40 backdrop-blur-sm rounded-2xl p-3 border border-white/30 transition-all duration-300 hover:bg-white/60">
+    <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-3 border border-gray-200/60 transition-all duration-300 hover:bg-white/90">
       <div className="flex items-center justify-between mb-1">
-        <span className="text-[10px] uppercase tracking-wider text-gray-400 font-semibold">
+        <span className="text-[10px] uppercase tracking-wider text-gray-500 font-semibold">
           {label}
         </span>
         {warning && <AlertTriangle size={10} className="text-orange-400" />}
       </div>
       <p className="text-lg font-bold text-gray-800">
         {value}
-        {suffix && <span className="text-xs text-gray-400 font-normal">{suffix}</span>}
+        {suffix && <span className="text-xs text-gray-500 font-normal">{suffix}</span>}
       </p>
       <div className="w-full h-1 bg-gray-100 rounded-full mt-1">
         <div className={`h-1 rounded-full bg-${color}-400`} style={{ width: `${percentage}%` }} />

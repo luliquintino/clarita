@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
-import { LogOut, Loader2, Smile, Target, BookOpen, Users, FileText } from 'lucide-react';
+import { LogOut, Loader2, Smile, Target, BookOpen, Users, FileText, ClipboardList, FlaskConical } from 'lucide-react';
 import Image from 'next/image';
 import {
   authApi,
@@ -22,6 +22,8 @@ import ProfessionalTabs from '@/components/ProfessionalTabs';
 import PatientGoalsPanel from '@/components/PatientGoalsPanel';
 import ExamUploadPanel from '@/components/ExamUploadPanel';
 import DisplayIdBadge from '@/components/DisplayIdBadge';
+import AnamnesisPanel from '@/components/AnamnesisPanel';
+import PsychTestPanel from '@/components/PsychTestPanel';
 
 const tabConfig = [
   {
@@ -53,6 +55,20 @@ const tabConfig = [
     color: 'text-clarita-green-600',
   },
   {
+    key: 'anamnesis' as const,
+    label: 'Anamnese',
+    icon: ClipboardList,
+    activeClass: 'tab-button bg-teal-500/20 text-teal-700 shadow-sm border border-teal-500/30',
+    color: 'text-teal-500',
+  },
+  {
+    key: 'tests' as const,
+    label: 'Testes',
+    icon: FlaskConical,
+    activeClass: 'tab-button bg-indigo-500/20 text-indigo-700 shadow-sm border border-indigo-500/30',
+    color: 'text-indigo-500',
+  },
+  {
     key: 'professionals' as const,
     label: 'Profissionais',
     icon: Users,
@@ -80,7 +96,7 @@ export default function PatientHomePage() {
   const [sentInvitations, setSentInvitations] = useState<Invitation[]>([]);
 
   const [activeSection, setActiveSection] = useState<
-    'checkin' | 'history' | 'goals' | 'exams' | 'professionals'
+    'checkin' | 'history' | 'goals' | 'exams' | 'anamnesis' | 'tests' | 'professionals'
   >('checkin');
 
   useEffect(() => {
@@ -322,7 +338,9 @@ export default function PatientHomePage() {
               activeSection !== 'checkin' &&
               activeSection !== 'goals' &&
               activeSection !== 'history' &&
-              activeSection !== 'exams'
+              activeSection !== 'exams' &&
+              activeSection !== 'anamnesis' &&
+              activeSection !== 'tests'
                 ? 'hidden md:block'
                 : ''
             }`}
@@ -345,6 +363,14 @@ export default function PatientHomePage() {
 
             <div className={activeSection !== 'exams' ? 'hidden md:block' : ''}>
               <ExamUploadPanel />
+            </div>
+
+            <div className={activeSection !== 'anamnesis' ? 'hidden md:block' : ''}>
+              <AnamnesisPanel role="patient" />
+            </div>
+
+            <div className={activeSection !== 'tests' ? 'hidden md:block' : ''}>
+              <PsychTestPanel role="patient" />
             </div>
           </div>
 

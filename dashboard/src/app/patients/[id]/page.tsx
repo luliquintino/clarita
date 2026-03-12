@@ -10,7 +10,9 @@ import {
   Activity,
   Clock,
   ClipboardCheck,
+  ClipboardList,
   FileText,
+  BookOpen,
   Pill,
   Brain,
   AlertCircle,
@@ -31,6 +33,12 @@ import DigitalTwinPanel from '@/components/DigitalTwinPanel';
 import GoalsPanel from '@/components/GoalsPanel';
 import AISummaryCard from '@/components/AISummaryCard';
 import PatientExamsPanel from '@/components/PatientExamsPanel';
+import AnamnesisPanel from '@/components/AnamnesisPanel';
+import MedicalRecordsPanel from '@/components/MedicalRecordsPanel';
+import RecordSharingPanel from '@/components/RecordSharingPanel';
+import PrescriptionPanel from '@/components/PrescriptionPanel';
+import PsychTestPanel from '@/components/PsychTestPanel';
+import DiagnosticBrowserPanel from '@/components/DiagnosticBrowserPanel';
 import {
   patientsApi,
   notesApi,
@@ -40,6 +48,7 @@ import {
   goalsApi,
   milestonesApi,
   summariesApi,
+  getUserRoleFromToken,
 } from '@/lib/api';
 import type {
   Patient,
@@ -55,7 +64,7 @@ import type {
   PatientSummary,
 } from '@/lib/api';
 
-type Tab = 'overview' | 'timeline' | 'assessments' | 'notes' | 'exams' | 'digital-twin';
+type Tab = 'overview' | 'timeline' | 'assessments' | 'notes' | 'exams' | 'digital-twin' | 'anamnesis' | 'medications' | 'diagnostico';
 
 // ============================================================================
 // Mock data for development
@@ -444,6 +453,7 @@ export default function PatientDetailPage() {
 
   const [activeTab, setActiveTab] = useState<Tab>('overview');
   const [loading, setLoading] = useState(true);
+  const [userRole] = useState(() => getUserRoleFromToken() || 'psychologist');
 
   // Data states
   const [patient, setPatient] = useState<Patient | null>(null);
@@ -813,6 +823,12 @@ export default function PatientDetailPage() {
     );
   };
 
+  const handleUpdateSideEffects = async (medicationId: string, sideEffects: string[]) => {
+    setMedications((prev) =>
+      prev.map((m) => (m.id === medicationId ? { ...m, side_effects: sideEffects } : m))
+    );
+  };
+
   // Summaries handlers
   const loadSummaries = async () => {
     setSummariesLoading(true);
@@ -898,9 +914,9 @@ export default function PatientDetailPage() {
         <Sidebar />
         <main className="ml-[240px] p-8">
           <div className="flex items-center justify-center py-24">
-            <div className="bg-white/70 backdrop-blur-xl rounded-2xl shadow-lg border border-white/40 p-8 flex flex-col items-center gap-3">
+            <div className="bg-white/95 backdrop-blur-xl rounded-2xl shadow-lg border border-gray-200/60 p-8 flex flex-col items-center gap-3">
               <Loader2 size={32} className="animate-spin text-clarita-green-400" />
-              <p className="text-sm text-gray-400">Carregando paciente...</p>
+              <p className="text-sm text-gray-500">Carregando paciente...</p>
             </div>
           </div>
         </main>
@@ -914,8 +930,8 @@ export default function PatientDetailPage() {
         <Sidebar />
         <main className="ml-[240px] p-8">
           <div className="text-center py-24">
-            <div className="bg-white/70 backdrop-blur-xl rounded-2xl shadow-lg border border-white/40 p-8 inline-block">
-              <p className="text-gray-500 mb-4">Paciente não encontrado</p>
+            <div className="bg-white/95 backdrop-blur-xl rounded-2xl shadow-lg border border-gray-200/60 p-8 inline-block">
+              <p className="text-gray-600 mb-4">Paciente não encontrado</p>
               <Link href="/patients" className="btn-primary inline-flex">
                 Voltar para pacientes
               </Link>
@@ -936,6 +952,9 @@ export default function PatientDetailPage() {
     },
     { key: 'notes', label: 'Notas', icon: <FileText size={16} /> },
     { key: 'exams', label: 'Exames', icon: <ClipboardCheck size={16} /> },
+    { key: 'anamnesis', label: 'Anamnese', icon: <ClipboardList size={16} /> },
+    { key: 'medications', label: 'Medicações', icon: <Pill size={16} /> },
+    { key: 'diagnostico', label: 'CID-11', icon: <BookOpen size={16} /> },
     { key: 'digital-twin', label: 'Gêmeo Digital', icon: <Brain size={16} /> },
   ];
 
@@ -954,7 +973,7 @@ export default function PatientDetailPage() {
           </Link>
 
           {/* Patient header */}
-          <div className="bg-white/70 backdrop-blur-xl rounded-3xl shadow-2xl border border-white/40 p-6 mb-6 animate-fade-in">
+          <div className="bg-white/95 backdrop-blur-xl rounded-3xl shadow-2xl border border-gray-200/60 p-6 mb-6 animate-fade-in">
             <div className="flex items-start justify-between">
               <div className="flex items-start gap-5">
                 {/* Avatar with mood-based gradient ring */}
@@ -986,7 +1005,7 @@ export default function PatientDetailPage() {
                     </span>
                   </div>
 
-                  <div className="flex items-center gap-4 mt-1.5 text-sm text-gray-500">
+                  <div className="flex items-center gap-4 mt-1.5 text-sm text-gray-600">
                     <span>
                       {patient.age} anos &middot;{' '}
                       {patient.gender.charAt(0).toUpperCase() + patient.gender.slice(1)}
@@ -1017,7 +1036,7 @@ export default function PatientDetailPage() {
               <div className="text-right flex flex-col items-end gap-2">
                 {patient.mental_clarity_score !== null && (
                   <div>
-                    <p className="text-xs text-gray-400 mb-1">Clareza Mental</p>
+                    <p className="text-xs text-gray-500 mb-1">Clareza Mental</p>
                     <div className="flex items-center gap-2.5 justify-end">
                       {/* Colored circle gauge */}
                       <div className="relative w-10 h-10">
@@ -1060,7 +1079,7 @@ export default function PatientDetailPage() {
                   </div>
                 )}
                 {patient.last_check_in && (
-                  <p className="text-xs text-gray-400 flex items-center gap-1 justify-end">
+                  <p className="text-xs text-gray-500 flex items-center gap-1 justify-end">
                     <Calendar size={12} />
                     Último check-in:{' '}
                     {formatDistanceToNow(new Date(patient.last_check_in), { addSuffix: true })}
@@ -1071,7 +1090,7 @@ export default function PatientDetailPage() {
           </div>
 
           {/* Tabs */}
-          <div className="flex items-center gap-1 bg-white/50 backdrop-blur-sm rounded-2xl p-1.5 border border-white/30 mb-6">
+          <div className="flex items-center gap-1 bg-white/80 backdrop-blur-sm rounded-2xl p-1.5 border border-gray-200/50 mb-6">
             {tabs.map((tab) => {
               const isActive = activeTab === tab.key;
               let activeClass = 'tab-button-inactive';
@@ -1092,6 +1111,15 @@ export default function PatientDetailPage() {
                     break;
                   case 'exams':
                     activeClass = 'tab-green-active';
+                    break;
+                  case 'anamnesis':
+                    activeClass = 'tab-button bg-teal-500/20 text-teal-700 shadow-sm border border-teal-500/30';
+                    break;
+                  case 'medications':
+                    activeClass = 'tab-button bg-amber-500/20 text-amber-700 shadow-sm border border-amber-500/30';
+                    break;
+                  case 'diagnostico':
+                    activeClass = 'tab-button bg-cyan-500/20 text-cyan-700 shadow-sm border border-cyan-500/30';
                     break;
                   case 'digital-twin':
                     activeClass =
@@ -1117,7 +1145,7 @@ export default function PatientDetailPage() {
           <div key={activeTab} className="animate-fade-in">
             {activeTab === 'overview' && (
               <div className="space-y-6">
-                {/* Alerts */}
+                {/* Active Alerts — urgent clinical info */}
                 {activeAlertCount > 0 && (
                   <div>
                     <h3 className="section-title flex items-center gap-2">
@@ -1132,60 +1160,68 @@ export default function PatientDetailPage() {
                   </div>
                 )}
 
-                {/* AI Summary */}
-                <AISummaryCard
-                  summaries={summaries}
-                  loading={summariesLoading}
-                  generating={generating}
-                  onGenerate={handleGenerateSummary}
-                />
-
-                {/* Goals */}
-                <GoalsPanel
-                  goals={goals}
-                  loading={goalsLoading}
-                  patientId={patientId}
-                  onCreateGoal={handleCreateGoal}
-                  onAchieveGoal={handleAchieveGoal}
-                  onUpdateGoal={handleUpdateGoal}
-                />
-
-                {/* Emotional chart */}
-                <EmotionalChart data={emotionalLogs} />
-
-                {/* Two-column layout */}
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                  {/* Medications */}
-                  <MedicationManager
-                    medications={medications}
-                    patientId={patientId}
-                    role="psychiatrist"
-                    onPrescribe={handlePrescribe}
-                    onAdjust={handleAdjustMedication}
-                    onDiscontinue={handleDiscontinueMedication}
-                  />
-
-                  {/* Insights */}
-                  <InsightsPanel insights={insights} />
-                </div>
+                {/* Top Insights — only high-impact */}
+                {insights.filter((i) => i.impact === 'high').length > 0 && (
+                  <InsightsPanel insights={insights.filter((i) => i.impact === 'high').slice(0, 2)} />
+                )}
               </div>
             )}
 
             {activeTab === 'timeline' && <Timeline entries={timeline} />}
 
-            {activeTab === 'assessments' && <AssessmentHistory assessments={assessments} />}
+            {activeTab === 'assessments' && (
+              <div className="space-y-8">
+                <AssessmentHistory assessments={assessments} />
+                <div className="border-t border-gray-200/60 pt-8">
+                  <PsychTestPanel patientId={patientId} role={userRole} />
+                </div>
+              </div>
+            )}
 
             {activeTab === 'notes' && (
-              <ClinicalNotes
-                notes={notes}
-                patientId={patientId}
-                onSave={handleSaveNote}
-                onUpdate={handleUpdateNote}
-                onDelete={handleDeleteNote}
-              />
+              <div className="space-y-8">
+                <ClinicalNotes
+                  notes={notes}
+                  patientId={patientId}
+                  onSave={handleSaveNote}
+                  onUpdate={handleUpdateNote}
+                  onDelete={handleDeleteNote}
+                />
+                <div className="border-t border-gray-200/60 pt-8">
+                  <MedicalRecordsPanel patientId={patientId} />
+                  <div className="mt-6">
+                    <RecordSharingPanel patientId={patientId} />
+                  </div>
+                </div>
+              </div>
             )}
 
             {activeTab === 'exams' && <PatientExamsPanel patientId={patientId} />}
+
+            {activeTab === 'anamnesis' && (
+              <AnamnesisPanel patientId={patientId} role={userRole} />
+            )}
+
+            {activeTab === 'medications' && (
+              <div className="space-y-8">
+                <MedicationManager
+                  medications={medications}
+                  patientId={patientId}
+                  role={userRole as 'psychiatrist' | 'psychologist' | 'therapist'}
+                  onPrescribe={handlePrescribe}
+                  onAdjust={handleAdjustMedication}
+                  onDiscontinue={handleDiscontinueMedication}
+                  onUpdateSideEffects={handleUpdateSideEffects}
+                />
+                <div className="border-t border-gray-200/60 pt-8">
+                  <PrescriptionPanel patientId={patientId} role={userRole} />
+                </div>
+              </div>
+            )}
+
+            {activeTab === 'diagnostico' && (
+              <DiagnosticBrowserPanel patientId={patientId} />
+            )}
 
             {activeTab === 'digital-twin' && (
               <DigitalTwinPanel twin={digitalTwin} patientId={patientId} />

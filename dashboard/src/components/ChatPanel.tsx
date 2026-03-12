@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { Send, Loader2 } from 'lucide-react';
+import { Send, Loader2, Paperclip, FileText, Image, Download } from 'lucide-react';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { chatApi } from '@/lib/api';
@@ -17,8 +17,10 @@ export default function ChatPanel({ conversation, currentUserId, onMessageSent }
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [loading, setLoading] = useState(true);
   const [sending, setSending] = useState(false);
+  const [uploading, setUploading] = useState(false);
   const [input, setInput] = useState('');
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   const loadMessages = useCallback(async () => {
@@ -78,6 +80,48 @@ export default function ChatPanel({ conversation, currentUserId, onMessageSent }
       e.preventDefault();
       handleSend();
     }
+  };
+
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // Validate file type and size
+    const allowed = ['application/pdf', 'image/jpeg', 'image/png'];
+    if (!allowed.includes(file.type)) {
+      alert('Tipo de arquivo não permitido. Aceitos: PDF, JPEG, PNG.');
+      return;
+    }
+    if (file.size > 10 * 1024 * 1024) {
+      alert('Arquivo muito grande. Máximo: 10MB.');
+      return;
+    }
+
+    setUploading(true);
+    try {
+      const data = await chatApi.sendFile(conversation.id, file);
+      const raw = data as any;
+      const newMsg = raw?.message || raw;
+      setMessages((prev) => [...prev, newMsg]);
+      onMessageSent?.();
+    } catch {
+      // silent
+    } finally {
+      setUploading(false);
+      // Reset input
+      if (fileInputRef.current) fileInputRef.current.value = '';
+    }
+  };
+
+  const isImageType = (mimeType: string | null | undefined) => {
+    return mimeType?.startsWith('image/');
+  };
+
+  const formatFileSize = (bytes: number | null | undefined) => {
+    if (!bytes) return '';
+    if (bytes < 1024) return `${bytes}B`;
+    if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)}KB`;
+    return `${(bytes / (1024 * 1024)).toFixed(1)}MB`;
   };
 
   return (
@@ -149,7 +193,34 @@ export default function ChatPanel({ conversation, currentUserId, onMessageSent }
                         {msg.sender_first_name}
                       </p>
                     )}
-                    <p className="text-sm whitespace-pre-wrap leading-relaxed">{msg.content}</p>
+                    {msg.attachment_id ? (
+                      <div className="my-1">
+                        {isImageType(msg.attachment_mime_type) ? (
+                          <a href={chatApi.getAttachmentUrl(msg.attachment_id)} target="_blank" rel="noopener noreferrer" className="block">
+                            <div className="bg-white/20 rounded-lg p-1 inline-block">
+                              <Image size={14} className="inline mr-1 text-gray-500" />
+                              <span className="text-xs text-gray-500">{msg.attachment_name}</span>
+                            </div>
+                          </a>
+                        ) : (
+                          <a
+                            href={chatApi.getAttachmentUrl(msg.attachment_id)}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="flex items-center gap-2 bg-white/30 rounded-lg px-3 py-2 hover:bg-white/40 transition-colors"
+                          >
+                            <FileText size={16} className="text-gray-500 flex-shrink-0" />
+                            <div className="min-w-0 flex-1">
+                              <p className="text-xs font-medium text-gray-700 truncate">{msg.attachment_name}</p>
+                              <p className="text-[10px] text-gray-400">{formatFileSize(msg.attachment_file_size)}</p>
+                            </div>
+                            <Download size={14} className="text-gray-400 flex-shrink-0" />
+                          </a>
+                        )}
+                      </div>
+                    ) : (
+                      <p className="text-sm whitespace-pre-wrap leading-relaxed">{msg.content}</p>
+                    )}
                     <p
                       className={`text-[10px] mt-1.5 ${
                         isMe ? 'text-clarita-green-500/70 text-right' : 'text-gray-400'
@@ -168,7 +239,22 @@ export default function ChatPanel({ conversation, currentUserId, onMessageSent }
 
       {/* Input */}
       <div className="px-5 py-4 bg-white/70 backdrop-blur-xl border-t border-white/40">
+        <input
+          type="file"
+          ref={fileInputRef}
+          onChange={handleFileUpload}
+          accept=".pdf,.jpg,.jpeg,.png"
+          className="hidden"
+        />
         <div className="flex items-end gap-3">
+          <button
+            onClick={() => fileInputRef.current?.click()}
+            disabled={uploading}
+            className="w-12 h-12 rounded-2xl flex items-center justify-center text-gray-400 hover:text-gray-600 hover:bg-white/50 transition-all duration-200 flex-shrink-0 disabled:opacity-40"
+            title="Enviar arquivo (PDF, JPEG, PNG)"
+          >
+            {uploading ? <Loader2 size={20} className="animate-spin" /> : <Paperclip size={20} />}
+          </button>
           <textarea
             value={input}
             onChange={(e) => setInput(e.target.value)}
@@ -180,7 +266,7 @@ export default function ChatPanel({ conversation, currentUserId, onMessageSent }
           />
           <button
             onClick={handleSend}
-            disabled={!input.trim() || sending}
+            disabled={!input.trim() || sending || uploading}
             className="w-12 h-12 rounded-2xl flex items-center justify-center text-white transition-all duration-300 hover:scale-105 hover:shadow-lg active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:scale-100 flex-shrink-0 shadow-md"
             style={{ background: 'linear-gradient(135deg, #14b8a6, #8b5cf6)' }}
           >

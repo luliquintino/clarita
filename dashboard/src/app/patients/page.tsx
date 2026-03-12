@@ -166,7 +166,7 @@ export default function PatientsPage() {
           phone: p.phone || '',
           emergency_contact: '',
           diagnosis: [],
-          status: 'active' as const,
+          status: (p.relationship_status === 'active' ? 'active' : 'inactive') as Patient['status'],
           last_check_in: null,
           mood_trend: [],
           active_alerts: 0,

@@ -886,6 +886,10 @@ export interface ChatMessage {
   content: string;
   read_at: string | null;
   created_at: string;
+  attachment_id?: string | null;
+  attachment_name?: string | null;
+  attachment_mime_type?: string | null;
+  attachment_file_size?: number | null;
 }
 
 export const chatApi = {
@@ -919,6 +923,20 @@ export const chatApi = {
     }),
 
   getUnreadCount: () => request<{ unread_count: number }>('/chat/unread-count'),
+
+  sendFile: (conversationId: string, file: File) => {
+    const formData = new FormData();
+    formData.append('file', file);
+    return requestFormData<{ message: ChatMessage; attachment: ChatAttachment }>(
+      `/chat/conversations/${conversationId}/messages/file`,
+      formData
+    );
+  },
+
+  getAttachmentUrl: (attachmentId: string) => {
+    const token = getToken();
+    return `${BASE_URL}/chat/attachments/${attachmentId}/file?token=${token}`;
+  },
 };
 
 // ---------------------------------------------------------------------------
@@ -1208,4 +1226,407 @@ export const usersApi = {
     request<{ user: UserSearchResult }>(
       `/users/search?display_id=${encodeURIComponent(display_id)}`
     ),
+};
+
+// ---------------------------------------------------------------------------
+// Chat Attachment Types
+// ---------------------------------------------------------------------------
+
+export interface ChatAttachment {
+  id: string;
+  message_id: string;
+  file_name: string;
+  original_name: string;
+  mime_type: string;
+  file_size: number;
+  created_at: string;
+}
+
+// ---------------------------------------------------------------------------
+// Anamnesis API
+// ---------------------------------------------------------------------------
+
+export interface AnamnesisTemplate {
+  id: string;
+  professional_id: string;
+  title: string;
+  description: string | null;
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
+  questions?: AnamnesisQuestion[];
+}
+
+export interface AnamnesisQuestion {
+  id: string;
+  template_id: string;
+  question_text: string;
+  question_type: 'text' | 'scale' | 'multiple_choice' | 'yes_no' | 'date';
+  options: unknown;
+  display_order: number;
+  is_required: boolean;
+}
+
+export interface AnamnesisResponse {
+  id: string;
+  template_id: string;
+  patient_id: string;
+  professional_id: string;
+  answers: Record<string, unknown> | null;
+  status: 'pending' | 'in_progress' | 'completed';
+  deadline: string | null;
+  completed_at: string | null;
+  created_at: string;
+  template_title?: string;
+  professional_first_name?: string;
+  professional_last_name?: string;
+  patient_first_name?: string;
+  patient_last_name?: string;
+}
+
+export const anamnesisApi = {
+  getTemplates: () =>
+    request<{ templates: AnamnesisTemplate[] }>('/anamnesis/templates'),
+
+  getTemplate: (id: string) =>
+    request<{ template: AnamnesisTemplate }>(`/anamnesis/templates/${id}`),
+
+  createTemplate: (data: { title: string; description?: string; questions: Array<{ question_text: string; question_type: string; options?: unknown; display_order: number; is_required?: boolean }> }) =>
+    request<{ template: AnamnesisTemplate }>('/anamnesis/templates', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    }),
+
+  updateTemplate: (id: string, data: Partial<{ title: string; description: string; is_active: boolean }>) =>
+    request<{ template: AnamnesisTemplate }>(`/anamnesis/templates/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify(data),
+    }),
+
+  sendToPatient: (data: { template_id: string; patient_id: string; deadline?: string }) =>
+    request<{ response: AnamnesisResponse }>('/anamnesis/send', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    }),
+
+  getPending: () =>
+    request<{ responses: AnamnesisResponse[] }>('/anamnesis/pending'),
+
+  getResponse: (id: string) =>
+    request<{ response: AnamnesisResponse }>(`/anamnesis/responses/${id}`),
+
+  submitResponse: (id: string, answers: Record<string, unknown>) =>
+    request<{ response: AnamnesisResponse }>(`/anamnesis/responses/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify({ answers, status: 'completed' }),
+    }),
+
+  getPatientResponses: (patientId: string) =>
+    request<{ responses: AnamnesisResponse[] }>(`/anamnesis/patient/${patientId}`),
+};
+
+// ---------------------------------------------------------------------------
+// Medical Records API
+// ---------------------------------------------------------------------------
+
+export interface MedicalRecord {
+  id: string;
+  professional_id: string;
+  patient_id: string;
+  title: string;
+  content: string;
+  record_date: string;
+  category: string | null;
+  tags: string[] | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export const medicalRecordsApi = {
+  create: (data: { patient_id: string; title: string; content: string; record_date: string; category?: string; tags?: string[] }) =>
+    request<{ record: MedicalRecord }>('/medical-records', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    }),
+
+  list: (patientId: string) =>
+    request<{ records: MedicalRecord[] }>(`/medical-records/${patientId}`),
+
+  get: (id: string) =>
+    request<{ record: MedicalRecord }>(`/medical-records/detail/${id}`),
+
+  update: (id: string, data: Partial<{ title: string; content: string; record_date: string; category: string; tags: string[] }>) =>
+    request<{ record: MedicalRecord }>(`/medical-records/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify(data),
+    }),
+
+  delete: (id: string) =>
+    request<void>(`/medical-records/${id}`, { method: 'DELETE' }),
+};
+
+// ---------------------------------------------------------------------------
+// Record Sharing API
+// ---------------------------------------------------------------------------
+
+export interface RecordAccessToken {
+  id: string;
+  granting_professional_id: string;
+  patient_id: string;
+  token: string;
+  expires_at: string;
+  is_revoked: boolean;
+  accessed_by_professional_id: string | null;
+  accessed_at: string | null;
+  created_at: string;
+}
+
+export interface SharedMedicalRecord {
+  id: string;
+  access_token_id: string;
+  receiving_professional_id: string;
+  summary_content: string | null;
+  original_records_count: number;
+  shared_at: string;
+  saved_at: string | null;
+}
+
+export const recordSharingApi = {
+  generateToken: (patientId: string) =>
+    request<{ token: RecordAccessToken }>('/record-sharing/generate-token', {
+      method: 'POST',
+      body: JSON.stringify({ patient_id: patientId }),
+    }),
+
+  verifyToken: (token: string) =>
+    request<{ valid: boolean; token_info: RecordAccessToken }>(`/record-sharing/verify/${token}`),
+
+  accessRecords: (token: string) =>
+    request<{ records: MedicalRecord[]; shared_record: SharedMedicalRecord }>(`/record-sharing/access/${token}`, {
+      method: 'POST',
+    }),
+
+  getMyShares: () =>
+    request<{ shares: Array<RecordAccessToken & { records_count?: number }> }>('/record-sharing/my-shares'),
+
+  saveSummary: (data: { access_token_id: string; summary: string }) =>
+    request<{ shared_record: SharedMedicalRecord }>('/record-sharing/save-summary', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    }),
+
+  revokeToken: (tokenId: string) =>
+    request<void>(`/record-sharing/revoke/${tokenId}`, { method: 'DELETE' }),
+};
+
+// ---------------------------------------------------------------------------
+// Prescriptions API
+// ---------------------------------------------------------------------------
+
+export interface Prescription {
+  id: string;
+  professional_id: string;
+  patient_id: string;
+  memed_prescription_id: string | null;
+  pdf_url: string | null;
+  medications_data: Array<{ name: string; dosage: string; frequency: string; duration?: string; instructions?: string }>;
+  status: string;
+  created_at: string;
+  professional_first_name?: string;
+  professional_last_name?: string;
+}
+
+export const prescriptionsApi = {
+  create: (data: { patient_id: string; medications: Array<{ name: string; dosage: string; frequency: string; duration?: string; instructions?: string }> }) =>
+    request<{ prescription: Prescription }>('/prescriptions', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    }),
+
+  list: (patientId: string) =>
+    request<{ prescriptions: Prescription[]; pagination: { page: number; limit: number; total: number } }>(`/prescriptions/${patientId}`),
+
+  get: (id: string) =>
+    request<{ prescription: Prescription }>(`/prescriptions/detail/${id}`),
+};
+
+// ---------------------------------------------------------------------------
+// Psychological Tests API
+// ---------------------------------------------------------------------------
+
+export interface PsychTest {
+  id: string;
+  name: string;
+  description: string | null;
+  category: string;
+  dsm_references: string[] | null;
+  questions: Array<{ text: string; options?: Array<{ label: string; value: number }>; max_value?: number; domain?: string }>;
+  scoring_rules: Record<string, unknown>;
+  interpretation_guide: Record<string, unknown> | null;
+  is_active: boolean;
+  created_at: string;
+}
+
+export interface TestSession {
+  id: string;
+  test_id: string;
+  patient_id: string;
+  assigned_by: string;
+  status: 'pending' | 'in_progress' | 'completed' | 'expired';
+  deadline: string | null;
+  answers: Record<string, unknown> | null;
+  total_score: number | null;
+  ai_analysis: Record<string, unknown> | null;
+  dsm_mapping: Array<{ code: string; name: string; relevance: string }> | null;
+  completed_at: string | null;
+  created_at: string;
+  test_name?: string;
+  test_description?: string;
+  test_category?: string;
+  test_questions?: PsychTest['questions'];
+  scoring_rules?: Record<string, unknown>;
+  assigned_by_first_name?: string;
+  assigned_by_last_name?: string;
+}
+
+export interface DSMCriteria {
+  id: string;
+  code: string;
+  name: string;
+  category: string;
+  criteria: Record<string, unknown>;
+  version: string;
+  created_at: string;
+}
+
+export const psychTestsApi = {
+  getCatalog: () =>
+    request<{ tests: PsychTest[]; disclaimer?: string }>('/psych-tests'),
+
+  getTest: (id: string) =>
+    request<{ test: PsychTest }>(`/psych-tests/${id}`),
+
+  assign: (data: { test_id: string; patient_id: string; deadline?: string }) =>
+    request<{ session: TestSession }>('/psych-tests/assign', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    }),
+
+  getPending: () =>
+    request<{ sessions: TestSession[] }>('/psych-tests/sessions/pending'),
+
+  getSession: (id: string) =>
+    request<{ session: TestSession }>(`/psych-tests/sessions/${id}`),
+
+  submitAnswers: (id: string, answers: Record<string, unknown>) =>
+    request<{ session: TestSession; score: { total_score: number; subscores: unknown; interpretation: unknown }; ai_analysis: unknown }>(`/psych-tests/sessions/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify({ answers }),
+    }),
+
+  getPatientHistory: (patientId: string) =>
+    request<{ sessions: TestSession[]; pagination: { page: number; limit: number; total: number } }>(`/psych-tests/sessions/patient/${patientId}`),
+
+  getDSMCriteria: () =>
+    request<{ criteria: DSMCriteria[] }>('/psych-tests/dsm-criteria'),
+};
+
+// ---------------------------------------------------------------------------
+// ICD-11 Types & API
+// ---------------------------------------------------------------------------
+
+export interface ICD11Disorder {
+  id: string;
+  icd_code: string;
+  disorder_name: string;
+  description: string | null;
+  symptom_keywords: string[];
+  category: string | null;
+  created_at: string;
+}
+
+export interface ICDTestSuggestion {
+  id: string;
+  name: string;
+  description: string | null;
+  category: string | null;
+  dsm_references: string[] | null;
+  relevance_score: number;
+  notes: string | null;
+  satepsi_name: string | null;
+  satepsi_status: string | null;
+  satepsi_expiry: string | null;
+}
+
+export const icd11Api = {
+  list: (params?: { category?: string; search?: string }) => {
+    const searchParams = new URLSearchParams();
+    if (params?.category) searchParams.set('category', params.category);
+    if (params?.search) searchParams.set('search', params.search);
+    const qs = searchParams.toString();
+    return request<{ disorders: ICD11Disorder[] }>(`/icd11${qs ? `?${qs}` : ''}`);
+  },
+
+  getCategories: () =>
+    request<{ categories: string[] }>('/icd11/categories'),
+
+  get: (code: string) =>
+    request<{ disorder: ICD11Disorder }>(`/icd11/${code}`),
+
+  getSuggestedTests: (code: string) =>
+    request<{ disorder: { id: string; icd_code: string; disorder_name: string }; suggested_tests: ICDTestSuggestion[]; disclaimer: string }>(`/icd11/${code}/tests`),
+
+  suggestBySymptoms: (symptoms: string[]) =>
+    request<{ suggestions: (ICD11Disorder & { match_count: number })[]; disclaimer: string }>('/icd11/suggest-by-symptoms', {
+      method: 'POST',
+      body: JSON.stringify({ symptoms }),
+    }),
+};
+
+// ---------------------------------------------------------------------------
+// SATEPSI Types & API
+// ---------------------------------------------------------------------------
+
+export interface SatepsiTest {
+  id: string;
+  test_name: string;
+  test_author: string | null;
+  approval_status: string;
+  approval_date: string | null;
+  expiry_date: string | null;
+  test_category: string | null;
+  cfp_code: string | null;
+  last_updated: string;
+}
+
+export interface SatepsiSyncStatus {
+  id: string;
+  synced_at: string;
+  tests_updated: number;
+  tests_deactivated: number;
+  status: string;
+  error_message: string | null;
+}
+
+export const satepsiApi = {
+  list: (params?: { status?: string; category?: string; search?: string }) => {
+    const searchParams = new URLSearchParams();
+    if (params?.status) searchParams.set('status', params.status);
+    if (params?.category) searchParams.set('category', params.category);
+    if (params?.search) searchParams.set('search', params.search);
+    const qs = searchParams.toString();
+    return request<{ tests: SatepsiTest[] }>(`/satepsi${qs ? `?${qs}` : ''}`);
+  },
+
+  getCategories: () =>
+    request<{ categories: string[] }>('/satepsi/categories'),
+
+  get: (id: string) =>
+    request<{ satepsi_test: SatepsiTest; linked_tests: { id: string; name: string; category: string; is_active: boolean }[] }>(`/satepsi/${id}`),
+
+  getSyncStatus: () =>
+    request<{ last_sync: SatepsiSyncStatus | null }>('/satepsi/sync-status'),
+
+  validate: (testId: string) =>
+    request<{ test_id: string; test_name: string; requires_satepsi: boolean; satepsi_approved: boolean; satepsi_status: string | null; satepsi_expiry: string | null }>(`/satepsi/validate/${testId}`),
 };

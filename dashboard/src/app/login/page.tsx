@@ -61,16 +61,14 @@ export default function LoginPage() {
               priority
             />
           </div>
-          <p className="text-gray-500 text-sm font-light">Plataforma de Saúde Mental</p>
         </div>
 
         {/* Login Card */}
         <div className="bg-white/70 backdrop-blur-xl rounded-3xl shadow-2xl border border-white/40 p-8">
-          <h2 className="text-2xl font-semibold text-gray-800 mb-1">Bem-vindo de volta</h2>
-          <p className="text-sm text-gray-500 mb-8 flex items-center gap-1.5">
+          <h2 className="text-2xl font-semibold text-gray-800 mb-8 flex items-center gap-2">
             Que bom te ver por aqui{' '}
-            <Heart size={14} className="text-clarita-purple-400 fill-clarita-purple-400" />
-          </p>
+            <Heart size={20} className="text-clarita-purple-400 fill-clarita-purple-400" />
+          </h2>
 
           <form onSubmit={handleSubmit} className="space-y-5">
             {error && (

@@ -32,6 +32,13 @@ const documentRoutes = require('./routes/documents');
 const examsRoutes = require('./routes/exams');
 const invitationRoutes = require('./routes/invitations');
 const userRoutes = require('./routes/users');
+const anamnesisRoutes = require('./routes/anamnesis');
+const medicalRecordRoutes = require('./routes/medicalRecords');
+const recordSharingRoutes = require('./routes/recordSharing');
+const prescriptionRoutes = require('./routes/prescriptions');
+const psychTestRoutes = require('./routes/psychTests');
+const icd11Routes = require('./routes/icd11');
+const satepsiRoutes = require('./routes/satepsi');
 
 const { pool } = require('./config/database');
 
@@ -98,6 +105,13 @@ app.use('/api/documents', documentRoutes);
 app.use('/api/exams', examsRoutes);
 app.use('/api/invitations', invitationRoutes);
 app.use('/api/users', userRoutes);
+app.use('/api/anamnesis', anamnesisRoutes);
+app.use('/api/medical-records', medicalRecordRoutes);
+app.use('/api/record-sharing', recordSharingRoutes);
+app.use('/api/prescriptions', prescriptionRoutes);
+app.use('/api/psych-tests', psychTestRoutes);
+app.use('/api/icd11', icd11Routes);
+app.use('/api/satepsi', satepsiRoutes);
 
 // ---------------------------------------------------------------------------
 // 404 Handler
@@ -139,6 +153,39 @@ if (process.env.NODE_ENV !== 'test') {
       console.log('[cron] Alert generation completed');
     } catch (err) {
       console.error('[cron] Alert generation failed:', err.message);
+    }
+  });
+
+  // Clean expired QR sharing tokens (daily at 3am)
+  cron.schedule('0 3 * * *', async () => {
+    try {
+      const { cleanExpiredTokens } = require('./services/recordSharingService');
+      await cleanExpiredTokens();
+      console.log('[cron] Expired token cleanup completed');
+    } catch (err) {
+      console.error('[cron] Expired token cleanup failed:', err.message);
+    }
+  });
+
+  // Expire overdue psychological test sessions (daily at 4am)
+  cron.schedule('0 4 * * *', async () => {
+    try {
+      const { expireOverdueSessions } = require('./services/psychTestService');
+      await expireOverdueSessions();
+      console.log('[cron] Overdue test session expiry completed');
+    } catch (err) {
+      console.error('[cron] Overdue test session expiry failed:', err.message);
+    }
+  });
+
+  // SATEPSI test validation sync (weekly on Sundays at 5am)
+  cron.schedule('0 5 * * 0', async () => {
+    try {
+      const { syncSatepsiTests } = require('./services/satepsiService');
+      const result = await syncSatepsiTests();
+      console.log(`[cron] SATEPSI sync completed: ${result.testsUpdated} updated, ${result.testsDeactivated} deactivated`);
+    } catch (err) {
+      console.error('[cron] SATEPSI sync failed:', err.message);
     }
   });
 }

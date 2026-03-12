@@ -6,9 +6,9 @@
   :root {
     --background: #fafaf9;
     --foreground: #1e293b;
-    --card-bg: rgba(255, 255, 255, 0.75);
-    --sidebar-bg: rgba(240, 253, 250, 0.8);
-    --border-soft: rgba(255, 255, 255, 0.3);
+    --card-bg: rgba(255, 255, 255, 0.95);
+    --sidebar-bg: rgba(240, 253, 250, 0.95);
+    --border-soft: rgba(209, 213, 219, 0.5);
     --gradient-start: #f0fdfa;
     --gradient-mid: #f5f3ff;
     --gradient-end: #fdf2f8;
@@ -39,7 +39,7 @@
 @layer components {
   /* === CARDS === */
   .card {
-    @apply bg-white/75 backdrop-blur-md rounded-2xl shadow-soft border border-white/40 p-6 transition-all duration-300;
+    @apply bg-white/95 backdrop-blur-md rounded-2xl shadow-soft border border-gray-200/60 p-6 transition-all duration-300;
   }
 
   .card-hover {
@@ -67,14 +67,14 @@
   }
 
   .btn-secondary {
-    @apply inline-flex items-center justify-center gap-2 px-5 py-2.5 bg-white/60 backdrop-blur-sm text-gray-700 font-medium rounded-xl
+    @apply inline-flex items-center justify-center gap-2 px-5 py-2.5 bg-white/90 backdrop-blur-sm text-gray-700 font-medium rounded-xl
            border border-clarita-beige-200/80 hover:bg-white/80 hover:border-clarita-green-300/50 transition-all duration-300
            focus:outline-none focus:ring-2 focus:ring-clarita-green-200 focus:ring-offset-2;
   }
 
   .btn-ghost {
     @apply inline-flex items-center justify-center px-4 py-2 text-gray-600 font-medium rounded-xl
-           hover:bg-white/50 hover:backdrop-blur-sm transition-all duration-300;
+           hover:bg-white/80 hover:backdrop-blur-sm transition-all duration-300;
   }
 
   .btn-danger {
@@ -85,10 +85,10 @@
 
   /* === INPUTS === */
   .input-field {
-    @apply w-full px-4 py-3 bg-white/60 backdrop-blur-sm border border-clarita-beige-200/80 rounded-xl
+    @apply w-full px-4 py-3 bg-white/90 backdrop-blur-sm border border-clarita-beige-200/80 rounded-xl
            text-gray-800 placeholder-gray-400 transition-all duration-300
            focus:outline-none focus:ring-2 focus:ring-clarita-green-200/70 focus:border-clarita-green-300
-           focus:bg-white/80;
+           focus:bg-white;
   }
 
   .input-field:focus {
@@ -158,11 +158,11 @@
   }
 
   .tab-button-active {
-    @apply tab-button bg-white/70 backdrop-blur-sm shadow-soft;
+    @apply tab-button bg-white/95 backdrop-blur-sm shadow-soft;
   }
 
   .tab-button-inactive {
-    @apply tab-button text-gray-500 hover:text-gray-700 hover:bg-white/40;
+    @apply tab-button text-gray-600 hover:text-gray-700 hover:bg-white/70;
   }
 
   /* === COLOR-CODED TAB VARIANTS === */
@@ -184,11 +184,11 @@
 
   /* === GLASSMORPHISM HELPERS === */
   .glass {
-    @apply bg-white/70 backdrop-blur-xl border border-white/30 shadow-lg;
+    @apply bg-white/90 backdrop-blur-xl border border-gray-200/50 shadow-lg;
   }
 
   .glass-subtle {
-    @apply bg-white/50 backdrop-blur-md border border-white/20;
+    @apply bg-white/80 backdrop-blur-md border border-gray-200/40;
   }
 
   .glass-dark {
