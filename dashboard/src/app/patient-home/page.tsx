@@ -26,7 +26,8 @@ import AnamnesisPanel from '@/components/AnamnesisPanel';
 import PsychTestPanel from '@/components/PsychTestPanel';
 import MedicationCheckCard from '@/components/MedicationCheckCard';
 import MyPrescriptionsPanel from '@/components/MyPrescriptionsPanel';
-import BottomNav, { type PatientSection } from '@/components/BottomNav';
+import BottomNav from '@/components/BottomNav';
+import { type PatientSection } from '@/components/nav-items';
 
 export default function PatientHomePage() {
   const router = useRouter();
