@@ -20,6 +20,7 @@ import {
 import type { AuthUser, JournalEntryData, ProfessionalInfo, Goal, Invitation, PatientMedication } from '@/lib/api';
 import JournalEntry from '@/components/JournalEntry';
 import JournalHistory from '@/components/JournalHistory';
+import HistoryChart from '@/components/HistoryChart';
 import ProfessionalTabs from '@/components/ProfessionalTabs';
 import PatientGoalsPanel from '@/components/PatientGoalsPanel';
 import ExamUploadPanel from '@/components/ExamUploadPanel';
@@ -339,7 +340,10 @@ export default function PatientHomePage() {
 
           {/* ── HISTÓRICO ── */}
           {activeSection === 'history' && (
-            <JournalHistory entries={journals} loading={journalsLoading} />
+            <div className="space-y-6">
+              <HistoryChart entries={journals} />
+              <JournalHistory entries={journals} loading={journalsLoading} />
+            </div>
           )}
 
           <p className="text-center text-xs text-gray-400 pt-6 pb-2">
