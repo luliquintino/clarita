@@ -12,6 +12,7 @@ import {
   Minus,
   Calendar,
   Users,
+  Info,
 } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import type { Patient } from '@/lib/api';
@@ -180,13 +181,23 @@ export default function PatientList({ patients }: PatientListProps) {
                         : 'text-gray-500 hover:bg-white/40 hover:text-gray-700'
                     }`}
               >
-                {SORT_LABELS[field]}
-                {isActive &&
-                  (sortDir === 'asc' ? (
-                    <SortAsc size={12} className="inline ml-1" />
-                  ) : (
-                    <SortDesc size={12} className="inline ml-1" />
-                  ))}
+                <span className="flex items-center gap-1">
+                  {SORT_LABELS[field]}
+                  {field === 'score' && (
+                    <span className="relative group/tip">
+                      <Info size={11} className="text-gray-400 group-hover/tip:text-clarita-purple-400 transition-colors" />
+                      <span className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-52 bg-gray-800 text-white text-[11px] rounded-xl px-3 py-2 shadow-lg opacity-0 group-hover/tip:opacity-100 pointer-events-none transition-opacity duration-200 z-20 leading-relaxed whitespace-normal text-left">
+                        Índice de Clareza Mental — calculado com base nos check-ins de humor, sono, energia e ansiedade do paciente.
+                      </span>
+                    </span>
+                  )}
+                  {isActive &&
+                    (sortDir === 'asc' ? (
+                      <SortAsc size={12} />
+                    ) : (
+                      <SortDesc size={12} />
+                    ))}
+                </span>
               </button>
             );
           })}
@@ -287,7 +298,7 @@ export default function PatientList({ patients }: PatientListProps) {
                   </div>
 
                   {patient.mental_clarity_score !== null && (
-                    <div className="flex items-center gap-1.5">
+                    <div className="relative group flex items-center gap-1.5">
                       <div
                         className={`w-2 h-2 rounded-full ${
                           patient.mental_clarity_score >= 70
@@ -300,6 +311,16 @@ export default function PatientList({ patients }: PatientListProps) {
                       <span className="text-xs font-medium text-gray-600">
                         {patient.mental_clarity_score}%
                       </span>
+                      {/* Tooltip */}
+                      <div className="absolute bottom-full right-0 mb-2 w-56 bg-gray-800 text-white text-[11px] rounded-xl px-3 py-2 shadow-lg opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity duration-200 z-10 leading-relaxed">
+                        <p className="font-semibold mb-1">Clareza Mental</p>
+                        <p>Índice calculado com base nos check-ins do paciente: humor, sono, energia e ansiedade. Quanto maior, melhor o bem-estar geral.</p>
+                        <div className="mt-1.5 flex flex-col gap-0.5">
+                          <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-clarita-green-400 inline-block" /> ≥ 70% Bom</span>
+                          <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-yellow-400 inline-block" /> 40–69% Moderado</span>
+                          <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-red-400 inline-block" /> &lt; 40% Atenção</span>
+                        </div>
+                      </div>
                     </div>
                   )}
 

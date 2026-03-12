@@ -19,6 +19,8 @@ import {
   Phone,
   Mail,
   Calendar,
+  Plus,
+  X,
 } from 'lucide-react';
 import { format, formatDistanceToNow } from 'date-fns';
 import Sidebar from '@/components/Sidebar';
@@ -455,6 +457,11 @@ export default function PatientDetailPage() {
   const [loading, setLoading] = useState(true);
   const [userRole] = useState(() => getUserRoleFromToken() || 'psychologist');
 
+  // Conditions states
+  const [editingConditions, setEditingConditions] = useState(false);
+  const [newConditionText, setNewConditionText] = useState('');
+  const [savingCondition, setSavingCondition] = useState(false);
+
   // Data states
   const [patient, setPatient] = useState<Patient | null>(null);
   const [emotionalLogs, setEmotionalLogs] = useState<EmotionalLog[]>([]);
@@ -531,6 +538,8 @@ export default function PatientDetailPage() {
             mental_clarity_score: null,
             assigned_professional_id: '',
             created_at: raw.created_at as string,
+            self_reported_conditions: (raw.self_reported_conditions as string[]) || [],
+            suspicions: (raw.suspicions as import('@/lib/api').PatientSuspicion[]) || [],
           });
         } else {
           setPatient(mockPatient);
@@ -829,6 +838,51 @@ export default function PatientDetailPage() {
     );
   };
 
+  // Conditions handlers
+  const handleUpdateCondition = async (action: 'add' | 'remove', value: string) => {
+    if (!patient) return;
+    setSavingCondition(true);
+    try {
+      await patientsApi.updateCondition(patient.id, action, value);
+      setPatient((prev) => {
+        if (!prev) return prev;
+        const current = prev.self_reported_conditions || [];
+        const updated =
+          action === 'add'
+            ? current.includes(value) ? current : [...current, value]
+            : current.filter((c) => c !== value);
+        return { ...prev, self_reported_conditions: updated };
+      });
+    } catch (err) {
+      console.error('Failed to update condition', err);
+    } finally {
+      setSavingCondition(false);
+    }
+  };
+
+  const handleUpdateSuspicion = async (action: 'add' | 'remove', value: string) => {
+    if (!patient) return;
+    setSavingCondition(true);
+    try {
+      await patientsApi.updateCondition(patient.id, action, value);
+      setPatient((prev) => {
+        if (!prev) return prev;
+        const current = prev.suspicions || [];
+        const updated =
+          action === 'add'
+            ? current.some((s) => s.label === value && s.added_by === userRole)
+              ? current
+              : [...current, { label: value, added_by: userRole as 'psychiatrist' | 'psychologist' }]
+            : current.filter((s) => !(s.label === value && s.added_by === userRole));
+        return { ...prev, suspicions: updated };
+      });
+    } catch (err) {
+      console.error('Failed to update suspicion', err);
+    } finally {
+      setSavingCondition(false);
+    }
+  };
+
   // Summaries handlers
   const loadSummaries = async () => {
     setSummariesLoading(true);
@@ -1020,15 +1074,101 @@ export default function PatientDetailPage() {
                     </span>
                   </div>
 
-                  <div className="flex items-center gap-2 mt-3">
-                    {(patient.diagnosis || []).map((d, i) => (
+                  {/* Role-based conditions & suspicions */}
+                  <div className="flex flex-wrap items-center gap-2 mt-3">
+                    {/* Self-reported conditions — visible to all */}
+                    {(patient.self_reported_conditions || []).map((cond) => (
                       <span
-                        key={d}
-                        className={`text-xs ${i % 2 === 0 ? 'badge-purple' : 'badge-blue'}`}
+                        key={cond}
+                        className="inline-flex items-center gap-1 text-xs badge-purple"
                       >
-                        {d}
+                        {cond}
+                        {userRole === 'patient' && (
+                          <button
+                            onClick={() => handleUpdateCondition('remove', cond)}
+                            className="ml-0.5 hover:text-red-400 transition-colors"
+                            title="Remover"
+                          >
+                            <X size={10} />
+                          </button>
+                        )}
                       </span>
                     ))}
+
+                    {/* Clinical suspicions — visible only to professionals */}
+                    {userRole !== 'patient' &&
+                      (patient.suspicions || []).map((s) => (
+                        <span
+                          key={`${s.added_by}-${s.label}`}
+                          className="inline-flex items-center gap-1 text-xs px-2 py-0.5 rounded-full border border-dashed border-yellow-400 bg-yellow-50 text-yellow-700"
+                          title={`Adicionado por ${s.added_by === 'psychiatrist' ? 'psiquiatra' : 'psicólogo'}`}
+                        >
+                          {s.label}
+                          {s.added_by === userRole && (
+                            <button
+                              onClick={() => handleUpdateSuspicion('remove', s.label)}
+                              className="ml-0.5 hover:text-red-500 transition-colors"
+                              title="Remover"
+                            >
+                              <X size={10} />
+                            </button>
+                          )}
+                        </span>
+                      ))}
+
+                    {/* Add button */}
+                    {!editingConditions && (
+                      <button
+                        onClick={() => setEditingConditions(true)}
+                        className="inline-flex items-center gap-1 text-xs text-gray-400 hover:text-clarita-purple-500 transition-colors"
+                      >
+                        <Plus size={11} />
+                        {userRole === 'patient' ? 'Adicionar condição' : 'Suspeita'}
+                      </button>
+                    )}
+
+                    {/* Inline input */}
+                    {editingConditions && (
+                      <form
+                        className="inline-flex items-center gap-1"
+                        onSubmit={async (e) => {
+                          e.preventDefault();
+                          const val = newConditionText.trim();
+                          if (!val) return;
+                          if (userRole === 'patient') {
+                            await handleUpdateCondition('add', val);
+                          } else {
+                            await handleUpdateSuspicion('add', val);
+                          }
+                          setNewConditionText('');
+                          setEditingConditions(false);
+                        }}
+                      >
+                        <input
+                          autoFocus
+                          type="text"
+                          value={newConditionText}
+                          onChange={(e) => setNewConditionText(e.target.value)}
+                          placeholder={userRole === 'patient' ? 'Ex: Ansiedade' : 'Ex: suspeita de: TOC'}
+                          className="text-xs border border-gray-300 rounded-lg px-2 py-0.5 w-44 focus:outline-none focus:ring-1 focus:ring-clarita-purple-400"
+                          disabled={savingCondition}
+                        />
+                        <button
+                          type="submit"
+                          disabled={savingCondition || !newConditionText.trim()}
+                          className="text-xs px-2 py-0.5 rounded-lg bg-clarita-purple-500 text-white hover:bg-clarita-purple-600 disabled:opacity-50 transition-colors"
+                        >
+                          {savingCondition ? '...' : 'Salvar'}
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => { setEditingConditions(false); setNewConditionText(''); }}
+                          className="text-xs text-gray-400 hover:text-gray-600"
+                        >
+                          <X size={12} />
+                        </button>
+                      </form>
+                    )}
                   </div>
                 </div>
               </div>

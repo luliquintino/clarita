@@ -154,7 +154,8 @@ router.get(
       const result = await query(
         `SELECT u.id, u.email, u.role, u.first_name, u.last_name, u.phone, u.avatar_url, u.created_at,
               pp.date_of_birth, pp.gender, pp.emergency_contact_name, pp.emergency_contact_phone,
-              pp.onboarding_completed, pp.onboarding_data
+              pp.onboarding_completed, pp.onboarding_data,
+              pp.self_reported_conditions, pp.psychiatrist_suspicions, pp.psychologist_suspicions
        FROM users u
        LEFT JOIN patient_profiles pp ON pp.user_id = u.id
        WHERE u.id = $1 AND u.role = 'patient' AND u.is_active = TRUE`,
@@ -165,7 +166,46 @@ router.get(
         return res.status(404).json({ error: 'Paciente não encontrado' });
       }
 
-      res.json({ patient: result.rows[0] });
+      const patient = result.rows[0];
+      const role = req.user.role;
+
+      // Build role-filtered response
+      const selfReported = patient.self_reported_conditions || [];
+
+      let suspicions = [];
+      if (role === 'psychiatrist') {
+        const ownSuspicions = (patient.psychiatrist_suspicions || []).map((label) => ({
+          label,
+          added_by: 'psychiatrist',
+        }));
+        const psychSuspicions = (patient.psychologist_suspicions || []).map((label) => ({
+          label,
+          added_by: 'psychologist',
+        }));
+        suspicions = [...ownSuspicions, ...psychSuspicions];
+      } else if (role === 'psychologist') {
+        const ownSuspicions = (patient.psychologist_suspicions || []).map((label) => ({
+          label,
+          added_by: 'psychologist',
+        }));
+        const psySuspicions = (patient.psychiatrist_suspicions || []).map((label) => ({
+          label,
+          added_by: 'psychiatrist',
+        }));
+        suspicions = [...psySuspicions, ...ownSuspicions];
+      }
+      // patients get no suspicions
+
+      // Remove raw columns from response
+      const { psychiatrist_suspicions, psychologist_suspicions, ...patientBase } = patient;
+
+      res.json({
+        patient: {
+          ...patientBase,
+          self_reported_conditions: selfReported,
+          suspicions,
+        },
+      });
     } catch (err) {
       next(err);
     }
@@ -379,5 +419,91 @@ router.put('/:id/permissions', isUUID('id'), handleValidation, async (req, res, 
     next(err);
   }
 });
+
+// ---------------------------------------------------------------------------
+// PATCH /api/patients/:id/conditions
+// Add or remove a condition/suspicion based on caller role
+// ---------------------------------------------------------------------------
+
+router.patch(
+  '/:id/conditions',
+  isUUID('id'),
+  handleValidation,
+  requirePatientAccess(),
+  async (req, res, next) => {
+    try {
+      const patientId = req.params.id;
+      const role = req.user.role;
+      const { action, value } = req.body;
+
+      if (!['add', 'remove'].includes(action)) {
+        return res.status(400).json({ error: 'action must be "add" or "remove"' });
+      }
+      if (!value || typeof value !== 'string' || value.trim() === '') {
+        return res.status(400).json({ error: 'value is required' });
+      }
+
+      // Map role to column
+      const columnMap = {
+        patient: 'self_reported_conditions',
+        psychiatrist: 'psychiatrist_suspicions',
+        psychologist: 'psychologist_suspicions',
+      };
+
+      const column = columnMap[role];
+      if (!column) {
+        return res.status(403).json({ error: 'Role não autorizado a gerenciar condições' });
+      }
+
+      // Patient can only edit their own record
+      if (role === 'patient' && req.user.id !== patientId) {
+        return res.status(403).json({ error: 'Paciente só pode editar as próprias condições' });
+      }
+
+      let sql;
+      let params;
+
+      if (action === 'add') {
+        // Append value if not already present
+        sql = `
+          UPDATE patient_profiles
+          SET ${column} = CASE
+            WHEN ${column} @> $2::jsonb THEN ${column}
+            ELSE ${column} || $2::jsonb
+          END
+          WHERE user_id = $1
+          RETURNING ${column}
+        `;
+        params = [patientId, JSON.stringify([value.trim()])];
+      } else {
+        // Remove the value from array
+        sql = `
+          UPDATE patient_profiles
+          SET ${column} = (
+            SELECT jsonb_agg(elem)
+            FROM jsonb_array_elements_text(${column}) elem
+            WHERE elem != $2
+          )
+          WHERE user_id = $1
+          RETURNING ${column}
+        `;
+        params = [patientId, value.trim()];
+      }
+
+      const result = await query(sql, params);
+
+      if (result.rows.length === 0) {
+        return res.status(404).json({ error: 'Perfil do paciente não encontrado' });
+      }
+
+      // Coerce null (when last element removed) to empty array
+      const updated = result.rows[0][column] || [];
+
+      res.json({ [column]: updated });
+    } catch (err) {
+      next(err);
+    }
+  }
+);
 
 module.exports = router;

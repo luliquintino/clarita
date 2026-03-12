@@ -140,6 +140,11 @@ export interface LoginResponse {
   professional: Professional;
 }
 
+export interface PatientSuspicion {
+  label: string;
+  added_by: 'psychiatrist' | 'psychologist';
+}
+
 export interface Patient {
   id: string;
   full_name: string;
@@ -157,6 +162,9 @@ export interface Patient {
   mental_clarity_score: number | null;
   assigned_professional_id: string;
   created_at: string;
+  // Role-based conditions
+  self_reported_conditions?: string[];
+  suspicions?: PatientSuspicion[];
 }
 
 export interface EmotionalLog {
@@ -524,6 +532,12 @@ export const patientsApi = {
   },
 
   get: (id: string) => request<Patient>(`/patients/${id}`),
+
+  updateCondition: (patientId: string, action: 'add' | 'remove', value: string) =>
+    request<{ self_reported_conditions?: string[]; psychiatrist_suspicions?: string[]; psychologist_suspicions?: string[] }>(
+      `/patients/${patientId}/conditions`,
+      { method: 'PATCH', body: JSON.stringify({ action, value }) }
+    ),
 
   getEmotionalLogs: (id: string, days?: number) => {
     const query = days ? `?days=${days}` : '';
