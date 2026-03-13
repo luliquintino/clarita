@@ -92,7 +92,7 @@ export default function HistoryChart({ entries }: HistoryChartProps) {
               onClick={() => setPeriod(p)}
               className={`px-3 py-1 rounded-full text-xs font-medium border transition-colors ${
                 period === p
-                  ? 'bg-clarita-blue-100 text-clarita-blue-600 border-clarita-blue-200'
+                  ? 'bg-clarita-blue-100 text-clarita-blue-500 border-clarita-blue-200'
                   : 'bg-white/40 text-gray-500 border-gray-200 hover:bg-white/60'
               }`}
             >

@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { Send, Smile, Frown, Meh, Zap, Moon, Heart, CheckCircle2, XCircle, Pill } from 'lucide-react';
+import { Smile, Frown, Meh, Zap, Moon, Heart, CheckCircle2, XCircle, Pill } from 'lucide-react';
 import type { PatientMedication } from '@/lib/api';
 
 interface JournalEntryProps {
@@ -238,6 +238,7 @@ export default function JournalEntry({ onSubmit, saving = false, medications }: 
       {/* Submit */}
       <div className="flex items-center gap-3">
         <button
+          type="button"
           onClick={handleSubmit}
           disabled={saving}
           className="btn-primary flex items-center gap-2"
