@@ -308,7 +308,7 @@ export default function AnamnesisPanel({ patientId, role }: AnamnesisPanelProps)
                 key={r.id}
                 type="button"
                 onClick={() => handleViewResponse(r)}
-                className="w-full card text-left hover:shadow-md transition-shadow p-4"
+                className="w-full bg-white/60 backdrop-blur-sm rounded-2xl p-4 border border-white/30 shadow-sm text-left hover:shadow-md transition-shadow"
               >
                 <div className="flex items-start justify-between gap-3">
                   <div className="min-w-0">
