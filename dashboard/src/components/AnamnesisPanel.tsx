@@ -169,7 +169,7 @@ export default function AnamnesisPanel({ patientId, role }: AnamnesisPanelProps)
             ← Voltar
           </button>
 
-          <div className="card p-5">
+          <div className="bg-white/60 backdrop-blur-sm rounded-2xl p-5 border border-white/30 shadow-sm">
             <div className="flex items-start justify-between mb-4">
               <div>
                 <h3 className="text-base font-semibold text-gray-800">{selectedTemplate.title}</h3>
@@ -189,10 +189,10 @@ export default function AnamnesisPanel({ patientId, role }: AnamnesisPanelProps)
             <div className="space-y-4">
               {questions.map((q, i) => (
                 <div key={q.id || i} className="bg-gray-50/80 rounded-xl p-4 border border-gray-100">
-                  <label className="block text-xs font-medium text-gray-500 mb-2 uppercase tracking-wide">
+                  <p className="block text-xs font-medium text-gray-500 mb-2 uppercase tracking-wide">
                     {i + 1}. {q.question_text}
                     {q.is_required && !isCompleted && <span className="text-red-400 ml-1">*</span>}
-                  </label>
+                  </p>
                   {isCompleted ? (
                     <p className="text-sm text-gray-800 font-medium">
                       {String(selectedResponse.answers?.[String(i)] ?? '—')}
@@ -211,7 +211,7 @@ export default function AnamnesisPanel({ patientId, role }: AnamnesisPanelProps)
                         min={1}
                         max={10}
                         value={Number(answers[String(i)] || 5)}
-                        onChange={(e) => setAnswers({ ...answers, [String(i)]: parseInt(e.target.value) })}
+                        onChange={(e) => setAnswers({ ...answers, [String(i)]: parseInt(e.target.value, 10) })}
                         className="w-full"
                       />
                       <div className="flex justify-between text-xs text-gray-400 mt-1">
