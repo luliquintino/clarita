@@ -161,115 +161,183 @@ export default function AnamnesisPanel({ patientId, role }: AnamnesisPanelProps)
       const isCompleted = selectedResponse.status === 'completed';
       return (
         <div className="space-y-4 animate-fade-in">
-          <button onClick={() => { setActiveView('list'); setSelectedResponse(null); }} className="text-sm text-teal-400 hover:text-teal-300 mb-2">
+          <button
+            type="button"
+            onClick={() => { setActiveView('list'); setSelectedResponse(null); }}
+            className="text-sm text-clarita-green-600 hover:text-clarita-green-700 font-medium"
+          >
             ← Voltar
           </button>
-          <h3 className="text-lg font-semibold text-white">{selectedTemplate.title}</h3>
-          {selectedTemplate.description && <p className="text-sm text-white/60">{selectedTemplate.description}</p>}
 
-          <div className="space-y-4 mt-4">
-            {questions.map((q, i) => (
-              <div key={q.id || i} className="bg-white/5 rounded-xl p-4 border border-white/10">
-                <label className="block text-sm font-medium text-white/80 mb-2">
-                  {i + 1}. {q.question_text} {q.is_required && <span className="text-red-400">*</span>}
-                </label>
-                {isCompleted ? (
-                  <p className="text-white/60 text-sm">{String(selectedResponse.answers?.[String(i)] ?? '—')}</p>
-                ) : q.question_type === 'text' ? (
-                  <textarea
-                    className="w-full bg-white/5 border border-white/10 rounded-lg p-2 text-white text-sm resize-none"
-                    rows={3}
-                    value={String(answers[String(i)] || '')}
-                    onChange={(e) => setAnswers({ ...answers, [String(i)]: e.target.value })}
-                  />
-                ) : q.question_type === 'scale' ? (
-                  <input
-                    type="range"
-                    min={1}
-                    max={10}
-                    value={Number(answers[String(i)] || 5)}
-                    onChange={(e) => setAnswers({ ...answers, [String(i)]: parseInt(e.target.value) })}
-                    className="w-full accent-teal-400"
-                  />
-                ) : q.question_type === 'yes_no' ? (
-                  <div className="flex gap-4">
-                    {['Sim', 'Não'].map((opt) => (
-                      <button
-                        key={opt}
-                        onClick={() => setAnswers({ ...answers, [String(i)]: opt })}
-                        className={`px-4 py-2 rounded-lg text-sm ${answers[String(i)] === opt ? 'bg-teal-500/30 border-teal-400 text-teal-300' : 'bg-white/5 border-white/10 text-white/60'} border`}
-                      >
-                        {opt}
-                      </button>
-                    ))}
-                  </div>
-                ) : q.question_type === 'multiple_choice' ? (
-                  <div className="flex flex-wrap gap-2">
-                    {(Array.isArray(q.options) ? q.options : []).map((opt: string) => (
-                      <button
-                        key={opt}
-                        onClick={() => setAnswers({ ...answers, [String(i)]: opt })}
-                        className={`px-3 py-1.5 rounded-lg text-sm ${answers[String(i)] === opt ? 'bg-teal-500/30 border-teal-400 text-teal-300' : 'bg-white/5 border-white/10 text-white/60'} border`}
-                      >
-                        {String(opt)}
-                      </button>
-                    ))}
-                  </div>
-                ) : q.question_type === 'date' ? (
-                  <input
-                    type="date"
-                    className="bg-white/5 border border-white/10 rounded-lg p-2 text-white text-sm"
-                    value={String(answers[String(i)] || '')}
-                    onChange={(e) => setAnswers({ ...answers, [String(i)]: e.target.value })}
-                  />
-                ) : null}
+          <div className="card p-5">
+            <div className="flex items-start justify-between mb-4">
+              <div>
+                <h3 className="text-base font-semibold text-gray-800">{selectedTemplate.title}</h3>
+                {selectedTemplate.description && (
+                  <p className="text-sm text-gray-400 mt-1">{selectedTemplate.description}</p>
+                )}
               </div>
-            ))}
-          </div>
+              <span className={`flex-shrink-0 ml-3 text-xs px-2.5 py-1 rounded-full font-medium ${
+                isCompleted
+                  ? 'bg-green-100 text-green-700'
+                  : 'bg-amber-100 text-amber-700'
+              }`}>
+                {isCompleted ? 'Respondida' : 'Pendente'}
+              </span>
+            </div>
 
-          {!isCompleted && (
-            <button
-              onClick={() => handleSubmitResponse(selectedResponse.id)}
-              disabled={submitting}
-              className="w-full mt-4 bg-teal-500/20 hover:bg-teal-500/30 border border-teal-500/30 text-teal-300 py-3 rounded-xl flex items-center justify-center gap-2 transition-colors"
-            >
-              {submitting ? <Loader2 className="w-4 h-4 animate-spin" /> : <CheckCircle2 className="w-4 h-4" />}
-              Enviar Respostas
-            </button>
-          )}
+            <div className="space-y-4">
+              {questions.map((q, i) => (
+                <div key={q.id || i} className="bg-gray-50/80 rounded-xl p-4 border border-gray-100">
+                  <label className="block text-xs font-medium text-gray-500 mb-2 uppercase tracking-wide">
+                    {i + 1}. {q.question_text}
+                    {q.is_required && !isCompleted && <span className="text-red-400 ml-1">*</span>}
+                  </label>
+                  {isCompleted ? (
+                    <p className="text-sm text-gray-800 font-medium">
+                      {String(selectedResponse.answers?.[String(i)] ?? '—')}
+                    </p>
+                  ) : q.question_type === 'text' ? (
+                    <textarea
+                      className="input-field min-h-[80px] resize-none"
+                      rows={3}
+                      value={String(answers[String(i)] || '')}
+                      onChange={(e) => setAnswers({ ...answers, [String(i)]: e.target.value })}
+                    />
+                  ) : q.question_type === 'scale' ? (
+                    <div>
+                      <input
+                        type="range"
+                        min={1}
+                        max={10}
+                        value={Number(answers[String(i)] || 5)}
+                        onChange={(e) => setAnswers({ ...answers, [String(i)]: parseInt(e.target.value) })}
+                        className="w-full"
+                      />
+                      <div className="flex justify-between text-xs text-gray-400 mt-1">
+                        <span>1</span>
+                        <span className="font-medium text-clarita-green-600">{String(answers[String(i)] || 5)}</span>
+                        <span>10</span>
+                      </div>
+                    </div>
+                  ) : q.question_type === 'yes_no' ? (
+                    <div className="flex gap-3">
+                      {['Sim', 'Não'].map((opt) => (
+                        <button
+                          key={opt}
+                          type="button"
+                          onClick={() => setAnswers({ ...answers, [String(i)]: opt })}
+                          className={`px-4 py-2 rounded-xl text-sm font-medium border transition-colors ${
+                            answers[String(i)] === opt
+                              ? 'bg-clarita-green-100 border-clarita-green-300 text-clarita-green-700'
+                              : 'bg-white border-gray-200 text-gray-600 hover:bg-gray-50'
+                          }`}
+                        >
+                          {opt}
+                        </button>
+                      ))}
+                    </div>
+                  ) : q.question_type === 'multiple_choice' ? (
+                    <div className="flex flex-wrap gap-2">
+                      {(Array.isArray(q.options) ? q.options : []).map((opt: string) => (
+                        <button
+                          key={opt}
+                          type="button"
+                          onClick={() => setAnswers({ ...answers, [String(i)]: opt })}
+                          className={`px-3 py-1.5 rounded-xl text-sm font-medium border transition-colors ${
+                            answers[String(i)] === opt
+                              ? 'bg-clarita-green-100 border-clarita-green-300 text-clarita-green-700'
+                              : 'bg-white border-gray-200 text-gray-600 hover:bg-gray-50'
+                          }`}
+                        >
+                          {String(opt)}
+                        </button>
+                      ))}
+                    </div>
+                  ) : q.question_type === 'date' ? (
+                    <input
+                      type="date"
+                      className="input-field w-auto"
+                      value={String(answers[String(i)] || '')}
+                      onChange={(e) => setAnswers({ ...answers, [String(i)]: e.target.value })}
+                    />
+                  ) : null}
+                </div>
+              ))}
+            </div>
+
+            {!isCompleted && (
+              <button
+                type="button"
+                onClick={() => handleSubmitResponse(selectedResponse.id)}
+                disabled={submitting}
+                className="btn-primary mt-5 flex items-center gap-2"
+              >
+                {submitting ? <Loader2 className="w-4 h-4 animate-spin" /> : <CheckCircle2 className="w-4 h-4" />}
+                Enviar Respostas
+              </button>
+            )}
+          </div>
         </div>
       );
     }
 
+    // Patient list view
     return (
-      <div className="space-y-4">
-        <h3 className="text-lg font-semibold text-white flex items-center gap-2">
-          <ClipboardList className="w-5 h-5 text-teal-400" />
-          Anamneses Pendentes
-        </h3>
+      <div className="space-y-4 animate-fade-in">
+        <div className="flex items-center gap-2 mb-2">
+          <ClipboardList size={20} className="text-teal-500" />
+          <h3 className="text-lg font-semibold text-gray-800">Anamneses</h3>
+        </div>
+
         {responses.length === 0 ? (
-          <p className="text-white/40 text-sm py-8 text-center">Nenhuma anamnese pendente.</p>
+          <div className="card text-center py-12">
+            <div className="w-14 h-14 mx-auto mb-3 bg-teal-50 rounded-full flex items-center justify-center">
+              <ClipboardList size={24} className="text-teal-400" />
+            </div>
+            <p className="text-gray-600 font-medium">Nenhuma anamnese pendente</p>
+            <p className="text-sm text-gray-400 mt-1">
+              Seu profissional de saúde enviará questionários por aqui.
+            </p>
+          </div>
         ) : (
-          responses.map((r) => (
-            <button
-              key={r.id}
-              onClick={() => handleViewResponse(r)}
-              className="w-full bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl p-4 text-left transition-colors"
-            >
-              <div className="flex items-center justify-between">
-                <span className="text-white font-medium">{r.template_title || 'Anamnese'}</span>
-                <span className={`text-xs px-2 py-1 rounded-full ${r.status === 'completed' ? 'bg-green-500/20 text-green-400' : 'bg-amber-500/20 text-amber-400'}`}>
-                  {r.status === 'completed' ? 'Respondida' : 'Pendente'}
-                </span>
-              </div>
-              {r.deadline && (
-                <p className="text-xs text-white/40 mt-1 flex items-center gap-1">
-                  <Clock className="w-3 h-3" />
-                  Prazo: {new Date(r.deadline).toLocaleDateString('pt-BR')}
-                </p>
-              )}
-            </button>
-          ))
+          responses.map((r) => {
+            const isCompleted = r.status === 'completed';
+            return (
+              <button
+                key={r.id}
+                type="button"
+                onClick={() => handleViewResponse(r)}
+                className="w-full card text-left hover:shadow-md transition-shadow p-4"
+              >
+                <div className="flex items-start justify-between gap-3">
+                  <div className="min-w-0">
+                    <p className="text-sm font-semibold text-gray-800 truncate">
+                      {r.template_title || 'Anamnese'}
+                    </p>
+                    {r.deadline && (
+                      <p className="text-xs text-gray-400 mt-0.5 flex items-center gap-1">
+                        <Clock className="w-3 h-3" />
+                        Prazo: {new Date(r.deadline).toLocaleDateString('pt-BR')}
+                      </p>
+                    )}
+                  </div>
+                  <span className={`flex-shrink-0 text-xs px-2.5 py-1 rounded-full font-medium ${
+                    isCompleted
+                      ? 'bg-green-100 text-green-700'
+                      : 'bg-amber-100 text-amber-700'
+                  }`}>
+                    {isCompleted ? 'Respondida' : 'Pendente'}
+                  </span>
+                </div>
+                {isCompleted && (
+                  <p className="text-xs text-clarita-green-600 mt-2 font-medium flex items-center gap-1">
+                    <CheckCircle2 size={12} /> Toque para ver suas respostas
+                  </p>
+                )}
+              </button>
+            );
+          })
         )}
       </div>
     );
