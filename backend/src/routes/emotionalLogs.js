@@ -124,19 +124,8 @@ router.get('/trends', requireRole('patient'), async (req, res, next) => {
   try {
     const { period = 'weekly', start_date, end_date } = req.query;
 
-    let dateTrunc;
-    switch (period) {
-      case 'daily':
-        dateTrunc = 'day';
-        break;
-      case 'monthly':
-        dateTrunc = 'month';
-        break;
-      case 'weekly':
-      default:
-        dateTrunc = 'week';
-        break;
-    }
+    const DATE_TRUNC_BY_PERIOD = { daily: 'day', weekly: 'week', monthly: 'month' };
+    const dateTrunc = DATE_TRUNC_BY_PERIOD[period] ?? 'week';
 
     let sql = `
       SELECT

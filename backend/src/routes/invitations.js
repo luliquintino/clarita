@@ -132,10 +132,6 @@ router.post('/', async (req, res, next) => {
 
 router.get('/pending', async (req, res, next) => {
   try {
-    const isPatient = req.user.role === 'patient';
-    const myColumn = isPatient ? 'cr.patient_id' : 'cr.professional_id';
-    const otherJoin = isPatient ? 'cr.professional_id' : 'cr.patient_id';
-
     const result = await query(
       `SELECT cr.id, cr.patient_id, cr.professional_id, cr.relationship_type,
               cr.status, cr.invited_by, cr.invitation_message, cr.created_at,
@@ -144,9 +140,10 @@ router.get('/pending', async (req, res, next) => {
               u.role AS other_role, u.display_id AS other_display_id, u.avatar_url AS other_avatar_url,
               pp.specialization, pp.institution
        FROM care_relationships cr
-       JOIN users u ON u.id = ${otherJoin}
+       JOIN users u ON u.id = CASE WHEN cr.patient_id = $1 THEN cr.professional_id ELSE cr.patient_id END
        LEFT JOIN professional_profiles pp ON pp.user_id = cr.professional_id
-       WHERE ${myColumn} = $1 AND cr.status = 'pending' AND cr.invited_by != $1
+       WHERE (cr.patient_id = $1 OR cr.professional_id = $1)
+         AND cr.status = 'pending' AND cr.invited_by != $1
        ORDER BY cr.created_at DESC`,
       [req.user.id]
     );
@@ -164,9 +161,6 @@ router.get('/pending', async (req, res, next) => {
 
 router.get('/sent', async (req, res, next) => {
   try {
-    const isPatient = req.user.role === 'patient';
-    const otherJoin = isPatient ? 'cr.professional_id' : 'cr.patient_id';
-
     const result = await query(
       `SELECT cr.id, cr.patient_id, cr.professional_id, cr.relationship_type,
               cr.status, cr.invited_by, cr.invitation_message, cr.created_at,
@@ -174,7 +168,7 @@ router.get('/sent', async (req, res, next) => {
               u.role AS other_role, u.display_id AS other_display_id, u.avatar_url AS other_avatar_url,
               pp.specialization, pp.institution
        FROM care_relationships cr
-       JOIN users u ON u.id = ${otherJoin}
+       JOIN users u ON u.id = CASE WHEN cr.patient_id = $1 THEN cr.professional_id ELSE cr.patient_id END
        LEFT JOIN professional_profiles pp ON pp.user_id = cr.professional_id
        WHERE cr.invited_by = $1 AND cr.status = 'pending'
        ORDER BY cr.created_at DESC`,
