@@ -18,8 +18,21 @@ async function sendEmail({ to, subject, html }) {
     console.log('\n=== EMAIL (dev) ===');
     console.log(`Para: ${to}`);
     console.log(`Assunto: ${subject}`);
+    // Extract URLs from HTML for debugging
+    const urlMatch = html.match(/href="([^"]+)"/);
+    if (urlMatch) console.log(`Link: ${urlMatch[1]}`);
     console.log('==================\n');
   }
+}
+
+// Escape user-controlled strings before HTML interpolation
+function escapeHtml(str) {
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#039;');
 }
 
 function wrapTemplate(content) {
@@ -108,7 +121,7 @@ async function sendCriticalAlertEmail(professionalEmail, professionalName, patie
         O sistema detectou um alerta para o paciente <strong>${patientName}</strong>:
       </p>
       <div style="background:#fef2f2;border:1px solid #fecaca;border-radius:10px;padding:16px;margin:20px 0;">
-        <p style="color:#991b1b;margin:0;">${alertMessage}</p>
+        <p style="color:#991b1b;margin:0;">${escapeHtml(alertMessage)}</p>
       </div>
       <div style="text-align:center;margin:28px 0;">
         <a href="${FRONTEND_URL}/patients" style="background:#22c55e;color:#fff;padding:13px 28px;border-radius:10px;text-decoration:none;font-weight:600;">
@@ -122,8 +135,8 @@ async function sendCriticalAlertEmail(professionalEmail, professionalName, patie
 async function sendNoCheckinReminderEmail(professionalEmail, professionalName, patients) {
   const rows = patients
     .map(p => `<tr>
-      <td style="padding:8px 12px;color:#1f2937;">${p.name}</td>
-      <td style="padding:8px 12px;color:#6b7280;">${p.days_since} dias sem check-in</td>
+      <td style="padding:8px 12px;color:#1f2937;">${escapeHtml(p.name)}</td>
+      <td style="padding:8px 12px;color:#6b7280;">${escapeHtml(String(p.days_since))} dias sem check-in</td>
     </tr>`)
     .join('');
 
