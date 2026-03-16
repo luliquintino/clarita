@@ -5,6 +5,7 @@ const { query } = require('../config/database');
 const authenticate = require('../middleware/auth');
 const { requireRole, requirePatientAccess } = require('../middleware/rbac');
 const { handleValidation, isUUID } = require('../validators');
+const { sendCriticalAlertEmail } = require('../services/emailService');
 
 // All routes require authentication
 router.use(authenticate);

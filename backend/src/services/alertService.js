@@ -1,6 +1,7 @@
 'use strict';
 
 const { query } = require('../config/database');
+const { sendCriticalAlertEmail } = require('./emailService');
 
 // ---------------------------------------------------------------------------
 // Individual alert checks
@@ -151,7 +152,39 @@ async function generateAlerts(patientId) {
       ]
     );
 
-    created.push(insertResult.rows[0]);
+    const savedAlert = insertResult.rows[0];
+    created.push(savedAlert);
+
+    // If alert is critical/high severity, email the responsible professional
+    const alertSeverity = savedAlert.severity;
+    if (['critical', 'high'].includes(alertSeverity)) {
+      try {
+        const profResult = await query(
+          `SELECT u_prof.email AS prof_email,
+                  u_prof.first_name AS prof_first,
+                  u_prof.last_name AS prof_last,
+                  u_pat.first_name || ' ' || u_pat.last_name AS patient_name
+           FROM care_relationships cr
+           JOIN users u_prof ON u_prof.id = cr.professional_id
+           JOIN users u_pat ON u_pat.id = cr.patient_id
+           WHERE cr.patient_id = $1 AND cr.status = 'active'
+           LIMIT 1`,
+          [patientId]
+        );
+
+        if (profResult.rows.length > 0) {
+          const { prof_email, prof_first, prof_last, patient_name } = profResult.rows[0];
+          sendCriticalAlertEmail(
+            prof_email,
+            `${prof_first} ${prof_last}`,
+            patient_name,
+            savedAlert.description
+          ).catch(err => console.error('[alerts] Critical email failed:', err.message));
+        }
+      } catch (err) {
+        console.error('[alerts] Failed to fetch professional for critical email:', err.message);
+      }
+    }
   }
 
   return created;

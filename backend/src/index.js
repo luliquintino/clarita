@@ -41,6 +41,7 @@ const icd11Routes = require('./routes/icd11');
 const satepsiRoutes = require('./routes/satepsi');
 
 const { pool } = require('./config/database');
+const { startNoCheckinJob } = require('./jobs/noCheckinJob');
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -188,6 +189,9 @@ if (process.env.NODE_ENV !== 'test') {
       console.error('[cron] SATEPSI sync failed:', err.message);
     }
   });
+
+  // No check-in reminder (daily at 09:00 BRT / 12:00 UTC)
+  startNoCheckinJob();
 }
 
 // ---------------------------------------------------------------------------
