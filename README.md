@@ -304,4 +304,14 @@ Veja [docs/CONTRIBUINDO.md](docs/CONTRIBUINDO.md) para instrucoes detalhadas sob
 
 ## Licenca
 
-Este projeto esta licenciado sob a licenca MIT. Veja o arquivo [LICENSE](LICENSE) para detalhes.
+Este projeto esta licenciado sob a **Clarita Source Available License v1.0**.
+
+Resumo:
+- ✅ Visualizacao, estudo e uso educacional — **livre**
+- ✅ ONGs e organizacoes sem fins lucrativos — **gratuito** (notificacao por e-mail antes do primeiro uso em producao)
+- ✅ Projetos pessoais e pesquisa academica — **livre**
+- ⚠️ Uso comercial por empresas — **requer aprovacao previa por escrito** (`luizacqoliveira@gmail.com`)
+- ⚠️ Integracao em produtos ou servicos pagos — **requer aprovacao previa**
+- ⚠️ Uso do nome/marca CLARITA por terceiros — **proibido sem autorizacao**
+
+Veja o arquivo [LICENSE](LICENSE) para os termos completos.

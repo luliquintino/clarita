@@ -1,0 +1,131 @@
+CLARITA SOURCE AVAILABLE LICENSE
+Version 1.0, March 2026
+
+Copyright (c) 2026 Luiza Cardoso Quintino de Oliveira
+Todos os direitos reservados — All rights reserved
+
+================================================================================
+LICENÇA DE CÓDIGO DISPONÍVEL CLARITA / CLARITA SOURCE AVAILABLE LICENSE
+================================================================================
+
+DEFINIÇÕES
+
+"Software" refere-se ao código-fonte, binários, documentação e todos os arquivos
+presentes neste repositório relacionados ao projeto CLARITA.
+
+"Uso Comercial" significa qualquer uso do Software destinado a, ou que resulte
+diretamente em, vantagem comercial ou compensação financeira, incluindo mas não
+se limitando a: SaaS, produtos pagos, serviços cobrados, licenciamento para
+terceiros, integração em produtos proprietários, ou uso por empresas com fins
+lucrativos.
+
+"ONG / Organização Sem Fins Lucrativos" significa entidade legalmente constituída
+sem objetivo de lucro, incluindo organizações não-governamentais, associações,
+fundações, coletivos e projetos de base comunitária, devidamente registrados ou
+atuando de forma transparente e não-comercial.
+
+"Uso Não-Comercial" significa uso pessoal, educacional, de pesquisa acadêmica ou
+por ONGs/organizações sem fins lucrativos, sem geração de receita direta ou
+indireta a partir do Software.
+
+================================================================================
+PERMISSÕES CONCEDIDAS SEM APROVAÇÃO PRÉVIA
+================================================================================
+
+1. VISUALIZAÇÃO E APRENDIZADO
+   Qualquer pessoa pode visualizar, ler, estudar e aprender com este código-fonte
+   para fins pessoais e educacionais.
+
+2. USO POR ORGANIZAÇÕES SEM FINS LUCRATIVOS (ONGs)
+   ONGs, associações, fundações e projetos sem fins lucrativos podem usar,
+   modificar, implantar e adaptar este Software GRATUITAMENTE, sem necessidade
+   de aprovação prévia, desde que:
+   a) Mantenham a atribuição de autoria original (copyright notice);
+   b) Não redistribuam o Software ou derivados com fins comerciais;
+   c) Notifiquem o autor por e-mail antes do primeiro uso em produção
+      (notificação, não aprovação — apenas para registro).
+
+3. USO PESSOAL E EDUCACIONAL
+   Estudantes, pesquisadores e desenvolvedores individuais podem usar e modificar
+   o Software para fins de aprendizado, teses, projetos pessoais e pesquisa
+   acadêmica sem fins lucrativos.
+
+4. CONTRIBUIÇÕES
+   Contribuições ao repositório são bem-vindas. Ao submeter uma contribuição
+   (pull request, issue, etc.), o contribuidor concede ao mantenedor uma licença
+   perpétua, irrevogável e mundial para usar, modificar e distribuir a
+   contribuição nos termos desta licença.
+
+================================================================================
+CONDIÇÕES PARA USO COMERCIAL
+================================================================================
+
+5. USO COMERCIAL REQUER APROVAÇÃO PRÉVIA E ESCRITA
+   Qualquer Uso Comercial — incluindo por empresas, startups, clínicas privadas,
+   planos de saúde, seguradoras, consultorias ou qualquer entidade com fins
+   lucrativos — é PROIBIDO sem aprovação prévia, expressa e por escrito da
+   autora.
+
+   Para solicitar uma licença comercial, entre em contato:
+   → E-mail: luizacqoliveira@gmail.com
+   → Assunto: "Licença Comercial CLARITA"
+
+   A concessão de licença comercial é discricionária e pode envolver termos
+   personalizados, incluindo contrapartidas financeiras, restrições de uso ou
+   acordos de parceria.
+
+================================================================================
+RESTRIÇÕES GERAIS
+================================================================================
+
+6. É PROIBIDO, sem autorização expressa por escrito:
+   a) Usar o nome "CLARITA", logotipo ou identidade visual em produtos ou
+      serviços de terceiros;
+   b) Redistribuir o Software como produto independente ou como parte de um
+      produto comercial;
+   c) Remover ou alterar este aviso de licença;
+   d) Sub-licenciar o Software para terceiros;
+   e) Usar o Software em sistemas que processem dados de saúde mental de
+      pacientes sem conformidade com a LGPD (Lei 13.709/2018) e as demais
+      regulamentações sanitárias aplicáveis.
+
+================================================================================
+ISENÇÃO DE GARANTIAS
+================================================================================
+
+7. O SOFTWARE É FORNECIDO "NO ESTADO EM QUE SE ENCONTRA" (AS IS), SEM GARANTIAS
+   DE QUALQUER NATUREZA, EXPRESSAS OU IMPLÍCITAS, INCLUINDO MAS NÃO LIMITADO A
+   GARANTIAS DE COMERCIALIZAÇÃO, ADEQUAÇÃO A UM PROPÓSITO ESPECÍFICO E NÃO
+   VIOLAÇÃO. EM NENHUMA CIRCUNSTÂNCIA OS AUTORES OU DETENTORES DE DIREITOS
+   AUTORAIS SERÃO RESPONSÁVEIS POR QUALQUER RECLAMAÇÃO, DANO OU OUTRA
+   RESPONSABILIDADE.
+
+================================================================================
+RESUMO / SUMMARY
+================================================================================
+
+  PERMITIDO sem aprovação:
+  ✅ Visualizar e estudar o código
+  ✅ Usar em projetos pessoais / educacionais
+  ✅ Usar em ONGs e organizações sem fins lucrativos (gratuito)
+  ✅ Contribuir com o projeto
+  ✅ Adaptar para pesquisa acadêmica
+
+  REQUER aprovação prévia por escrito:
+  ⚠️  Uso comercial por empresas
+  ⚠️  Integração em produtos ou serviços pagos
+  ⚠️  Redistribuição como produto independente
+  ⚠️  Uso do nome/marca CLARITA por terceiros
+
+  SEMPRE obrigatório:
+  📌 Manter o aviso de copyright
+  📌 Conformidade com LGPD ao tratar dados de saúde
+
+================================================================================
+CONTATO / CONTACT
+================================================================================
+
+Luiza Cardoso Quintino de Oliveira
+E-mail: luizacqoliveira@gmail.com
+Projeto: https://github.com/luliquintino/clarita
+Site: https://clarita.tec.br
