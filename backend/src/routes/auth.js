@@ -14,7 +14,7 @@ const {
   resetPasswordValidation,
   handleValidation,
 } = require('../validators');
-const { sendPasswordResetEmail } = require('../services/emailService');
+const { sendPasswordResetEmail, sendWelcomeEmail } = require('../services/emailService');
 const { generateDisplayId } = require('../utils/generateDisplayId');
 
 const SALT_ROUNDS = 12;
@@ -96,6 +96,11 @@ router.post('/register', registrationValidator, handleValidation, async (req, re
     const token = jwt.sign({ userId: user.id, role: user.role }, process.env.JWT_SECRET, {
       expiresIn: TOKEN_EXPIRY,
     });
+
+    // Fire-and-forget — don't block the response
+    sendWelcomeEmail(email, first_name, role).catch(err =>
+      console.error('[auth] Welcome email failed:', err.message)
+    );
 
     res.status(201).json({ user, token });
   } catch (err) {

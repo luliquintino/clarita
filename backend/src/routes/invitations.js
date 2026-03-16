@@ -4,6 +4,7 @@ const router = require('express').Router();
 const { query } = require('../config/database');
 const authenticate = require('../middleware/auth');
 const { handleValidation, isUUID } = require('../validators');
+const { sendPatientInviteEmail } = require('../services/emailService');
 
 router.use(authenticate);
 
@@ -114,6 +115,33 @@ router.post('/', async (req, res, next) => {
       },
       reactivation: inactive.rows.length > 0,
     });
+
+    // Send email to the invited patient
+    try {
+      const inviteeResult = await query(
+        `SELECT u.email, u.first_name
+         FROM users u
+         WHERE u.id = $1`,
+        [patientId]
+      );
+      const profResult = await query(
+        `SELECT first_name, last_name FROM users WHERE id = $1`,
+        [req.user.id]
+      );
+      if (inviteeResult.rows.length > 0 && profResult.rows.length > 0) {
+        const { email: patientEmail, first_name: patientFirstName } = inviteeResult.rows[0];
+        const { first_name: profFirst, last_name: profLast } = profResult.rows[0];
+        const inviteUrl = `${process.env.FRONTEND_URL || 'http://localhost:3002'}/login`;
+        sendPatientInviteEmail(
+          patientEmail,
+          `${profFirst} ${profLast}`,
+          patientFirstName,
+          inviteUrl
+        ).catch(err => console.error('[invitations] Invite email failed:', err.message));
+      }
+    } catch (emailErr) {
+      console.error('[invitations] Email lookup failed:', emailErr.message);
+    }
   } catch (err) {
     // Handle unique constraint violation (race condition)
     if (err.code === '23505' && err.constraint?.includes('unique_active')) {
