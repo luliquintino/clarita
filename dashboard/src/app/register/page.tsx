@@ -377,13 +377,13 @@ export default function RegisterPage() {
               />
               <label htmlFor="consent" className="text-sm text-gray-600 leading-relaxed">
                 Li e aceito os{' '}
-                <a href="/terms" target="_blank" className="text-green-600 hover:underline font-medium">
+                <Link href="/terms" target="_blank" className="text-green-600 hover:underline font-medium">
                   Termos de Uso
-                </a>{' '}
+                </Link>{' '}
                 e a{' '}
-                <a href="/privacy" target="_blank" className="text-green-600 hover:underline font-medium">
+                <Link href="/privacy" target="_blank" className="text-green-600 hover:underline font-medium">
                   Política de Privacidade
-                </a>
+                </Link>
                 . Concordo com o tratamento dos meus dados conforme a LGPD.
               </label>
             </div>

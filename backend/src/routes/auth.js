@@ -46,7 +46,7 @@ router.post('/register', registrationValidator, handleValidation, async (req, re
     } = req.body;
 
     // LGPD: consent is mandatory
-    if (!consent) {
+    if (consent !== true) {
       return res.status(400).json({ error: 'É necessário aceitar os Termos de Uso e Política de Privacidade.' });
     }
 
