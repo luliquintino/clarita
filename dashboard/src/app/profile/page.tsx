@@ -15,7 +15,7 @@ import {
   LogOut,
 } from 'lucide-react';
 import Sidebar from '@/components/Sidebar';
-import { authApi, removeToken, isAuthenticated } from '@/lib/api';
+import { authApi, removeToken, isAuthenticated, getToken } from '@/lib/api';
 
 interface Profile {
   license_number?: string;
@@ -53,6 +53,7 @@ export default function ProfilePage() {
   const [user, setUser] = useState<UserData | null>(null);
   const [profile, setProfile] = useState<Profile | null>(null);
   const [loading, setLoading] = useState(true);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
   useEffect(() => {
     if (!isAuthenticated()) {
@@ -79,6 +80,43 @@ export default function ProfilePage() {
   const handleLogout = () => {
     removeToken();
     window.location.href = '/login';
+  };
+
+  const handleExportData = async () => {
+    try {
+      const token = getToken();
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/me/export`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (!res.ok) throw new Error('Falha ao exportar');
+      const blob = await res.blob();
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'clarita-meus-dados.json';
+      a.click();
+      URL.revokeObjectURL(url);
+    } catch {
+      alert('Erro ao exportar dados.');
+    }
+  };
+
+  const handleDeleteAccount = async () => {
+    try {
+      const token = getToken();
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/me`, {
+        method: 'DELETE',
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (res.ok) {
+        removeToken();
+        router.push('/login');
+      } else {
+        alert('Erro ao excluir conta. Tente novamente.');
+      }
+    } catch {
+      alert('Erro ao excluir conta. Tente novamente.');
+    }
   };
 
   const initials = user
@@ -221,6 +259,51 @@ export default function ProfilePage() {
                   </div>
                 </div>
               )}
+
+              {/* Dados e Privacidade */}
+              <section className="bg-white rounded-xl p-6 border border-red-100">
+                <h3 className="font-semibold text-gray-800 mb-1">Dados e Privacidade</h3>
+                <p className="text-sm text-gray-500 mb-4">Gerencie seus dados conforme a LGPD.</p>
+                <div className="flex flex-col sm:flex-row gap-3">
+                  <button
+                    type="button"
+                    onClick={handleExportData}
+                    className="text-sm px-4 py-2 rounded-lg border border-gray-200 text-gray-700 hover:bg-gray-50 transition-colors text-center"
+                  >
+                    Exportar meus dados
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setShowDeleteConfirm(true)}
+                    className="text-sm px-4 py-2 rounded-lg border border-red-200 text-red-600 hover:bg-red-50 transition-colors"
+                  >
+                    Excluir minha conta
+                  </button>
+                </div>
+                {showDeleteConfirm && (
+                  <div className="mt-4 p-4 bg-red-50 rounded-lg border border-red-200">
+                    <p className="text-sm text-red-700 mb-3">
+                      Esta ação é permanente. Seus dados pessoais serão anonimizados. Tem certeza?
+                    </p>
+                    <div className="flex gap-2">
+                      <button
+                        type="button"
+                        onClick={handleDeleteAccount}
+                        className="text-sm px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700"
+                      >
+                        Confirmar exclusão
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setShowDeleteConfirm(false)}
+                        className="text-sm px-4 py-2 border rounded-lg hover:bg-gray-50"
+                      >
+                        Cancelar
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </section>
             </div>
           )}
         </div>

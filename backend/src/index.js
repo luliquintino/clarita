@@ -39,6 +39,7 @@ const prescriptionRoutes = require('./routes/prescriptions');
 const psychTestRoutes = require('./routes/psychTests');
 const icd11Routes = require('./routes/icd11');
 const satepsiRoutes = require('./routes/satepsi');
+const meRoutes = require('./routes/me');
 
 const { pool } = require('./config/database');
 const { startNoCheckinJob } = require('./jobs/noCheckinJob');
@@ -113,6 +114,7 @@ app.use('/api/prescriptions', prescriptionRoutes);
 app.use('/api/psych-tests', psychTestRoutes);
 app.use('/api/icd11', icd11Routes);
 app.use('/api/satepsi', satepsiRoutes);
+app.use('/api/me', meRoutes);
 
 // ---------------------------------------------------------------------------
 // 404 Handler
