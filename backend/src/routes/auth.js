@@ -174,9 +174,38 @@ router.get('/me', authenticate, async (req, res, next) => {
         req.user.id,
       ]);
       profile = result.rows[0] || null;
+      // Ensure onboarding_completed is always present (defaults to false if column doesn't exist yet)
+      if (profile && profile.onboarding_completed === undefined) {
+        profile.onboarding_completed = false;
+      }
     }
 
     res.json({ user: req.user, profile });
+  } catch (err) {
+    next(err);
+  }
+});
+
+// ---------------------------------------------------------------------------
+// POST /api/auth/onboarding/complete
+// ---------------------------------------------------------------------------
+
+router.post('/onboarding/complete', authenticate, async (req, res, next) => {
+  try {
+    if (req.user.role === 'patient') {
+      await query(
+        `UPDATE patient_profiles SET onboarding_completed = true, updated_at = NOW() WHERE user_id = $1`,
+        [req.user.id]
+      );
+    } else {
+      await query(
+        `UPDATE professional_profiles
+         SET onboarding_completed = true, onboarding_completed_at = NOW(), updated_at = NOW()
+         WHERE user_id = $1`,
+        [req.user.id]
+      );
+    }
+    res.json({ success: true });
   } catch (err) {
     next(err);
   }

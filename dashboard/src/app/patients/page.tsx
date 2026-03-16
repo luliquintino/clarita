@@ -8,6 +8,7 @@ import PatientList from '@/components/PatientList';
 import DisplayIdBadge from '@/components/DisplayIdBadge';
 import InvitationDialog from '@/components/InvitationDialog';
 import PendingInvitations from '@/components/PendingInvitations';
+import OnboardingWizard from '@/components/OnboardingWizard';
 import {
   patientsApi,
   alertsApi,
@@ -15,6 +16,7 @@ import {
   invitationsApi,
   isAuthenticated,
   getUserRoleFromToken,
+  getToken,
 } from '@/lib/api';
 import type { Patient, PatientListItem, AuthUser, Invitation } from '@/lib/api';
 
@@ -140,6 +142,7 @@ export default function PatientsPage() {
   const [showInviteDialog, setShowInviteDialog] = useState(false);
   const [pendingInvitations, setPendingInvitations] = useState<Invitation[]>([]);
   const [sentInvitations, setSentInvitations] = useState<Invitation[]>([]);
+  const [showOnboarding, setShowOnboarding] = useState(false);
 
   const loadData = async () => {
     setLoading(true);
@@ -227,10 +230,16 @@ export default function PatientsPage() {
       router.replace('/patient-home');
       return;
     }
-    // Load user profile for display_id
+    // Load user profile for display_id and check onboarding status
     authApi
       .me()
-      .then((res) => setUser(res.user))
+      .then((res) => {
+        setUser(res.user);
+        const profile = (res as unknown as { user: typeof res.user; profile: { onboarding_completed?: boolean } | null }).profile;
+        if (profile && profile.onboarding_completed === false) {
+          setShowOnboarding(true);
+        }
+      })
       .catch(() => {});
     loadData();
     loadInvitations();
@@ -302,6 +311,16 @@ export default function PatientsPage() {
           senderRole={user?.role || 'psychologist'}
         />
       </main>
+
+      {/* Onboarding Wizard */}
+      {showOnboarding && user && (
+        <OnboardingWizard
+          userName={user.first_name}
+          onComplete={() => setShowOnboarding(false)}
+          token={getToken() || ''}
+          apiUrl={process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api'}
+        />
+      )}
     </div>
   );
 }
