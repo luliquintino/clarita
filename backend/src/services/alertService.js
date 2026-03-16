@@ -59,7 +59,7 @@ async function checkAnxietyPattern(patientId) {
     return {
       patient_id: patientId,
       alert_type: 'high_anxiety',
-      severity: highDays >= 5 ? 'critical' : 'high',
+      severity: highDays >= 3 ? 'critical' : 'high',
       title: 'Ansiedade elevada detectada',
       description: `Paciente reportou pontuações de ansiedade de 7 ou acima por ${highDays} dos últimos 3 dias.`,
       trigger_data: { high_days: highDays, threshold: 3, period_days: 3 },

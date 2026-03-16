@@ -116,9 +116,9 @@ async function sendCriticalAlertEmail(professionalEmail, professionalName, patie
     subject: `⚠️ Alerta clínico — ${patientName}`,
     html: wrapTemplate(`
       <h2 style="color:#dc2626;margin:0 0 12px;">⚠️ Alerta Clínico</h2>
-      <p style="color:#4b5563;line-height:1.6;">Olá, <strong>${professionalName}</strong>.</p>
+      <p style="color:#4b5563;line-height:1.6;">Olá, <strong>${escapeHtml(professionalName)}</strong>.</p>
       <p style="color:#4b5563;line-height:1.6;">
-        O sistema detectou um alerta para o paciente <strong>${patientName}</strong>:
+        O sistema detectou um alerta para o paciente <strong>${escapeHtml(patientName)}</strong>:
       </p>
       <div style="background:#fef2f2;border:1px solid #fecaca;border-radius:10px;padding:16px;margin:20px 0;">
         <p style="color:#991b1b;margin:0;">${escapeHtml(alertMessage)}</p>

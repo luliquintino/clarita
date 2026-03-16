@@ -16,14 +16,15 @@ function startNoCheckinJob() {
           u_prof.first_name AS prof_first,
           u_prof.last_name AS prof_last,
           u_pat.first_name || ' ' || u_pat.last_name AS patient_name,
-          EXTRACT(DAY FROM NOW() - MAX(el.created_at))::int AS days_since
+          EXTRACT(DAY FROM NOW() - MAX(el.logged_at))::int AS days_since
         FROM care_relationships cr
         JOIN users u_prof ON u_prof.id = cr.professional_id
         JOIN users u_pat ON u_pat.id = cr.patient_id
         LEFT JOIN emotional_logs el ON el.patient_id = cr.patient_id
         WHERE cr.status = 'active'
+          AND u_prof.email IS NOT NULL
         GROUP BY cr.id, u_prof.id, u_prof.email, u_prof.first_name, u_prof.last_name, u_pat.first_name, u_pat.last_name
-        HAVING MAX(el.created_at) IS NULL OR MAX(el.created_at) < NOW() - INTERVAL '3 days'
+        HAVING MAX(el.logged_at) IS NULL OR MAX(el.logged_at) < NOW() - INTERVAL '3 days'
       `);
 
       if (result.rows.length === 0) {
@@ -48,7 +49,7 @@ function startNoCheckinJob() {
       }
 
       for (const prof of Object.values(byProf)) {
-        await sendNoCheckinReminderEmail(prof.email, prof.name, prof.patients)
+        sendNoCheckinReminderEmail(prof.email, prof.name, prof.patients)
           .catch(err => console.error('[noCheckinJob] Email failed:', err.message));
       }
 
