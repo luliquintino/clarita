@@ -23,7 +23,7 @@ router.post('/', async (req, res, next) => {
 
     // 1. Find target user by display_id
     const targetResult = await query(
-      `SELECT id, role, display_id, first_name, last_name FROM users
+      `SELECT id, email, role, display_id, first_name, last_name FROM users
        WHERE display_id = $1 AND is_active = TRUE`,
       [display_id.toUpperCase().trim()]
     );
@@ -105,6 +105,19 @@ router.post('/', async (req, res, next) => {
     // Return with user info for the response
     const invitation = result.rows[0];
 
+    // Resolve patient/professional from in-scope variables — no extra DB queries needed
+    const patientUser = senderIsPatient ? sender : targetUser;
+    const professionalUser = senderIsPatient ? targetUser : sender;
+    const inviteUrl = `${process.env.FRONTEND_URL || 'http://localhost:3002'}/login`;
+
+    // Fire-and-forget — placed BEFORE res.json, no await
+    sendPatientInviteEmail(
+      patientUser.email,
+      `${professionalUser.first_name} ${professionalUser.last_name}`,
+      patientUser.first_name,
+      inviteUrl
+    ).catch(err => console.error('[invitations] Invite email failed:', err.message));
+
     res.status(201).json({
       invitation: {
         ...invitation,
@@ -115,33 +128,6 @@ router.post('/', async (req, res, next) => {
       },
       reactivation: inactive.rows.length > 0,
     });
-
-    // Send email to the invited patient
-    try {
-      const inviteeResult = await query(
-        `SELECT u.email, u.first_name
-         FROM users u
-         WHERE u.id = $1`,
-        [patientId]
-      );
-      const profResult = await query(
-        `SELECT first_name, last_name FROM users WHERE id = $1`,
-        [req.user.id]
-      );
-      if (inviteeResult.rows.length > 0 && profResult.rows.length > 0) {
-        const { email: patientEmail, first_name: patientFirstName } = inviteeResult.rows[0];
-        const { first_name: profFirst, last_name: profLast } = profResult.rows[0];
-        const inviteUrl = `${process.env.FRONTEND_URL || 'http://localhost:3002'}/login`;
-        sendPatientInviteEmail(
-          patientEmail,
-          `${profFirst} ${profLast}`,
-          patientFirstName,
-          inviteUrl
-        ).catch(err => console.error('[invitations] Invite email failed:', err.message));
-      }
-    } catch (emailErr) {
-      console.error('[invitations] Email lookup failed:', emailErr.message);
-    }
   } catch (err) {
     // Handle unique constraint violation (race condition)
     if (err.code === '23505' && err.constraint?.includes('unique_active')) {
