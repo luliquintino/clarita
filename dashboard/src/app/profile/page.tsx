@@ -63,6 +63,15 @@ export default function ProfilePage() {
     loadProfile();
   }, []);
 
+  useEffect(() => {
+    if (!showDeleteConfirm) return;
+    const handleEsc = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setShowDeleteConfirm(false);
+    };
+    window.addEventListener('keydown', handleEsc);
+    return () => window.removeEventListener('keydown', handleEsc);
+  }, [showDeleteConfirm]);
+
   const loadProfile = async () => {
     setLoading(true);
     try {
@@ -94,8 +103,10 @@ export default function ProfilePage() {
       const a = document.createElement('a');
       a.href = url;
       a.download = 'clarita-meus-dados.json';
+      document.body.appendChild(a);
       a.click();
-      URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+      setTimeout(() => URL.revokeObjectURL(url), 100);
     } catch {
       alert('Erro ao exportar dados.');
     }
@@ -281,7 +292,7 @@ export default function ProfilePage() {
                   </button>
                 </div>
                 {showDeleteConfirm && (
-                  <div className="mt-4 p-4 bg-red-50 rounded-lg border border-red-200">
+                  <div role="alertdialog" className="mt-4 p-4 bg-red-50 rounded-lg border border-red-200">
                     <p className="text-sm text-red-700 mb-3">
                       Esta ação é permanente. Seus dados pessoais serão anonimizados. Tem certeza?
                     </p>

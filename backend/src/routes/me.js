@@ -21,13 +21,19 @@ router.get('/export', async (req, res, next) => {
         [userId]
       ),
       query(
-        'SELECT * FROM emotional_logs WHERE patient_id = $1 ORDER BY created_at DESC',
+        'SELECT id, mood_score, anxiety_score, energy_score, sleep_quality, sleep_hours, notes, logged_at, created_at FROM emotional_logs WHERE patient_id = $1 ORDER BY created_at DESC',
         [userId]
       ),
-      query('SELECT * FROM patient_medications WHERE patient_id = $1', [userId]),
-      query('SELECT * FROM goals WHERE patient_id = $1', [userId]),
       query(
-        'SELECT * FROM assessment_results WHERE patient_id = $1 ORDER BY created_at DESC',
+        'SELECT id, medication_id, dosage, frequency, start_date, end_date, status, notes, created_at, updated_at FROM patient_medications WHERE patient_id = $1',
+        [userId]
+      ),
+      query(
+        'SELECT id, title, description, status, target_date, achieved_at, created_at, updated_at FROM goals WHERE patient_id = $1',
+        [userId]
+      ),
+      query(
+        'SELECT id, assessment_id, answers, total_score, severity_level, completed_at, created_at FROM assessment_results WHERE patient_id = $1 ORDER BY created_at DESC',
         [userId]
       ),
     ]);
@@ -58,6 +64,12 @@ router.delete('/', async (req, res, next) => {
   try {
     const userId = req.user.id;
 
+    // Idempotency guard — reject if account is already inactive
+    const userResult = await query('SELECT is_active FROM users WHERE id = $1', [userId]);
+    if (!userResult.rows[0] || !userResult.rows[0].is_active) {
+      return res.status(404).json({ error: 'Conta não encontrada ou já removida.' });
+    }
+
     // Anonimizar dados pessoais
     await query(
       `UPDATE users SET
@@ -65,10 +77,10 @@ router.delete('/', async (req, res, next) => {
         first_name = 'Conta',
         last_name = 'Removida',
         phone = NULL,
-        password_hash = '',
+        password_hash = 'DELETED',
         is_active = false,
         avatar_url = NULL
-      WHERE id = $1`,
+      WHERE id = $1 AND is_active = true`,
       [userId]
     );
 
