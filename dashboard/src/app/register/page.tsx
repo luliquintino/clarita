@@ -39,11 +39,13 @@ export default function RegisterPage() {
     institution: '',
     dateOfBirth: '',
     gender: '',
+    consent: false,
   });
 
   const isPatient = form.role === 'patient';
 
-  const update = (field: string, value: string) => setForm((prev) => ({ ...prev, [field]: value }));
+  const update = (field: string, value: string | boolean) =>
+    setForm((prev) => ({ ...prev, [field]: value }));
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -61,6 +63,10 @@ export default function RegisterPage() {
       setError('O número de registro profissional é obrigatório.');
       return;
     }
+    if (!form.consent) {
+      setError('Você precisa aceitar os Termos de Uso e a Política de Privacidade para continuar.');
+      return;
+    }
 
     setLoading(true);
     try {
@@ -73,6 +79,7 @@ export default function RegisterPage() {
             role: 'patient',
             date_of_birth: form.dateOfBirth || undefined,
             gender: form.gender || undefined,
+            consent: form.consent,
           }
         : {
             first_name: form.firstName,
@@ -83,6 +90,7 @@ export default function RegisterPage() {
             license_number: form.licenseNumber,
             specialization: form.specialization || undefined,
             institution: form.institution || undefined,
+            consent: form.consent,
           };
 
       const response = await authApi.register(payload);
@@ -356,6 +364,28 @@ export default function RegisterPage() {
                 required
                 minLength={8}
               />
+            </div>
+
+            {/* Consentimento LGPD */}
+            <div className="flex items-start gap-3">
+              <input
+                type="checkbox"
+                id="consent"
+                checked={form.consent}
+                onChange={(e) => update('consent', e.target.checked)}
+                className="mt-1 h-4 w-4 rounded border-gray-300"
+              />
+              <label htmlFor="consent" className="text-sm text-gray-600 leading-relaxed">
+                Li e aceito os{' '}
+                <a href="/terms" target="_blank" className="text-green-600 hover:underline font-medium">
+                  Termos de Uso
+                </a>{' '}
+                e a{' '}
+                <a href="/privacy" target="_blank" className="text-green-600 hover:underline font-medium">
+                  Política de Privacidade
+                </a>
+                . Concordo com o tratamento dos meus dados conforme a LGPD.
+              </label>
             </div>
 
             <button

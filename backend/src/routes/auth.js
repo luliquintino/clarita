@@ -33,6 +33,7 @@ router.post('/register', registrationValidator, handleValidation, async (req, re
       last_name,
       role,
       phone,
+      consent,
       // Professional fields
       license_number,
       specialization,
@@ -43,6 +44,11 @@ router.post('/register', registrationValidator, handleValidation, async (req, re
       date_of_birth,
       gender,
     } = req.body;
+
+    // LGPD: consent is mandatory
+    if (!consent) {
+      return res.status(400).json({ error: 'É necessário aceitar os Termos de Uso e Política de Privacidade.' });
+    }
 
     // Check if email already exists
     const existing = await query('SELECT id FROM users WHERE email = $1', [email]);
@@ -62,8 +68,8 @@ router.post('/register', registrationValidator, handleValidation, async (req, re
 
     // Insert user
     const userResult = await query(
-      `INSERT INTO users (email, password_hash, role, first_name, last_name, phone, display_id)
-       VALUES ($1, $2, $3, $4, $5, $6, $7)
+      `INSERT INTO users (email, password_hash, role, first_name, last_name, phone, display_id, consent_accepted_at)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, NOW())
        RETURNING id, email, role, first_name, last_name, phone, display_id, created_at`,
       [email, passwordHash, role, first_name, last_name, phone || null, displayId]
     );

@@ -496,6 +496,7 @@ interface BaseRegisterData {
   last_name: string;
   email: string;
   password: string;
+  consent: boolean;
 }
 
 export interface ProfessionalRegisterData extends BaseRegisterData {
