@@ -1,14 +1,12 @@
 'use client';
 
-export const dynamic = 'force-dynamic';
-
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Suspense } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { Loader2, ShieldCheck, FileText, Save, ArrowLeft, AlertCircle } from 'lucide-react';
 import { recordSharingApi, isAuthenticated, getUserRoleFromToken } from '@/lib/api';
 import type { MedicalRecord, SharedMedicalRecord } from '@/lib/api';
 
-export default function SharedRecordsPage() {
+function SharedRecordsContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const token = searchParams.get('token');
@@ -196,5 +194,13 @@ export default function SharedRecordsPage() {
         )}
       </div>
     </div>
+  );
+}
+
+export default function SharedRecordsPage() {
+  return (
+    <Suspense fallback={<div className="flex items-center justify-center min-h-screen"><Loader2 className="w-8 h-8 animate-spin text-green-500" /></div>}>
+      <SharedRecordsContent />
+    </Suspense>
   );
 }
