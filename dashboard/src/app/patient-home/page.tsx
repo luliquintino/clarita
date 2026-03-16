@@ -9,6 +9,7 @@ import {
   removeToken,
   isAuthenticated,
   getUserRoleFromToken,
+  getToken,
   journalApi,
   patientProfileApi,
   goalsApi,
@@ -17,6 +18,7 @@ import {
   patientMedicationsApi,
   medicationLogsApi,
 } from '@/lib/api';
+import { usePushNotifications } from '@/hooks/usePushNotifications';
 import type { AuthUser, JournalEntryData, ProfessionalInfo, Goal, Invitation, PatientMedication } from '@/lib/api';
 import JournalEntry from '@/components/JournalEntry';
 import JournalHistory from '@/components/JournalHistory';
@@ -53,6 +55,8 @@ export default function PatientHomePage() {
   const [sentInvitations, setSentInvitations] = useState<Invitation[]>([]);
 
   const [activeSection, setActiveSection] = useState<PatientSection>('home');
+
+  const { permission, subscribed, loading: pushLoading, subscribe } = usePushNotifications(getToken());
 
   useEffect(() => {
     if (!isAuthenticated()) {
@@ -290,6 +294,23 @@ export default function PatientHomePage() {
         <main className="max-w-5xl mx-auto px-4 md:px-8 py-6 md:py-8">
           {/* ── HOME ── */}
           {activeSection === 'home' && (
+            <>
+            {permission === 'default' && !subscribed && (
+              <div className="bg-green-50 border border-green-200 rounded-xl p-4 flex items-center justify-between gap-4 mb-6">
+                <div>
+                  <p className="font-medium text-green-800 text-sm">Ativar lembretes de check-in 🔔</p>
+                  <p className="text-xs text-green-600 mt-0.5">Receba um lembrete diário para registrar como você está.</p>
+                </div>
+                <button
+                  type="button"
+                  onClick={subscribe}
+                  disabled={pushLoading}
+                  className="text-sm px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50 transition-colors whitespace-nowrap"
+                >
+                  {pushLoading ? 'Ativando...' : 'Ativar'}
+                </button>
+              </div>
+            )}
             <div className="grid grid-cols-1 md:grid-cols-5 gap-6 md:gap-8">
               {/* Left: check-in */}
               <div className="md:col-span-3 space-y-4">
@@ -315,6 +336,7 @@ export default function PatientHomePage() {
                 )}
               </div>
             </div>
+            </>
           )}
 
           {/* ── EXAMES ── */}
