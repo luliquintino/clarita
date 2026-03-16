@@ -23,7 +23,7 @@ router.post('/subscribe', async (req, res, next) => {
     await query(
       `INSERT INTO push_subscriptions (user_id, subscription)
        VALUES ($1, $2)
-       ON CONFLICT (user_id) DO UPDATE SET subscription = $2, created_at = NOW()`,
+       ON CONFLICT (user_id) DO UPDATE SET subscription = $2`,
       [req.user.id, JSON.stringify(subscription)]
     );
 

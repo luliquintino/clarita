@@ -9,8 +9,16 @@ export function usePushNotifications(token: string | null) {
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    if ('Notification' in window) {
-      setPermission(Notification.permission);
+    if (!('Notification' in window)) return;
+    setPermission(Notification.permission);
+
+    // Check if already subscribed
+    if (Notification.permission === 'granted' && 'serviceWorker' in navigator) {
+      navigator.serviceWorker.ready.then(reg =>
+        reg.pushManager.getSubscription()
+      ).then(sub => {
+        if (sub) setSubscribed(true);
+      }).catch(() => {});
     }
   }, []);
 
@@ -19,10 +27,8 @@ export function usePushNotifications(token: string | null) {
     setLoading(true);
 
     try {
-      // Get VAPID public key
-      const res = await fetch(`${API_URL}/push/vapid-public-key`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      // Get VAPID public key (public endpoint — no auth header needed)
+      const res = await fetch(`${API_URL}/push/vapid-public-key`);
       const { publicKey } = await res.json();
 
       if (!publicKey) {
@@ -40,6 +46,21 @@ export function usePushNotifications(token: string | null) {
       }
 
       const registration = await navigator.serviceWorker.ready;
+
+      // Check if already subscribed at browser level
+      const existing = await registration.pushManager.getSubscription();
+      if (existing) {
+        // Already subscribed — just save to backend in case it wasn't saved
+        await fetch(`${API_URL}/push/subscribe`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+          body: JSON.stringify({ subscription: existing }),
+        });
+        setSubscribed(true);
+        return;
+      }
+
+      // No existing subscription — create new one
       const subscription = await registration.pushManager.subscribe({
         userVisibleOnly: true,
         applicationServerKey: publicKey,

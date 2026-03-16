@@ -17,7 +17,7 @@ async function sendPushToUser(userId, { title, body, url = '/patient-home', tag 
     return;
   }
 
-  const result = await query('SELECT subscription FROM push_subscriptions WHERE user_id = $1', [userId]);
+  const result = await query('SELECT subscription FROM push_subscriptions WHERE user_id = $1 LIMIT 1', [userId]);
   if (result.rows.length === 0) return;
 
   const subscription = result.rows[0].subscription;
