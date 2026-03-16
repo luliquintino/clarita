@@ -7,10 +7,17 @@ const { v4: uuidv4 } = require('uuid');
 
 // Em produção com Cloudinary configurado, usa nuvem; caso contrário, disco local
 const isProduction =
-  process.env.NODE_ENV === 'production' && process.env.CLOUDINARY_CLOUD_NAME;
+  process.env.NODE_ENV === 'production' && !!process.env.CLOUDINARY_CLOUD_NAME;
+
+// Configurar Cloudinary apenas se estiver em produção
+// Nota: multer-storage-cloudinary@4.0.0 lista apenas cloudinary como peer dep (não multer),
+// portanto é compatível com multer@2.x — testado e funcional.
+let cloudinary = null;
+let CloudinaryStorage = null;
 
 if (isProduction) {
-  const { v2: cloudinary } = require('cloudinary');
+  cloudinary = require('cloudinary').v2;
+  CloudinaryStorage = require('multer-storage-cloudinary').CloudinaryStorage;
   cloudinary.config({
     cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
     api_key: process.env.CLOUDINARY_API_KEY,
@@ -31,8 +38,6 @@ function makeUpload(folder) {
   let storage;
 
   if (isProduction) {
-    const { v2: cloudinary } = require('cloudinary');
-    const { CloudinaryStorage } = require('multer-storage-cloudinary');
     storage = new CloudinaryStorage({
       cloudinary,
       params: {
