@@ -527,7 +527,7 @@ export const authApi = {
       body: JSON.stringify(data),
     }),
 
-  me: () => request<{ user: AuthUser }>('/auth/me'),
+  me: () => request<{ user: AuthUser; profile?: { onboarding_completed?: boolean; [key: string]: unknown } | null }>('/auth/me'),
 
   logout: () => {
     removeToken();

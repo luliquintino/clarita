@@ -235,7 +235,7 @@ export default function PatientsPage() {
       .me()
       .then((res) => {
         setUser(res.user);
-        const profile = (res as unknown as { user: typeof res.user; profile: { onboarding_completed?: boolean } | null }).profile;
+        const profile = res.profile;
         if (profile && profile.onboarding_completed === false) {
           setShowOnboarding(true);
         }

@@ -11,18 +11,19 @@ interface OnboardingWizardProps {
 
 export default function OnboardingWizard({ userName, onComplete, token, apiUrl }: OnboardingWizardProps) {
   const [step, setStep] = useState(1);
-  const [inviteEmail, setInviteEmail] = useState('');
+  const [inviteDisplayId, setInviteDisplayId] = useState('');
   const [inviteSent, setInviteSent] = useState(false);
+  const [completing, setCompleting] = useState(false);
 
   const totalSteps = 4;
 
   const handleInvite = async () => {
-    if (!inviteEmail) return;
+    if (!inviteDisplayId) return;
     try {
       await fetch(`${apiUrl}/invitations`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-        body: JSON.stringify({ patient_email: inviteEmail, relationship_type: 'therapy' }),
+        body: JSON.stringify({ display_id: inviteDisplayId }),
       });
     } catch {
       // Don't block onboarding if invite fails
@@ -31,11 +32,19 @@ export default function OnboardingWizard({ userName, onComplete, token, apiUrl }
   };
 
   const handleComplete = async () => {
-    await fetch(`${apiUrl}/auth/onboarding/complete`, {
-      method: 'POST',
-      headers: { Authorization: `Bearer ${token}` },
-    }).catch(() => {});
-    onComplete();
+    setCompleting(true);
+    try {
+      await fetch(`${apiUrl}/auth/onboarding/complete`, {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      onComplete();
+    } catch {
+      // Still complete on error — the wizard should not be stuck
+      onComplete();
+    } finally {
+      setCompleting(false);
+    }
   };
 
   return (
@@ -102,21 +111,21 @@ export default function OnboardingWizard({ userName, onComplete, token, apiUrl }
               </div>
               <h2 className="text-xl font-bold text-gray-900 mb-2">Convide seu primeiro paciente</h2>
               <p className="text-gray-500 mb-4">
-                Ele receberá um e-mail com o link para criar a conta.
+                Use o código exibido no perfil do paciente.
               </p>
               {!inviteSent ? (
                 <div className="space-y-3">
                   <input
-                    type="email"
-                    placeholder="email@paciente.com"
-                    value={inviteEmail}
-                    onChange={e => setInviteEmail(e.target.value)}
+                    type="text"
+                    placeholder="Código do paciente (ex: CL-1234)"
+                    value={inviteDisplayId}
+                    onChange={e => setInviteDisplayId(e.target.value)}
                     className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-green-400"
                   />
                   <button
                     type="button"
                     onClick={handleInvite}
-                    disabled={!inviteEmail}
+                    disabled={!inviteDisplayId}
                     className="w-full py-3 px-4 bg-green-600 text-white rounded-xl font-medium hover:bg-green-700 disabled:opacity-50 transition-colors"
                   >
                     Enviar convite
@@ -146,8 +155,13 @@ export default function OnboardingWizard({ userName, onComplete, token, apiUrl }
               <p className="text-gray-500 mb-6">
                 Seu paciente receberá o convite por e-mail. Quando ele criar a conta, você verá os dados no painel.
               </p>
-              <button type="button" onClick={handleComplete} className="w-full py-3 px-4 bg-green-600 text-white rounded-xl font-medium hover:bg-green-700 transition-colors">
-                Ir para o painel
+              <button
+                type="button"
+                onClick={handleComplete}
+                disabled={completing}
+                className="w-full py-3 px-4 bg-green-600 text-white rounded-xl font-medium hover:bg-green-700 disabled:opacity-50 transition-colors"
+              >
+                {completing ? 'Salvando...' : 'Ir para o painel'}
               </button>
             </div>
           )}
