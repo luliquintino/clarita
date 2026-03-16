@@ -40,9 +40,11 @@ const psychTestRoutes = require('./routes/psychTests');
 const icd11Routes = require('./routes/icd11');
 const satepsiRoutes = require('./routes/satepsi');
 const meRoutes = require('./routes/me');
+const pushRoutes = require('./routes/pushSubscriptions');
 
 const { pool } = require('./config/database');
 const { startNoCheckinJob } = require('./jobs/noCheckinJob');
+const { startCheckinReminderJob } = require('./jobs/checkinReminderJob');
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -115,6 +117,7 @@ app.use('/api/psych-tests', psychTestRoutes);
 app.use('/api/icd11', icd11Routes);
 app.use('/api/satepsi', satepsiRoutes);
 app.use('/api/me', meRoutes);
+app.use('/api/push', pushRoutes);
 
 // ---------------------------------------------------------------------------
 // 404 Handler
@@ -194,6 +197,9 @@ if (process.env.NODE_ENV !== 'test') {
 
   // No check-in reminder (daily at 09:00 BRT / 12:00 UTC)
   startNoCheckinJob();
+
+  // Push check-in reminder (hourly, per-user configurable UTC hour)
+  startCheckinReminderJob();
 }
 
 // ---------------------------------------------------------------------------
