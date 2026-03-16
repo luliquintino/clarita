@@ -2,20 +2,21 @@
 
 const multer = require('multer');
 const path = require('path');
+const fs = require('fs');
 const { v4: uuidv4 } = require('uuid');
 
-const UPLOAD_DIR = path.join(__dirname, '../../uploads/documents');
-const EXAMS_UPLOAD_DIR = path.join(__dirname, '../../uploads/exams');
+// Em produção com Cloudinary configurado, usa nuvem; caso contrário, disco local
+const isProduction =
+  process.env.NODE_ENV === 'production' && process.env.CLOUDINARY_CLOUD_NAME;
 
-const storage = multer.diskStorage({
-  destination: (_req, _file, cb) => {
-    cb(null, UPLOAD_DIR);
-  },
-  filename: (_req, file, cb) => {
-    const ext = path.extname(file.originalname).toLowerCase();
-    cb(null, `${uuidv4()}-${Date.now()}${ext}`);
-  },
-});
+if (isProduction) {
+  const { v2: cloudinary } = require('cloudinary');
+  cloudinary.config({
+    cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+    api_key: process.env.CLOUDINARY_API_KEY,
+    api_secret: process.env.CLOUDINARY_API_SECRET,
+  });
+}
 
 const fileFilter = (_req, file, cb) => {
   const allowed = ['application/pdf', 'image/jpeg', 'image/png'];
@@ -26,50 +27,37 @@ const fileFilter = (_req, file, cb) => {
   }
 };
 
-const uploadDocument = multer({
-  storage,
-  fileFilter,
-  limits: { fileSize: 10 * 1024 * 1024 }, // 10MB
-}).single('file');
+function makeUpload(folder) {
+  let storage;
 
-const examsStorage = multer.diskStorage({
-  destination: (_req, _file, cb) => {
-    if (!require('fs').existsSync(EXAMS_UPLOAD_DIR)) {
-      require('fs').mkdirSync(EXAMS_UPLOAD_DIR, { recursive: true });
-    }
-    cb(null, EXAMS_UPLOAD_DIR);
-  },
-  filename: (_req, file, cb) => {
-    const ext = path.extname(file.originalname).toLowerCase();
-    cb(null, `${uuidv4()}-${Date.now()}${ext}`);
-  },
-});
+  if (isProduction) {
+    const { v2: cloudinary } = require('cloudinary');
+    const { CloudinaryStorage } = require('multer-storage-cloudinary');
+    storage = new CloudinaryStorage({
+      cloudinary,
+      params: {
+        folder: `clarita/${folder}`,
+        allowed_formats: ['pdf', 'jpg', 'jpeg', 'png'],
+      },
+    });
+  } else {
+    storage = multer.diskStorage({
+      destination: (_req, _file, cb) => {
+        const dir = path.join(__dirname, `../../uploads/${folder}`);
+        fs.mkdirSync(dir, { recursive: true });
+        cb(null, dir);
+      },
+      filename: (_req, file, cb) => {
+        cb(null, `${uuidv4()}-${Date.now()}${path.extname(file.originalname).toLowerCase()}`);
+      },
+    });
+  }
 
-const uploadExam = multer({
-  storage: examsStorage,
-  fileFilter,
-  limits: { fileSize: 10 * 1024 * 1024 },
-}).single('file');
+  return multer({ storage, fileFilter, limits: { fileSize: 10 * 1024 * 1024 } }).single('file');
+}
 
-const CHAT_UPLOAD_DIR = path.join(__dirname, '../../uploads/chat');
-
-const chatStorage = multer.diskStorage({
-  destination: (_req, _file, cb) => {
-    if (!require('fs').existsSync(CHAT_UPLOAD_DIR)) {
-      require('fs').mkdirSync(CHAT_UPLOAD_DIR, { recursive: true });
-    }
-    cb(null, CHAT_UPLOAD_DIR);
-  },
-  filename: (_req, file, cb) => {
-    const ext = path.extname(file.originalname).toLowerCase();
-    cb(null, `${uuidv4()}-${Date.now()}${ext}`);
-  },
-});
-
-const uploadChatFile = multer({
-  storage: chatStorage,
-  fileFilter,
-  limits: { fileSize: 10 * 1024 * 1024 },
-}).single('file');
+const uploadDocument = makeUpload('documents');
+const uploadExam = makeUpload('exams');
+const uploadChatFile = makeUpload('chat');
 
 module.exports = { uploadDocument, uploadExam, uploadChatFile };
