@@ -90,7 +90,9 @@ export default function ConversationList({
                     </span>
                   </div>
                   <p className="text-[11px] text-gray-400 truncate mt-0.5">
-                    sobre {conv.patient_first_name} {conv.patient_last_name}
+                    {conv.patient_first_name
+                      ? `sobre ${conv.patient_first_name} ${conv.patient_last_name}`
+                      : 'Conversa direta'}
                   </p>
                 </div>
               </div>

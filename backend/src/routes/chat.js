@@ -43,7 +43,7 @@ router.get('/conversations', async (req, res, next) => {
       JOIN conversation_participants my_part ON my_part.conversation_id = c.id AND my_part.user_id = $1
       JOIN conversation_participants other ON other.conversation_id = c.id AND other.user_id != $1
       JOIN users other_user ON other_user.id = other.user_id
-      JOIN users p_user ON p_user.id = c.patient_id
+      LEFT JOIN users p_user ON p_user.id = c.patient_id
       LEFT JOIN LATERAL (
         SELECT content, created_at, sender_id FROM messages
         WHERE conversation_id = c.id ORDER BY created_at DESC LIMIT 1
@@ -69,33 +69,46 @@ router.get('/conversations', async (req, res, next) => {
 
 router.post(
   '/conversations',
-  [
-    body('other_user_id').isUUID().withMessage('other_user_id is required'),
-    body('patient_id').isUUID().withMessage('patient_id is required'),
-  ],
+  [body('other_user_id').isUUID().withMessage('other_user_id is required')],
   handleValidation,
   async (req, res, next) => {
     try {
       const { other_user_id, patient_id } = req.body;
 
-      // Check both professionals have access to the patient
-      const access = await query(
-        `SELECT professional_id FROM care_relationships
-         WHERE patient_id = $1 AND professional_id IN ($2, $3) AND status = 'active'`,
-        [patient_id, req.user.id, other_user_id]
+      // Verify the other user is a professional (not a patient)
+      const otherUser = await query(
+        `SELECT id, role FROM users WHERE id = $1 AND is_active = TRUE`,
+        [other_user_id]
       );
-      if (access.rows.length < 2) {
-        return res.status(403).json({ error: 'Ambos profissionais devem ter acesso ao paciente' });
+      if (otherUser.rows.length === 0) {
+        return res.status(404).json({ error: 'Usuário não encontrado' });
+      }
+      if (otherUser.rows[0].role === 'patient') {
+        return res.status(403).json({ error: 'Não é possível iniciar conversa com pacientes' });
       }
 
-      // Check if conversation already exists
+      // If a patient context is provided, verify both professionals have access
+      if (patient_id) {
+        const access = await query(
+          `SELECT professional_id FROM care_relationships
+           WHERE patient_id = $1 AND professional_id IN ($2, $3) AND status = 'active'`,
+          [patient_id, req.user.id, other_user_id]
+        );
+        if (access.rows.length < 2) {
+          return res.status(403).json({ error: 'Ambos profissionais devem ter acesso ao paciente' });
+        }
+      }
+
+      // Check if conversation already exists between these two professionals
+      // (with or without a specific patient context)
       const existing = await query(
         `SELECT c.id FROM conversations c
          JOIN conversation_participants p1 ON p1.conversation_id = c.id AND p1.user_id = $1
          JOIN conversation_participants p2 ON p2.conversation_id = c.id AND p2.user_id = $2
-         WHERE c.patient_id = $3
+         WHERE ($3::uuid IS NULL AND c.patient_id IS NULL)
+            OR (c.patient_id = $3)
          LIMIT 1`,
-        [req.user.id, other_user_id, patient_id]
+        [req.user.id, other_user_id, patient_id || null]
       );
 
       if (existing.rows.length > 0) {
@@ -103,9 +116,10 @@ router.post(
       }
 
       // Create new conversation
-      const conv = await query(`INSERT INTO conversations (patient_id) VALUES ($1) RETURNING *`, [
-        patient_id,
-      ]);
+      const conv = await query(
+        `INSERT INTO conversations (patient_id) VALUES ($1) RETURNING *`,
+        [patient_id || null]
+      );
       const convId = conv.rows[0].id;
 
       // Add participants

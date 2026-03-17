@@ -952,9 +952,9 @@ export const milestonesApi = {
 
 export interface Conversation {
   id: string;
-  patient_id: string;
-  patient_first_name: string;
-  patient_last_name: string;
+  patient_id: string | null;
+  patient_first_name: string | null;
+  patient_last_name: string | null;
   other_user_id: string;
   other_first_name: string;
   other_last_name: string;
@@ -984,11 +984,14 @@ export interface ChatMessage {
 export const chatApi = {
   listConversations: () => request<{ conversations: Conversation[] }>('/chat/conversations'),
 
-  createConversation: (otherUserId: string, patientId: string) =>
+  createConversation: (otherUserId: string, patientId?: string) =>
     request<{ conversation: { id: string; existing: boolean } }>('/chat/conversations', {
       method: 'POST',
-      body: JSON.stringify({ other_user_id: otherUserId, patient_id: patientId }),
+      body: JSON.stringify({ other_user_id: otherUserId, ...(patientId ? { patient_id: patientId } : {}) }),
     }),
+
+  searchProfessionals: (q: string) =>
+    request<{ professionals: Array<{ id: string; display_id: string; first_name: string; last_name: string; role: string; avatar_url: string | null; specialization: string | null; institution: string | null }> }>(`/users/search-professionals?q=${encodeURIComponent(q)}`),
 
   getMessages: (conversationId: string, page?: number) => {
     const params = new URLSearchParams();
