@@ -1032,51 +1032,68 @@ export default function PatientDetailPage() {
           <div className="bg-white/95 backdrop-blur-xl rounded-3xl shadow-2xl border border-gray-200/60 p-6 mb-6 animate-fade-in">
             <div className="flex items-start justify-between">
               <div className="flex items-start gap-5">
-                {/* Avatar with mood-based gradient ring */}
-                <div
-                  className={`w-16 h-16 rounded-2xl flex items-center justify-center ring-2 ring-offset-2 text-xl font-bold text-gray-600 flex-shrink-0 ${
-                    patient.mental_clarity_score !== null && patient.mental_clarity_score >= 70
-                      ? 'bg-clarita-green-100 ring-clarita-green-400'
-                      : patient.mental_clarity_score !== null && patient.mental_clarity_score >= 40
-                        ? 'bg-yellow-100 ring-yellow-400'
-                        : 'bg-red-100 ring-red-400'
-                  }`}
-                >
+                {/* Avatar — neutral gradient, initials */}
+                <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-clarita-purple-100 to-clarita-green-100 flex items-center justify-center text-xl font-bold text-gray-600 flex-shrink-0 ring-2 ring-white shadow-soft">
                   {patient.full_name.split(' ').slice(0, 2).map(n => n[0]).join('').toUpperCase()}
                 </div>
 
-                <div>
-                  <div className="flex items-center gap-3">
+                <div className="space-y-2">
+                  {/* Name + status */}
+                  <div className="flex items-center gap-3 flex-wrap">
                     <h1 className="text-2xl font-semibold text-gray-800">{patient.full_name}</h1>
                     <span
-                      className={`text-xs ${
+                      className={`text-xs font-medium px-2.5 py-0.5 rounded-full ${
                         patient.status === 'active'
-                          ? 'badge-green'
+                          ? 'bg-clarita-green-100 text-clarita-green-700'
                           : patient.status === 'inactive'
-                            ? 'badge bg-gray-100 text-gray-500'
-                            : 'badge-blue'
+                            ? 'bg-gray-100 text-gray-500'
+                            : 'bg-blue-100 text-blue-700'
                       }`}
                     >
                       {{ active: 'Ativo', inactive: 'Inativo', discharged: 'Arquivado' }[patient.status] ?? patient.status}
                     </span>
                   </div>
 
-                  <div className="flex flex-wrap items-center gap-x-3 gap-y-1 mt-1 text-sm text-gray-500">
-                    {patient.age > 0 && <span>{patient.age} anos</span>}
-                    {patient.gender && <span>{{ female: 'Feminino', male: 'Masculino', other: 'Outro' }[patient.gender] ?? patient.gender}</span>}
-                    {patient.email && (
-                      <span className="flex items-center gap-1">
-                        <Mail size={13} />
-                        {patient.email}
-                      </span>
-                    )}
-                    {patient.phone && (
-                      <span className="flex items-center gap-1">
-                        <Phone size={13} />
-                        {patient.phone}
-                      </span>
-                    )}
-                  </div>
+                  {/* Info row: age · gender */}
+                  {(patient.age > 0 || patient.gender) && (
+                    <div className="flex items-center gap-2 text-sm text-gray-500">
+                      {patient.age > 0 && (
+                        <span className="flex items-center gap-1">
+                          <Calendar size={13} className="text-gray-400" />
+                          {patient.age} anos
+                        </span>
+                      )}
+                      {patient.age > 0 && patient.gender && (
+                        <span className="text-gray-300">·</span>
+                      )}
+                      {patient.gender && (
+                        <span>
+                          {{ female: 'Feminino', male: 'Masculino', other: 'Outro' }[patient.gender] ?? patient.gender}
+                        </span>
+                      )}
+                    </div>
+                  )}
+
+                  {/* Contact row: email · phone */}
+                  {(patient.email || patient.phone) && (
+                    <div className="flex items-center gap-3 text-sm text-gray-500 flex-wrap">
+                      {patient.email && (
+                        <span className="flex items-center gap-1.5">
+                          <Mail size={13} className="text-gray-400" />
+                          {patient.email}
+                        </span>
+                      )}
+                      {patient.email && patient.phone && (
+                        <span className="text-gray-300">·</span>
+                      )}
+                      {patient.phone && (
+                        <span className="flex items-center gap-1.5">
+                          <Phone size={13} className="text-gray-400" />
+                          {patient.phone}
+                        </span>
+                      )}
+                    </div>
+                  )}
 
                   {/* Role-based conditions & suspicions */}
                   <div className="flex flex-wrap items-center gap-2 mt-3">
