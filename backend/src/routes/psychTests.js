@@ -98,6 +98,30 @@ router.get('/sessions/pending', requireRole('patient'), async (req, res, next) =
 });
 
 // ---------------------------------------------------------------------------
+// GET /api/psych-tests/sessions/history
+// Completed test history for the authenticated patient
+// ---------------------------------------------------------------------------
+
+router.get('/sessions/history', requireRole('patient'), async (req, res, next) => {
+  try {
+    const result = await query(
+      `SELECT pts.*, pt.name AS test_name, pt.description AS test_description,
+              pt.category AS test_category,
+              u.first_name AS assigned_by_first_name, u.last_name AS assigned_by_last_name
+       FROM patient_test_sessions pts
+       JOIN psychological_tests pt ON pt.id = pts.test_id
+       JOIN users u ON u.id = pts.assigned_by
+       WHERE pts.patient_id = $1 AND pts.status = 'completed'
+       ORDER BY pts.completed_at DESC`,
+      [req.user.id]
+    );
+    res.json({ sessions: result.rows });
+  } catch (err) {
+    next(err);
+  }
+});
+
+// ---------------------------------------------------------------------------
 // GET /api/psych-tests/sessions/patient/:patientId
 // Patient test history (professionals)
 // ---------------------------------------------------------------------------

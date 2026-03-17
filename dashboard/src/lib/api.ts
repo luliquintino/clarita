@@ -40,6 +40,18 @@ export function getUserRoleFromToken(): string | null {
   }
 }
 
+export function isTokenExpired(): boolean {
+  const token = getToken();
+  if (!token) return true;
+  try {
+    const payload = JSON.parse(atob(token.split('.')[1]));
+    // exp is in seconds; add 10s buffer
+    return payload.exp ? payload.exp * 1000 < Date.now() - 10000 : false;
+  } catch {
+    return true;
+  }
+}
+
 // ---------------------------------------------------------------------------
 // Error class
 // ---------------------------------------------------------------------------
@@ -78,15 +90,6 @@ async function request<T>(endpoint: string, options: RequestInit = {}): Promise<
   });
 
   if (!response.ok) {
-    if (response.status === 401) {
-      // Only redirect if we had a token (expired session), not on login failure
-      const hadToken = !!getToken();
-      removeToken();
-      if (hadToken && typeof window !== 'undefined') {
-        window.location.href = '/login';
-      }
-    }
-
     let detail = 'An error occurred';
     try {
       const errorBody = await response.json();
@@ -1112,14 +1115,6 @@ async function requestFormData<T>(endpoint: string, formData: FormData): Promise
   });
 
   if (!response.ok) {
-    if (response.status === 401) {
-      const hadToken = !!getToken();
-      removeToken();
-      if (hadToken && typeof window !== 'undefined') {
-        window.location.href = '/login';
-      }
-    }
-
     let detail = 'An error occurred';
     try {
       const errorBody = await response.json();
@@ -1605,6 +1600,9 @@ export const psychTestsApi = {
 
   getPending: () =>
     request<{ sessions: TestSession[] }>('/psych-tests/sessions/pending'),
+
+  getMyHistory: () =>
+    request<{ sessions: TestSession[] }>('/psych-tests/sessions/history'),
 
   getSession: (id: string) =>
     request<{ session: TestSession }>(`/psych-tests/sessions/${id}`),
