@@ -348,8 +348,8 @@ export default function AnamnesisPanel({ patientId, role }: AnamnesisPanelProps)
     return (
       <div className="space-y-4 animate-fade-in">
         <div className="flex items-center justify-between">
-          <h3 className="text-lg font-semibold text-white">Novo Template de Anamnese</h3>
-          <button onClick={() => setActiveView('list')} className="text-sm text-teal-400 hover:text-teal-300">Cancelar</button>
+          <h3 className="text-lg font-semibold text-gray-800">Novo Template de Anamnese</h3>
+          <button onClick={() => setActiveView('list')} className="text-sm text-teal-600 hover:text-teal-700">Cancelar</button>
         </div>
 
         <input
@@ -357,28 +357,28 @@ export default function AnamnesisPanel({ patientId, role }: AnamnesisPanelProps)
           placeholder="Título do template"
           value={newTitle}
           onChange={(e) => setNewTitle(e.target.value)}
-          className="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-white placeholder-white/30"
+          className="w-full bg-gray-50 border border-gray-200 rounded-xl p-3 text-gray-800 placeholder-gray-400"
         />
         <textarea
           placeholder="Descrição (opcional)"
           value={newDescription}
           onChange={(e) => setNewDescription(e.target.value)}
-          className="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-white placeholder-white/30 resize-none"
+          className="w-full bg-gray-50 border border-gray-200 rounded-xl p-3 text-gray-800 placeholder-gray-400 resize-none"
           rows={2}
         />
 
         <div className="space-y-3">
-          <h4 className="text-sm font-medium text-white/60">Perguntas</h4>
+          <h4 className="text-sm font-medium text-gray-500">Perguntas</h4>
           {newQuestions.map((q, i) => (
-            <div key={i} className="bg-white/5 border border-white/10 rounded-xl p-3 space-y-2">
+            <div key={i} className="bg-gray-50 border border-gray-200 rounded-xl p-3 space-y-2">
               <div className="flex items-center gap-2">
-                <span className="text-xs text-white/40 w-6">{i + 1}.</span>
+                <span className="text-xs text-gray-400 w-6">{i + 1}.</span>
                 <input
                   type="text"
                   placeholder="Texto da pergunta"
                   value={q.question_text}
                   onChange={(e) => updateQuestion(i, 'question_text', e.target.value)}
-                  className="flex-1 bg-white/5 border border-white/10 rounded-lg p-2 text-white text-sm placeholder-white/30"
+                  className="flex-1 bg-white border border-gray-200 rounded-lg p-2 text-gray-800 text-sm placeholder-gray-400"
                 />
                 {newQuestions.length > 1 && (
                   <button onClick={() => removeQuestion(i)} className="text-red-400/60 hover:text-red-400">
@@ -390,13 +390,13 @@ export default function AnamnesisPanel({ patientId, role }: AnamnesisPanelProps)
                 <select
                   value={q.question_type}
                   onChange={(e) => updateQuestion(i, 'question_type', e.target.value)}
-                  className="bg-white/5 border border-white/10 rounded-lg p-1.5 text-white text-xs"
+                  className="bg-white border border-gray-200 rounded-lg p-1.5 text-gray-800 text-xs"
                 >
                   {QUESTION_TYPES.map((t) => (
                     <option key={t.value} value={t.value}>{t.label}</option>
                   ))}
                 </select>
-                <label className="flex items-center gap-1 text-xs text-white/40">
+                <label className="flex items-center gap-1 text-xs text-gray-400">
                   <input
                     type="checkbox"
                     checked={q.is_required}
@@ -412,12 +412,12 @@ export default function AnamnesisPanel({ patientId, role }: AnamnesisPanelProps)
                   placeholder="Opções separadas por vírgula"
                   value={q.options}
                   onChange={(e) => updateQuestion(i, 'options', e.target.value)}
-                  className="ml-8 bg-white/5 border border-white/10 rounded-lg p-2 text-white text-xs placeholder-white/30 w-[calc(100%-2rem)]"
+                  className="ml-8 bg-white border border-gray-200 rounded-lg p-2 text-gray-800 text-xs placeholder-gray-400 w-[calc(100%-2rem)]"
                 />
               )}
             </div>
           ))}
-          <button onClick={addQuestion} className="text-sm text-teal-400 hover:text-teal-300 flex items-center gap-1">
+          <button onClick={addQuestion} className="text-sm text-teal-600 hover:text-teal-700 flex items-center gap-1">
             <Plus className="w-4 h-4" /> Adicionar pergunta
           </button>
         </div>
@@ -425,7 +425,7 @@ export default function AnamnesisPanel({ patientId, role }: AnamnesisPanelProps)
         <button
           onClick={handleCreateTemplate}
           disabled={sending || !newTitle.trim()}
-          className="w-full bg-teal-500/20 hover:bg-teal-500/30 border border-teal-500/30 text-teal-300 py-3 rounded-xl flex items-center justify-center gap-2 transition-colors disabled:opacity-40"
+          className="w-full bg-teal-500 hover:bg-teal-600 text-white py-3 rounded-xl flex items-center justify-center gap-2 transition-colors disabled:opacity-40"
         >
           {sending ? <Loader2 className="w-4 h-4 animate-spin" /> : <CheckCircle2 className="w-4 h-4" />}
           Salvar Template
@@ -438,23 +438,23 @@ export default function AnamnesisPanel({ patientId, role }: AnamnesisPanelProps)
     const questions = selectedTemplate.questions || [];
     return (
       <div className="space-y-4 animate-fade-in">
-        <button onClick={() => { setActiveView('list'); setSelectedResponse(null); }} className="text-sm text-teal-400 hover:text-teal-300">
+        <button onClick={() => { setActiveView('list'); setSelectedResponse(null); }} className="text-sm text-teal-600 hover:text-teal-700">
           ← Voltar
         </button>
         <div className="flex items-center justify-between">
-          <h3 className="text-lg font-semibold text-white">{selectedTemplate.title}</h3>
-          <span className={`text-xs px-2 py-1 rounded-full ${selectedResponse.status === 'completed' ? 'bg-green-500/20 text-green-400' : 'bg-amber-500/20 text-amber-400'}`}>
+          <h3 className="text-lg font-semibold text-gray-800">{selectedTemplate.title}</h3>
+          <span className={`text-xs px-2 py-1 rounded-full ${selectedResponse.status === 'completed' ? 'bg-green-100 text-green-700' : 'bg-amber-100 text-amber-700'}`}>
             {selectedResponse.status === 'completed' ? 'Respondida' : 'Pendente'}
           </span>
         </div>
         {selectedResponse.patient_first_name && (
-          <p className="text-sm text-white/50">Paciente: {selectedResponse.patient_first_name} {selectedResponse.patient_last_name}</p>
+          <p className="text-sm text-gray-500">Paciente: {selectedResponse.patient_first_name} {selectedResponse.patient_last_name}</p>
         )}
         <div className="space-y-3">
           {questions.map((q, i) => (
-            <div key={q.id || i} className="bg-white/5 rounded-xl p-4 border border-white/10">
-              <p className="text-sm font-medium text-white/80 mb-1">{i + 1}. {q.question_text}</p>
-              <p className="text-white/60 text-sm">{String(selectedResponse.answers?.[String(i)] ?? '—')}</p>
+            <div key={q.id || i} className="bg-gray-50 rounded-xl p-4 border border-gray-200">
+              <p className="text-sm font-medium text-gray-700 mb-1">{i + 1}. {q.question_text}</p>
+              <p className="text-gray-500 text-sm">{String(selectedResponse.answers?.[String(i)] ?? '—')}</p>
             </div>
           ))}
         </div>
@@ -466,13 +466,13 @@ export default function AnamnesisPanel({ patientId, role }: AnamnesisPanelProps)
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h3 className="text-lg font-semibold text-white flex items-center gap-2">
-          <ClipboardList className="w-5 h-5 text-teal-400" />
+        <h3 className="text-lg font-semibold text-gray-800 flex items-center gap-2">
+          <ClipboardList className="w-5 h-5 text-teal-600" />
           Anamnese
         </h3>
         <button
           onClick={() => setActiveView('create')}
-          className="text-sm bg-teal-500/20 hover:bg-teal-500/30 border border-teal-500/30 text-teal-300 px-3 py-1.5 rounded-lg flex items-center gap-1 transition-colors"
+          className="text-sm bg-teal-500 hover:bg-teal-600 text-white px-3 py-1.5 rounded-lg flex items-center gap-1 transition-colors"
         >
           <Plus className="w-4 h-4" /> Novo Template
         </button>
@@ -481,25 +481,25 @@ export default function AnamnesisPanel({ patientId, role }: AnamnesisPanelProps)
       {/* Templates */}
       {templates.length > 0 && (
         <div className="space-y-2">
-          <h4 className="text-sm font-medium text-white/50 uppercase tracking-wider">Meus Templates</h4>
+          <h4 className="text-sm font-medium text-gray-500 uppercase tracking-wider">Meus Templates</h4>
           {templates.map((t) => (
-            <div key={t.id} className="bg-white/5 border border-white/10 rounded-xl overflow-hidden">
+            <div key={t.id} className="bg-gray-50 border border-gray-200 rounded-xl overflow-hidden">
               <button
                 onClick={() => setExpandedTemplate(expandedTemplate === t.id ? null : t.id)}
                 className="w-full p-4 flex items-center justify-between text-left"
               >
                 <div>
-                  <span className="text-white font-medium">{t.title}</span>
-                  {t.description && <p className="text-xs text-white/40 mt-0.5">{t.description}</p>}
+                  <span className="text-gray-800 font-medium">{t.title}</span>
+                  {t.description && <p className="text-xs text-gray-400 mt-0.5">{t.description}</p>}
                 </div>
-                {expandedTemplate === t.id ? <ChevronUp className="w-4 h-4 text-white/40" /> : <ChevronDown className="w-4 h-4 text-white/40" />}
+                {expandedTemplate === t.id ? <ChevronUp className="w-4 h-4 text-gray-400" /> : <ChevronDown className="w-4 h-4 text-gray-400" />}
               </button>
               {expandedTemplate === t.id && patientId && (
-                <div className="px-4 pb-4 border-t border-white/5 pt-3">
+                <div className="px-4 pb-4 border-t border-gray-200 pt-3">
                   <button
                     onClick={() => handleSendToPatient(t.id)}
                     disabled={sending}
-                    className="text-sm bg-teal-500/20 hover:bg-teal-500/30 border border-teal-500/30 text-teal-300 px-3 py-1.5 rounded-lg flex items-center gap-1 transition-colors"
+                    className="text-sm bg-teal-500 hover:bg-teal-600 text-white px-3 py-1.5 rounded-lg flex items-center gap-1 transition-colors"
                   >
                     {sending ? <Loader2 className="w-3 h-3 animate-spin" /> : <Send className="w-3 h-3" />}
                     Enviar para paciente
@@ -513,23 +513,23 @@ export default function AnamnesisPanel({ patientId, role }: AnamnesisPanelProps)
 
       {/* Responses */}
       <div className="space-y-2">
-        <h4 className="text-sm font-medium text-white/50 uppercase tracking-wider">Respostas</h4>
+        <h4 className="text-sm font-medium text-gray-500 uppercase tracking-wider">Respostas</h4>
         {responses.length === 0 ? (
-          <p className="text-white/40 text-sm py-4 text-center">Nenhuma resposta ainda.</p>
+          <p className="text-gray-400 text-sm py-4 text-center">Nenhuma resposta ainda.</p>
         ) : (
           responses.map((r) => (
             <button
               key={r.id}
               onClick={() => handleViewResponse(r)}
-              className="w-full bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl p-4 text-left transition-colors"
+              className="w-full bg-gray-50 hover:bg-gray-100 border border-gray-200 rounded-xl p-4 text-left transition-colors"
             >
               <div className="flex items-center justify-between">
-                <span className="text-white font-medium">{r.template_title || 'Anamnese'}</span>
-                <span className={`text-xs px-2 py-1 rounded-full ${r.status === 'completed' ? 'bg-green-500/20 text-green-400' : 'bg-amber-500/20 text-amber-400'}`}>
+                <span className="text-gray-800 font-medium">{r.template_title || 'Anamnese'}</span>
+                <span className={`text-xs px-2 py-1 rounded-full ${r.status === 'completed' ? 'bg-green-100 text-green-700' : 'bg-amber-100 text-amber-700'}`}>
                   {r.status === 'completed' ? 'Respondida' : 'Pendente'}
                 </span>
               </div>
-              <p className="text-xs text-white/40 mt-1">{new Date(r.created_at).toLocaleDateString('pt-BR')}</p>
+              <p className="text-xs text-gray-400 mt-1">{new Date(r.created_at).toLocaleDateString('pt-BR')}</p>
             </button>
           ))
         )}
