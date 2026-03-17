@@ -284,7 +284,7 @@ router.put('/me', authenticate, async (req, res, next) => {
         );
       }
     } else {
-      const { specialization, institution, bio, years_of_experience } = req.body;
+      const { specialization, institution, bio, years_of_experience, license_number } = req.body;
       const profUpdates = [];
       const profValues = [];
       let profIdx = 1;
@@ -304,6 +304,10 @@ router.put('/me', authenticate, async (req, res, next) => {
       if (years_of_experience !== undefined) {
         profUpdates.push(`years_of_experience = $${profIdx++}`);
         profValues.push(years_of_experience);
+      }
+      if (license_number !== undefined) {
+        profUpdates.push(`license_number = $${profIdx++}`);
+        profValues.push(license_number);
       }
 
       if (profUpdates.length > 0) {

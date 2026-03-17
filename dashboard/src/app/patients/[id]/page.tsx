@@ -1034,7 +1034,7 @@ export default function PatientDetailPage() {
               <div className="flex items-start gap-5">
                 {/* Avatar with mood-based gradient ring */}
                 <div
-                  className={`w-16 h-16 rounded-2xl flex items-center justify-center ring-2 ring-offset-2 ${
+                  className={`w-16 h-16 rounded-2xl flex items-center justify-center ring-2 ring-offset-2 text-xl font-bold text-gray-600 flex-shrink-0 ${
                     patient.mental_clarity_score !== null && patient.mental_clarity_score >= 70
                       ? 'bg-clarita-green-100 ring-clarita-green-400'
                       : patient.mental_clarity_score !== null && patient.mental_clarity_score >= 40
@@ -1042,7 +1042,7 @@ export default function PatientDetailPage() {
                         : 'bg-red-100 ring-red-400'
                   }`}
                 >
-                  <User size={28} className="text-gray-600" />
+                  {patient.full_name.split(' ').slice(0, 2).map(n => n[0]).join('').toUpperCase()}
                 </div>
 
                 <div>
@@ -1057,23 +1057,25 @@ export default function PatientDetailPage() {
                             : 'badge-blue'
                       }`}
                     >
-                      {patient.status}
+                      {{ active: 'Ativo', inactive: 'Inativo', discharged: 'Arquivado' }[patient.status] ?? patient.status}
                     </span>
                   </div>
 
-                  <div className="flex items-center gap-4 mt-1.5 text-sm text-gray-600">
-                    <span>
-                      {patient.age} anos &middot;{' '}
-                      {patient.gender.charAt(0).toUpperCase() + patient.gender.slice(1)}
-                    </span>
-                    <span className="flex items-center gap-1">
-                      <Mail size={12} />
-                      {patient.email}
-                    </span>
-                    <span className="flex items-center gap-1">
-                      <Phone size={12} />
-                      {patient.phone}
-                    </span>
+                  <div className="flex flex-wrap items-center gap-x-3 gap-y-1 mt-1 text-sm text-gray-500">
+                    {patient.age > 0 && <span>{patient.age} anos</span>}
+                    {patient.gender && <span>{{ female: 'Feminino', male: 'Masculino', other: 'Outro' }[patient.gender] ?? patient.gender}</span>}
+                    {patient.email && (
+                      <span className="flex items-center gap-1">
+                        <Mail size={13} />
+                        {patient.email}
+                      </span>
+                    )}
+                    {patient.phone && (
+                      <span className="flex items-center gap-1">
+                        <Phone size={13} />
+                        {patient.phone}
+                      </span>
+                    )}
                   </div>
 
                   {/* Role-based conditions & suspicions */}
@@ -1287,7 +1289,7 @@ export default function PatientDetailPage() {
           <div key={activeTab} className="animate-fade-in">
             {activeTab === 'overview' && (
               <div className="space-y-6">
-                {/* Active Alerts — urgent clinical info */}
+                {/* Active Alerts */}
                 {activeAlertCount > 0 && (
                   <div>
                     <h3 className="section-title flex items-center gap-2">
@@ -1302,7 +1304,28 @@ export default function PatientDetailPage() {
                   </div>
                 )}
 
-                {/* Top Insights — only high-impact */}
+                {/* AI Summary */}
+                <AISummaryCard
+                  summaries={summaries}
+                  loading={summariesLoading}
+                  generating={generating}
+                  onGenerate={handleGenerateSummary}
+                />
+
+                {/* Emotional chart */}
+                <EmotionalChart data={emotionalLogs} />
+
+                {/* Goals */}
+                <GoalsPanel
+                  goals={goals}
+                  patientId={patientId}
+                  loading={goalsLoading}
+                  onCreateGoal={handleCreateGoal}
+                  onAchieveGoal={handleAchieveGoal}
+                  onUpdateGoal={handleUpdateGoal}
+                />
+
+                {/* High-impact insights */}
                 {insights.filter((i) => i.impact === 'high').length > 0 && (
                   <InsightsPanel insights={insights.filter((i) => i.impact === 'high').slice(0, 2)} />
                 )}

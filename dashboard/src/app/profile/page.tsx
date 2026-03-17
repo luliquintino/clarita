@@ -13,6 +13,7 @@ import {
   Hash,
   Loader2,
   LogOut,
+  Pencil,
 } from 'lucide-react';
 import Sidebar from '@/components/Sidebar';
 import { authApi, removeToken, isAuthenticated, getToken } from '@/lib/api';
@@ -48,12 +49,30 @@ const ROLE_COLORS: Record<string, string> = {
   patient: 'from-purple-100 to-purple-50 text-purple-700',
 };
 
+const INPUT_CLASS =
+  'w-full px-3 py-1.5 rounded-xl border border-clarita-beige-200 bg-clarita-beige-50 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-clarita-green-400';
+
 export default function ProfilePage() {
   const router = useRouter();
   const [user, setUser] = useState<UserData | null>(null);
   const [profile, setProfile] = useState<Profile | null>(null);
   const [loading, setLoading] = useState(true);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+
+  // Edit state
+  const [editingSection, setEditingSection] = useState<'account' | 'professional' | null>(null);
+  const [saving, setSaving] = useState(false);
+  const [saveError, setSaveError] = useState('');
+
+  // Draft state
+  const [draftAccount, setDraftAccount] = useState({ first_name: '', last_name: '', phone: '' });
+  const [draftProfessional, setDraftProfessional] = useState({
+    specialization: '',
+    institution: '',
+    license_number: '',
+    years_of_experience: '',
+    bio: '',
+  });
 
   useEffect(() => {
     if (!isAuthenticated()) {
@@ -130,6 +149,61 @@ export default function ProfilePage() {
     }
   };
 
+  const startEditAccount = () => {
+    if (!user) return;
+    setDraftAccount({
+      first_name: user.first_name,
+      last_name: user.last_name,
+      phone: user.phone || '',
+    });
+    setSaveError('');
+    setEditingSection('account');
+  };
+
+  const startEditProfessional = () => {
+    if (!profile) return;
+    setDraftProfessional({
+      specialization: profile.specialization || '',
+      institution: profile.institution || '',
+      license_number: profile.license_number || '',
+      years_of_experience: profile.years_of_experience != null ? String(profile.years_of_experience) : '',
+      bio: profile.bio || '',
+    });
+    setSaveError('');
+    setEditingSection('professional');
+  };
+
+  const handleSave = async (section: 'account' | 'professional') => {
+    setSaving(true);
+    setSaveError('');
+    try {
+      if (section === 'account') {
+        await authApi.updateMe({
+          first_name: draftAccount.first_name,
+          last_name: draftAccount.last_name,
+          phone: draftAccount.phone || undefined,
+        });
+      } else {
+        await authApi.updateMe({
+          specialization: draftProfessional.specialization || undefined,
+          institution: draftProfessional.institution || undefined,
+          license_number: draftProfessional.license_number || undefined,
+          bio: draftProfessional.bio || undefined,
+          years_of_experience: draftProfessional.years_of_experience
+            ? Number(draftProfessional.years_of_experience)
+            : undefined,
+        });
+      }
+      await loadProfile();
+      setEditingSection(null);
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : 'Erro ao salvar';
+      setSaveError(message);
+    } finally {
+      setSaving(false);
+    }
+  };
+
   const initials = user
     ? `${user.first_name[0]}${user.last_name[0]}`.toUpperCase()
     : '';
@@ -193,81 +267,229 @@ export default function ProfilePage() {
                 </div>
               </div>
 
-              {/* Info cards */}
+              {/* Account info card */}
               <div className="bg-white/70 backdrop-blur-xl rounded-3xl shadow-2xl border border-white/40 p-6">
-                <h2 className="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-4">
-                  Informações da conta
-                </h2>
-                <div className="space-y-4">
-                  <InfoRow
-                    icon={<Mail size={16} />}
-                    label="E-mail"
-                    value={user.email}
-                  />
-                  {user.phone && (
-                    <InfoRow
-                      icon={<Phone size={16} />}
-                      label="Telefone"
-                      value={user.phone}
-                    />
-                  )}
-                  <InfoRow
-                    icon={<Hash size={16} />}
-                    label="ID de exibição"
-                    value={user.display_id}
-                  />
-                  {memberSince !== '—' && (
-                    <InfoRow
-                      icon={<Calendar size={16} />}
-                      label="Membro desde"
-                      value={memberSince}
-                    />
+                <div className="flex items-center justify-between mb-4">
+                  <h2 className="text-sm font-semibold text-gray-500 uppercase tracking-wider">
+                    Informações da conta
+                  </h2>
+                  {editingSection !== 'account' && (
+                    <button
+                      onClick={startEditAccount}
+                      className="p-1.5 rounded-lg hover:bg-clarita-beige-100 text-gray-400 hover:text-clarita-green-600 transition-colors"
+                      title="Editar"
+                    >
+                      <Pencil size={14} />
+                    </button>
                   )}
                 </div>
+
+                {editingSection === 'account' ? (
+                  <div className="space-y-4">
+                    <div className="grid grid-cols-2 gap-3">
+                      <div>
+                        <label className="text-xs text-gray-400 mb-1 block">Nome</label>
+                        <input
+                          className={INPUT_CLASS}
+                          value={draftAccount.first_name}
+                          onChange={(e) => setDraftAccount((d) => ({ ...d, first_name: e.target.value }))}
+                          placeholder="Nome"
+                        />
+                      </div>
+                      <div>
+                        <label className="text-xs text-gray-400 mb-1 block">Sobrenome</label>
+                        <input
+                          className={INPUT_CLASS}
+                          value={draftAccount.last_name}
+                          onChange={(e) => setDraftAccount((d) => ({ ...d, last_name: e.target.value }))}
+                          placeholder="Sobrenome"
+                        />
+                      </div>
+                    </div>
+                    <div>
+                      <label className="text-xs text-gray-400 mb-1 block">Telefone</label>
+                      <input
+                        className={INPUT_CLASS}
+                        value={draftAccount.phone}
+                        onChange={(e) => setDraftAccount((d) => ({ ...d, phone: e.target.value }))}
+                        placeholder="Telefone"
+                        type="tel"
+                      />
+                    </div>
+                    {/* Non-editable fields shown as read-only */}
+                    <InfoRow icon={<Mail size={16} />} label="E-mail" value={user.email} />
+                    <InfoRow icon={<Hash size={16} />} label="ID de exibição" value={user.display_id} />
+                    {memberSince !== '—' && (
+                      <InfoRow icon={<Calendar size={16} />} label="Membro desde" value={memberSince} />
+                    )}
+                    {/* Save / Cancel */}
+                    <div className="flex items-center gap-2 pt-3 border-t border-clarita-beige-100/60 mt-3">
+                      {saveError && <p className="text-xs text-red-500 flex-1">{saveError}</p>}
+                      <button
+                        onClick={() => setEditingSection(null)}
+                        className="px-3 py-1.5 text-sm text-gray-500 hover:text-gray-700 transition-colors"
+                      >
+                        Cancelar
+                      </button>
+                      <button
+                        onClick={() => handleSave('account')}
+                        disabled={saving}
+                        className="px-4 py-1.5 text-sm bg-clarita-green-500 hover:bg-clarita-green-600 text-white rounded-xl transition-colors disabled:opacity-60 flex items-center gap-1.5"
+                      >
+                        {saving && <Loader2 size={12} className="animate-spin" />}
+                        Salvar
+                      </button>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    <InfoRow icon={<Mail size={16} />} label="E-mail" value={user.email} />
+                    {user.phone && (
+                      <InfoRow icon={<Phone size={16} />} label="Telefone" value={user.phone} />
+                    )}
+                    <InfoRow icon={<Hash size={16} />} label="ID de exibição" value={user.display_id} />
+                    {memberSince !== '—' && (
+                      <InfoRow icon={<Calendar size={16} />} label="Membro desde" value={memberSince} />
+                    )}
+                  </div>
+                )}
               </div>
 
               {/* Professional profile */}
               {profile && (user.role === 'psychologist' || user.role === 'psychiatrist') && (
                 <div className="bg-white/70 backdrop-blur-xl rounded-3xl shadow-2xl border border-white/40 p-6">
-                  <h2 className="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-4">
-                    Perfil profissional
-                  </h2>
-                  <div className="space-y-4">
-                    {profile.license_number && (
-                      <InfoRow
-                        icon={<BadgeCheck size={16} />}
-                        label="Número de registro"
-                        value={profile.license_number}
-                      />
-                    )}
-                    {profile.specialization && (
-                      <InfoRow
-                        icon={<Stethoscope size={16} />}
-                        label="Especialização"
-                        value={profile.specialization}
-                      />
-                    )}
-                    {profile.institution && (
-                      <InfoRow
-                        icon={<Building2 size={16} />}
-                        label="Instituição"
-                        value={profile.institution}
-                      />
-                    )}
-                    {profile.years_of_experience != null && (
-                      <InfoRow
-                        icon={<User size={16} />}
-                        label="Anos de experiência"
-                        value={`${profile.years_of_experience} anos`}
-                      />
-                    )}
-                    {profile.bio && (
-                      <div className="pt-1">
-                        <p className="text-xs text-gray-400 mb-1.5">Biografia</p>
-                        <p className="text-sm text-gray-700 leading-relaxed">{profile.bio}</p>
-                      </div>
+                  <div className="flex items-center justify-between mb-4">
+                    <h2 className="text-sm font-semibold text-gray-500 uppercase tracking-wider">
+                      Perfil profissional
+                    </h2>
+                    {editingSection !== 'professional' && (
+                      <button
+                        onClick={startEditProfessional}
+                        className="p-1.5 rounded-lg hover:bg-clarita-beige-100 text-gray-400 hover:text-clarita-green-600 transition-colors"
+                        title="Editar"
+                      >
+                        <Pencil size={14} />
+                      </button>
                     )}
                   </div>
+
+                  {editingSection === 'professional' ? (
+                    <div className="space-y-4">
+                      <div>
+                        <label className="text-xs text-gray-400 mb-1 block">Número de registro</label>
+                        <input
+                          className={INPUT_CLASS}
+                          value={draftProfessional.license_number}
+                          onChange={(e) =>
+                            setDraftProfessional((d) => ({ ...d, license_number: e.target.value }))
+                          }
+                          placeholder="Número de registro"
+                        />
+                      </div>
+                      <div>
+                        <label className="text-xs text-gray-400 mb-1 block">Especialização</label>
+                        <input
+                          className={INPUT_CLASS}
+                          value={draftProfessional.specialization}
+                          onChange={(e) =>
+                            setDraftProfessional((d) => ({ ...d, specialization: e.target.value }))
+                          }
+                          placeholder="Especialização"
+                        />
+                      </div>
+                      <div>
+                        <label className="text-xs text-gray-400 mb-1 block">Instituição</label>
+                        <input
+                          className={INPUT_CLASS}
+                          value={draftProfessional.institution}
+                          onChange={(e) =>
+                            setDraftProfessional((d) => ({ ...d, institution: e.target.value }))
+                          }
+                          placeholder="Instituição"
+                        />
+                      </div>
+                      <div>
+                        <label className="text-xs text-gray-400 mb-1 block">Anos de experiência</label>
+                        <input
+                          className={INPUT_CLASS}
+                          value={draftProfessional.years_of_experience}
+                          onChange={(e) =>
+                            setDraftProfessional((d) => ({ ...d, years_of_experience: e.target.value }))
+                          }
+                          placeholder="Anos de experiência"
+                          type="number"
+                          min="0"
+                        />
+                      </div>
+                      <div>
+                        <label className="text-xs text-gray-400 mb-1 block">Biografia</label>
+                        <textarea
+                          className={`${INPUT_CLASS} resize-none`}
+                          value={draftProfessional.bio}
+                          onChange={(e) =>
+                            setDraftProfessional((d) => ({ ...d, bio: e.target.value }))
+                          }
+                          placeholder="Escreva uma breve biografia..."
+                          rows={4}
+                        />
+                      </div>
+                      {/* Save / Cancel */}
+                      <div className="flex items-center gap-2 pt-3 border-t border-clarita-beige-100/60 mt-3">
+                        {saveError && <p className="text-xs text-red-500 flex-1">{saveError}</p>}
+                        <button
+                          onClick={() => setEditingSection(null)}
+                          className="px-3 py-1.5 text-sm text-gray-500 hover:text-gray-700 transition-colors"
+                        >
+                          Cancelar
+                        </button>
+                        <button
+                          onClick={() => handleSave('professional')}
+                          disabled={saving}
+                          className="px-4 py-1.5 text-sm bg-clarita-green-500 hover:bg-clarita-green-600 text-white rounded-xl transition-colors disabled:opacity-60 flex items-center gap-1.5"
+                        >
+                          {saving && <Loader2 size={12} className="animate-spin" />}
+                          Salvar
+                        </button>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="space-y-4">
+                      {profile.license_number && (
+                        <InfoRow
+                          icon={<BadgeCheck size={16} />}
+                          label="Número de registro"
+                          value={profile.license_number}
+                        />
+                      )}
+                      {profile.specialization && (
+                        <InfoRow
+                          icon={<Stethoscope size={16} />}
+                          label="Especialização"
+                          value={profile.specialization}
+                        />
+                      )}
+                      {profile.institution && (
+                        <InfoRow
+                          icon={<Building2 size={16} />}
+                          label="Instituição"
+                          value={profile.institution}
+                        />
+                      )}
+                      {profile.years_of_experience != null && (
+                        <InfoRow
+                          icon={<User size={16} />}
+                          label="Anos de experiência"
+                          value={`${profile.years_of_experience} anos`}
+                        />
+                      )}
+                      {profile.bio && (
+                        <div className="pt-1">
+                          <p className="text-xs text-gray-400 mb-1.5">Biografia</p>
+                          <p className="text-sm text-gray-700 leading-relaxed">{profile.bio}</p>
+                        </div>
+                      )}
+                    </div>
+                  )}
                 </div>
               )}
 

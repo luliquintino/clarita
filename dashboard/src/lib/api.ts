@@ -537,6 +537,21 @@ export const authApi = {
 
   me: () => request<{ user: AuthUser; profile?: { onboarding_completed?: boolean; [key: string]: unknown } | null }>('/auth/me'),
 
+  updateMe: (data: {
+    first_name?: string;
+    last_name?: string;
+    phone?: string;
+    specialization?: string;
+    institution?: string;
+    license_number?: string;
+    bio?: string;
+    years_of_experience?: number;
+  }) =>
+    request<{ user: AuthUser }>('/auth/me', {
+      method: 'PUT',
+      body: JSON.stringify(data),
+    }),
+
   logout: () => {
     removeToken();
   },
