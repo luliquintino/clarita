@@ -127,8 +127,6 @@ export default function JournalEntry({ onSubmit, saving = false, medications }: 
           value={mood}
           onChange={setMood}
           icon={<MoodIcon size={18} className={moodConfig.color} />}
-          lowEmoji="😔"
-          highEmoji="😊"
           lowLabel="Muito triste"
           highLabel="Muito feliz"
           color="text-clarita-green-600"
@@ -138,8 +136,6 @@ export default function JournalEntry({ onSubmit, saving = false, medications }: 
           value={anxiety}
           onChange={setAnxiety}
           icon={<Zap size={18} className="text-orange-400" />}
-          lowEmoji="😌"
-          highEmoji="😰"
           lowLabel="Calmo(a)"
           highLabel="Muito ansioso(a)"
           color="text-orange-500"
@@ -149,8 +145,6 @@ export default function JournalEntry({ onSubmit, saving = false, medications }: 
           value={energy}
           onChange={setEnergy}
           icon={<Zap size={18} className="text-clarita-blue-400" />}
-          lowEmoji="😴"
-          highEmoji="⚡"
           lowLabel="Sem energia"
           highLabel="Muita energia"
           color="text-clarita-blue-500"
@@ -160,8 +154,6 @@ export default function JournalEntry({ onSubmit, saving = false, medications }: 
           value={sleepHours}
           onChange={setSleepHours}
           icon={<Moon size={18} className="text-clarita-purple-400" />}
-          lowEmoji="🌙"
-          highEmoji="☀️"
           lowLabel="0h"
           highLabel="10h+"
           color="text-clarita-purple-500"

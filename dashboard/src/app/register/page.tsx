@@ -120,9 +120,10 @@ export default function RegisterPage() {
             alt="Clarita"
             width={120}
             height={96}
-            className="mx-auto mb-3 drop-shadow-lg"
+            className="mx-auto mb-1 drop-shadow-lg"
             priority
           />
+          <h1 className="text-2xl font-bold text-gray-800 tracking-tight mb-1">Clarita</h1>
           <p className="text-gray-500 text-sm font-light">
             {isPatient ? 'Portal do Paciente' : 'Painel Profissional'}
           </p>

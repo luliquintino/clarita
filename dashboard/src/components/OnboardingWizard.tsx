@@ -1,6 +1,6 @@
 'use client';
 import { useState } from 'react';
-import { ChevronRight, User, Briefcase, UserPlus, CheckCircle } from 'lucide-react';
+import { ChevronRight, User, UserPlus, CheckCircle } from 'lucide-react';
 
 interface OnboardingWizardProps {
   userName: string;
@@ -15,7 +15,7 @@ export default function OnboardingWizard({ userName, onComplete, token, apiUrl }
   const [inviteSent, setInviteSent] = useState(false);
   const [completing, setCompleting] = useState(false);
 
-  const totalSteps = 4;
+  const totalSteps = 3;
 
   const handleInvite = async () => {
     if (!inviteDisplayId) return;
@@ -84,28 +84,6 @@ export default function OnboardingWizard({ userName, onComplete, token, apiUrl }
 
           {step === 2 && (
             <div>
-              <div className="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center mb-4">
-                <Briefcase className="w-6 h-6 text-blue-600" />
-              </div>
-              <h2 className="text-xl font-bold text-gray-900 mb-2">Como você vai usar o Clarita?</h2>
-              <p className="text-gray-500 mb-4">Isso ajusta as funcionalidades disponíveis para você.</p>
-              <div className="space-y-3 mb-6">
-                {['Psicólogo(a)', 'Psiquiatra', 'Ambos'].map(opt => (
-                  <button
-                    key={opt}
-                    type="button"
-                    onClick={() => setStep(3)}
-                    className="w-full text-left p-4 rounded-xl border-2 border-gray-100 hover:border-green-400 hover:bg-green-50 transition-colors"
-                  >
-                    <span className="font-medium text-gray-800">{opt}</span>
-                  </button>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {step === 3 && (
-            <div>
               <div className="w-12 h-12 bg-purple-100 rounded-xl flex items-center justify-center mb-4">
                 <UserPlus className="w-6 h-6 text-purple-600" />
               </div>
@@ -130,7 +108,7 @@ export default function OnboardingWizard({ userName, onComplete, token, apiUrl }
                   >
                     Enviar convite
                   </button>
-                  <button type="button" onClick={() => setStep(4)} className="w-full text-sm text-gray-400 hover:text-gray-600 py-2">
+                  <button type="button" onClick={() => setStep(3)} className="w-full text-sm text-gray-400 hover:text-gray-600 py-2">
                     Pular por agora
                   </button>
                 </div>
@@ -138,7 +116,7 @@ export default function OnboardingWizard({ userName, onComplete, token, apiUrl }
                 <div className="text-center py-4">
                   <CheckCircle className="w-12 h-12 text-green-500 mx-auto mb-3" />
                   <p className="text-gray-700 font-medium mb-4">Convite enviado!</p>
-                  <button type="button" onClick={() => setStep(4)} className="py-3 px-6 bg-green-600 text-white rounded-xl font-medium hover:bg-green-700 transition-colors flex items-center gap-2 mx-auto">
+                  <button type="button" onClick={() => setStep(3)} className="py-3 px-6 bg-green-600 text-white rounded-xl font-medium hover:bg-green-700 transition-colors flex items-center gap-2 mx-auto">
                     Continuar <ChevronRight className="w-4 h-4" />
                   </button>
                 </div>
@@ -146,7 +124,7 @@ export default function OnboardingWizard({ userName, onComplete, token, apiUrl }
             </div>
           )}
 
-          {step === 4 && (
+          {step === 3 && (
             <div className="text-center">
               <div className="w-16 h-16 bg-green-100 rounded-2xl flex items-center justify-center mx-auto mb-4">
                 <CheckCircle className="w-8 h-8 text-green-600" />

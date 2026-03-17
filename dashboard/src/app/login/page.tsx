@@ -51,7 +51,7 @@ export default function LoginPage() {
       <div className="w-full max-w-md relative z-10 animate-slide-up">
         {/* Logo */}
         <div className="text-center mb-8">
-          <div className="inline-block p-2 mb-4">
+          <div className="inline-block p-2 mb-2">
             <Image
               src="/logo-clarita.png"
               alt="Clarita"
@@ -61,6 +61,7 @@ export default function LoginPage() {
               priority
             />
           </div>
+          <h1 className="text-3xl font-bold text-gray-800 tracking-tight">Clarita</h1>
         </div>
 
         {/* Login Card */}

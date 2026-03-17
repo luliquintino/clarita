@@ -21,11 +21,16 @@ router.post('/', async (req, res, next) => {
       return res.status(400).json({ error: 'display_id é obrigatório' });
     }
 
-    // 1. Find target user by display_id
+    // 1. Find target user by display_id (normalize: accept with or without hyphen)
+    let normalizedId = display_id.toUpperCase().trim();
+    // If typed without hyphen (e.g. "CLA5A6831" or "CLABA5A3"), insert hyphen after prefix
+    if (/^CLA[0-9A-F]{5,8}$/i.test(normalizedId)) {
+      normalizedId = 'CLA-' + normalizedId.slice(3);
+    }
     const targetResult = await query(
       `SELECT id, email, role, display_id, first_name, last_name FROM users
        WHERE display_id = $1 AND is_active = TRUE`,
-      [display_id.toUpperCase().trim()]
+      [normalizedId]
     );
 
     if (targetResult.rows.length === 0) {
