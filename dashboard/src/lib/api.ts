@@ -374,6 +374,11 @@ export interface PatientListItem {
   relationship_status: string;
   relationship_type: string;
   started_at: string;
+  last_check_in: string | null;
+  last_mood_score: number | null;
+  last_anxiety_score: number | null;
+  mood_trend: number[] | null;
+  active_alerts: number;
 }
 
 // ---------------------------------------------------------------------------

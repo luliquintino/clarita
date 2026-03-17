@@ -23,10 +23,37 @@ router.get('/', requireRole('psychologist', 'psychiatrist'), async (req, res, ne
     let sql = `
       SELECT u.id, u.email, u.first_name, u.last_name, u.phone, u.avatar_url, u.display_id, u.created_at,
              pp.date_of_birth, pp.gender, pp.onboarding_completed,
-             cr.status AS relationship_status, cr.relationship_type, cr.started_at
+             cr.status AS relationship_status, cr.relationship_type, cr.started_at,
+             last_log.last_check_in,
+             last_log.last_mood_score,
+             last_log.last_anxiety_score,
+             mood_trend.trend AS mood_trend,
+             COALESCE(alert_count.active_alerts, 0) AS active_alerts
       FROM care_relationships cr
       JOIN users u ON u.id = cr.patient_id
       LEFT JOIN patient_profiles pp ON pp.user_id = u.id
+      LEFT JOIN LATERAL (
+        SELECT logged_at AS last_check_in, mood_score AS last_mood_score, anxiety_score AS last_anxiety_score
+        FROM emotional_logs
+        WHERE patient_id = u.id
+        ORDER BY logged_at DESC
+        LIMIT 1
+      ) last_log ON TRUE
+      LEFT JOIN LATERAL (
+        SELECT json_agg(mood_score ORDER BY logged_at ASC) AS trend
+        FROM (
+          SELECT mood_score, logged_at
+          FROM emotional_logs
+          WHERE patient_id = u.id
+          ORDER BY logged_at DESC
+          LIMIT 10
+        ) recent
+      ) mood_trend ON TRUE
+      LEFT JOIN LATERAL (
+        SELECT COUNT(*) AS active_alerts
+        FROM alerts
+        WHERE patient_id = u.id AND is_acknowledged = FALSE
+      ) alert_count ON TRUE
       WHERE cr.professional_id = $1
         AND cr.status = 'active'
         AND u.is_active = TRUE
