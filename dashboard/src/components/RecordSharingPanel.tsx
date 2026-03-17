@@ -15,7 +15,6 @@ export default function RecordSharingPanel({ patientId }: RecordSharingPanelProp
   const [generatedToken, setGeneratedToken] = useState<RecordAccessToken | null>(null);
   const [copied, setCopied] = useState(false);
 
-  // Access view state
   const [accessToken, setAccessToken] = useState('');
   const [accessView, setAccessView] = useState<'share' | 'access'>('share');
   const [accessLoading, setAccessLoading] = useState(false);
@@ -112,7 +111,7 @@ export default function RecordSharingPanel({ patientId }: RecordSharingPanelProp
   if (loading) {
     return (
       <div className="flex items-center justify-center py-12">
-        <Loader2 className="w-6 h-6 animate-spin text-violet-400" />
+        <Loader2 className="w-6 h-6 animate-spin text-violet-500" />
       </div>
     );
   }
@@ -121,11 +120,14 @@ export default function RecordSharingPanel({ patientId }: RecordSharingPanelProp
   if (accessView === 'access') {
     return (
       <div className="space-y-4 animate-fade-in">
-        <button onClick={() => { setAccessView('share'); setAccessedRecords([]); setAccessToken(''); }} className="text-sm text-violet-400 hover:text-violet-300">
+        <button
+          onClick={() => { setAccessView('share'); setAccessedRecords([]); setAccessToken(''); }}
+          className="text-sm text-violet-600 hover:text-violet-700 font-medium"
+        >
           ← Voltar
         </button>
-        <h3 className="text-lg font-semibold text-white flex items-center gap-2">
-          <ShieldCheck className="w-5 h-5 text-violet-400" />
+        <h3 className="text-base font-semibold text-gray-800 flex items-center gap-2">
+          <ShieldCheck className="w-5 h-5 text-violet-500" />
           Acessar Prontuário Compartilhado
         </h3>
 
@@ -136,13 +138,13 @@ export default function RecordSharingPanel({ patientId }: RecordSharingPanelProp
               placeholder="Cole o token de acesso aqui..."
               value={accessToken}
               onChange={(e) => setAccessToken(e.target.value)}
-              className="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-white placeholder-white/30 font-mono text-sm"
+              className="w-full border border-gray-200 rounded-xl p-3 text-gray-800 placeholder-gray-400 font-mono text-sm focus:outline-none focus:ring-2 focus:ring-violet-300 bg-white"
             />
-            {accessError && <p className="text-red-400 text-sm">{accessError}</p>}
+            {accessError && <p className="text-red-500 text-sm">{accessError}</p>}
             <button
               onClick={handleAccessRecords}
               disabled={accessLoading || !accessToken.trim()}
-              className="w-full bg-violet-500/20 hover:bg-violet-500/30 border border-violet-500/30 text-violet-300 py-3 rounded-xl flex items-center justify-center gap-2 transition-colors disabled:opacity-40"
+              className="w-full bg-violet-600 hover:bg-violet-700 text-white py-3 rounded-xl flex items-center justify-center gap-2 transition-colors disabled:opacity-40 font-medium"
             >
               {accessLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <ShieldCheck className="w-4 h-4" />}
               Verificar e Acessar
@@ -150,29 +152,29 @@ export default function RecordSharingPanel({ patientId }: RecordSharingPanelProp
           </div>
         ) : (
           <div className="space-y-4">
-            <p className="text-sm text-white/60">{accessedRecords.length} registro(s) compartilhado(s)</p>
+            <p className="text-sm text-gray-500">{accessedRecords.length} registro(s) compartilhado(s)</p>
             {accessedRecords.map((r) => (
-              <div key={r.id} className="bg-white/5 border border-white/10 rounded-xl p-4">
+              <div key={r.id} className="bg-gray-50 border border-gray-200 rounded-xl p-4">
                 <div className="flex items-center justify-between mb-2">
-                  <span className="text-white font-medium">{r.title}</span>
-                  <span className="text-xs text-white/40">{new Date(r.record_date).toLocaleDateString('pt-BR')}</span>
+                  <span className="text-gray-800 font-medium text-sm">{r.title}</span>
+                  <span className="text-xs text-gray-400">{new Date(r.record_date).toLocaleDateString('pt-BR')}</span>
                 </div>
-                <p className="text-sm text-white/60 whitespace-pre-wrap">{r.content}</p>
+                <p className="text-sm text-gray-600 whitespace-pre-wrap">{r.content}</p>
               </div>
             ))}
-            <div className="border-t border-white/10 pt-4 space-y-3">
-              <h4 className="text-sm font-medium text-white/60">Salvar resumo (antes do token expirar)</h4>
+            <div className="border-t border-gray-200 pt-4 space-y-3">
+              <h4 className="text-sm font-medium text-gray-600">Salvar resumo (antes do token expirar)</h4>
               <textarea
                 placeholder="Escreva um resumo dos registros..."
                 value={summary}
                 onChange={(e) => setSummary(e.target.value)}
-                className="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-white placeholder-white/30 resize-none text-sm"
+                className="w-full border border-gray-200 rounded-xl p-3 text-gray-800 placeholder-gray-400 resize-none text-sm focus:outline-none focus:ring-2 focus:ring-violet-300 bg-white"
                 rows={4}
               />
               <button
                 onClick={handleSaveSummary}
                 disabled={savingSummary || !summary.trim()}
-                className="bg-violet-500/20 hover:bg-violet-500/30 border border-violet-500/30 text-violet-300 px-4 py-2 rounded-xl text-sm flex items-center gap-2 transition-colors disabled:opacity-40"
+                className="bg-violet-600 hover:bg-violet-700 text-white px-4 py-2 rounded-xl text-sm flex items-center gap-2 transition-colors disabled:opacity-40 font-medium"
               >
                 {savingSummary ? <Loader2 className="w-4 h-4 animate-spin" /> : <FileText className="w-4 h-4" />}
                 Salvar Resumo
@@ -188,13 +190,13 @@ export default function RecordSharingPanel({ patientId }: RecordSharingPanelProp
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h3 className="text-lg font-semibold text-white flex items-center gap-2">
-          <Share2 className="w-5 h-5 text-violet-400" />
+        <h3 className="text-base font-semibold text-gray-800 flex items-center gap-2">
+          <Share2 className="w-5 h-5 text-violet-500" />
           Compartilhamento de Prontuário
         </h3>
         <button
           onClick={() => setAccessView('access')}
-          className="text-sm text-violet-400 hover:text-violet-300"
+          className="text-sm text-violet-600 hover:text-violet-700 font-medium transition-colors"
         >
           Acessar via Token
         </button>
@@ -202,30 +204,30 @@ export default function RecordSharingPanel({ patientId }: RecordSharingPanelProp
 
       {/* Generate Token */}
       {generatedToken ? (
-        <div className="bg-violet-500/10 border border-violet-500/20 rounded-xl p-4 space-y-3 animate-fade-in">
-          <div className="flex items-center gap-2 text-violet-300">
+        <div className="bg-violet-50 border border-violet-200 rounded-xl p-4 space-y-3 animate-fade-in">
+          <div className="flex items-center gap-2 text-violet-700 font-medium">
             <QrCode className="w-5 h-5" />
-            <span className="font-medium">Token Gerado</span>
+            <span>Token Gerado</span>
           </div>
-          <div className="bg-white/5 rounded-lg p-3 font-mono text-xs text-white/60 break-all select-all">
+          <div className="bg-white border border-violet-100 rounded-lg p-3 font-mono text-xs text-gray-600 break-all select-all">
             {generatedToken.token}
           </div>
           <div className="flex items-center justify-between">
-            <span className="text-xs text-white/40 flex items-center gap-1">
+            <span className="text-xs text-gray-400 flex items-center gap-1">
               <Clock className="w-3 h-3" />
               Expira em {daysRemaining(generatedToken.expires_at)} dias
             </span>
             <div className="flex gap-2">
               <button
                 onClick={() => copyToken(generatedToken.token)}
-                className="text-xs bg-violet-500/20 hover:bg-violet-500/30 text-violet-300 px-3 py-1.5 rounded-lg flex items-center gap-1 transition-colors"
+                className="text-xs bg-violet-600 hover:bg-violet-700 text-white px-3 py-1.5 rounded-lg flex items-center gap-1 transition-colors font-medium"
               >
                 {copied ? <CheckCircle2 className="w-3 h-3" /> : <Copy className="w-3 h-3" />}
                 {copied ? 'Copiado!' : 'Copiar Link'}
               </button>
               <button
                 onClick={() => handleRevoke(generatedToken.id)}
-                className="text-xs text-red-400/60 hover:text-red-400 px-2"
+                className="text-red-400 hover:text-red-600 px-2 transition-colors"
               >
                 <XCircle className="w-4 h-4" />
               </button>
@@ -236,33 +238,33 @@ export default function RecordSharingPanel({ patientId }: RecordSharingPanelProp
         <button
           onClick={handleGenerate}
           disabled={generating}
-          className="w-full bg-violet-500/20 hover:bg-violet-500/30 border border-violet-500/30 text-violet-300 py-3 rounded-xl flex items-center justify-center gap-2 transition-colors"
+          className="w-full bg-violet-600 hover:bg-violet-700 text-white py-3 rounded-xl flex items-center justify-center gap-2 transition-colors font-medium disabled:opacity-50"
         >
           {generating ? <Loader2 className="w-4 h-4 animate-spin" /> : <QrCode className="w-4 h-4" />}
           Gerar Token de Compartilhamento
         </button>
       )}
 
-      <p className="text-xs text-white/30 text-center">
+      <p className="text-xs text-gray-400 text-center">
         O token permite que outro profissional acesse seu prontuário deste paciente por 20 dias.
       </p>
 
       {/* Existing shares */}
       {shares.length > 0 && (
         <div className="space-y-2">
-          <h4 className="text-sm font-medium text-white/50 uppercase tracking-wider">Tokens Ativos</h4>
+          <h4 className="text-sm font-medium text-gray-500 uppercase tracking-wider">Tokens Ativos</h4>
           {shares.map((s) => (
-            <div key={s.id} className="bg-white/5 border border-white/10 rounded-xl p-3 flex items-center justify-between">
+            <div key={s.id} className="bg-gray-50 border border-gray-200 rounded-xl p-3 flex items-center justify-between">
               <div>
-                <p className="text-sm text-white/70 font-mono">{s.token.substring(0, 16)}...</p>
-                <p className="text-xs text-white/40 flex items-center gap-1 mt-0.5">
+                <p className="text-sm text-gray-700 font-mono">{s.token.substring(0, 16)}...</p>
+                <p className="text-xs text-gray-400 flex items-center gap-1 mt-0.5">
                   <Clock className="w-3 h-3" />
                   {s.is_revoked ? 'Revogado' : `${daysRemaining(s.expires_at)} dias restantes`}
                   {s.accessed_at && ' • Acessado'}
                 </p>
               </div>
               {!s.is_revoked && daysRemaining(s.expires_at) > 0 && (
-                <button onClick={() => handleRevoke(s.id)} className="text-red-400/60 hover:text-red-400">
+                <button onClick={() => handleRevoke(s.id)} className="text-red-400 hover:text-red-600 transition-colors">
                   <XCircle className="w-4 h-4" />
                 </button>
               )}

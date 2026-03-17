@@ -120,10 +120,13 @@ export default function MedicalRecordsPanel({ patientId }: MedicalRecordsPanelPr
     return (
       <div className="space-y-4 animate-fade-in">
         <div className="flex items-center justify-between">
-          <h3 className="text-lg font-semibold text-white">
+          <h3 className="text-base font-semibold text-gray-800">
             {view === 'edit' ? 'Editar Registro' : 'Novo Registro'}
           </h3>
-          <button onClick={() => { setView('list'); resetForm(); setSelectedRecord(null); }} className="text-sm text-rose-400 hover:text-rose-300">
+          <button
+            onClick={() => { setView('list'); resetForm(); setSelectedRecord(null); }}
+            className="text-gray-400 hover:text-gray-600 transition-colors"
+          >
             <X className="w-5 h-5" />
           </button>
         </div>
@@ -133,7 +136,7 @@ export default function MedicalRecordsPanel({ patientId }: MedicalRecordsPanelPr
           placeholder="Título"
           value={title}
           onChange={(e) => setTitle(e.target.value)}
-          className="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-white placeholder-white/30"
+          className="w-full border border-gray-200 rounded-xl p-3 text-gray-800 placeholder-gray-400 text-sm focus:outline-none focus:ring-2 focus:ring-rose-300 bg-white"
         />
 
         <div className="flex gap-3">
@@ -141,14 +144,14 @@ export default function MedicalRecordsPanel({ patientId }: MedicalRecordsPanelPr
             type="date"
             value={recordDate}
             onChange={(e) => setRecordDate(e.target.value)}
-            className="bg-white/5 border border-white/10 rounded-xl p-3 text-white text-sm"
+            className="border border-gray-200 rounded-xl p-3 text-gray-700 text-sm focus:outline-none focus:ring-2 focus:ring-rose-300 bg-white"
           />
           <input
             type="text"
             placeholder="Categoria"
             value={category}
             onChange={(e) => setCategory(e.target.value)}
-            className="flex-1 bg-white/5 border border-white/10 rounded-xl p-3 text-white text-sm placeholder-white/30"
+            className="flex-1 border border-gray-200 rounded-xl p-3 text-gray-700 text-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-rose-300 bg-white"
           />
         </div>
 
@@ -156,7 +159,7 @@ export default function MedicalRecordsPanel({ patientId }: MedicalRecordsPanelPr
           placeholder="Conteúdo do registro..."
           value={content}
           onChange={(e) => setContent(e.target.value)}
-          className="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-white placeholder-white/30 resize-none min-h-[200px] font-mono text-sm"
+          className="w-full border border-gray-200 rounded-xl p-3 text-gray-800 placeholder-gray-400 resize-none min-h-[200px] font-mono text-sm focus:outline-none focus:ring-2 focus:ring-rose-300 bg-white"
           rows={10}
         />
 
@@ -165,13 +168,13 @@ export default function MedicalRecordsPanel({ patientId }: MedicalRecordsPanelPr
           placeholder="Tags (separadas por vírgula)"
           value={tags}
           onChange={(e) => setTags(e.target.value)}
-          className="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-white text-sm placeholder-white/30"
+          className="w-full border border-gray-200 rounded-xl p-3 text-gray-700 text-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-rose-300 bg-white"
         />
 
         <button
           onClick={handleSave}
           disabled={saving || !title.trim() || !content.trim()}
-          className="w-full bg-rose-500/20 hover:bg-rose-500/30 border border-rose-500/30 text-rose-300 py-3 rounded-xl flex items-center justify-center gap-2 transition-colors disabled:opacity-40"
+          className="w-full bg-rose-500 hover:bg-rose-600 text-white py-3 rounded-xl flex items-center justify-center gap-2 transition-colors disabled:opacity-40 font-medium"
         >
           {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
           {view === 'edit' ? 'Salvar Alterações' : 'Criar Registro'}
@@ -184,32 +187,37 @@ export default function MedicalRecordsPanel({ patientId }: MedicalRecordsPanelPr
   if (view === 'detail' && selectedRecord) {
     return (
       <div className="space-y-4 animate-fade-in">
-        <button onClick={() => { setView('list'); setSelectedRecord(null); }} className="text-sm text-rose-400 hover:text-rose-300">
+        <button
+          onClick={() => { setView('list'); setSelectedRecord(null); }}
+          className="text-sm text-rose-500 hover:text-rose-600 font-medium"
+        >
           ← Voltar
         </button>
         <div className="flex items-center justify-between">
-          <h3 className="text-lg font-semibold text-white">{selectedRecord.title}</h3>
+          <h3 className="text-base font-semibold text-gray-800">{selectedRecord.title}</h3>
           <div className="flex gap-2">
-            <button onClick={() => startEdit(selectedRecord)} className="text-white/40 hover:text-white">
+            <button onClick={() => startEdit(selectedRecord)} className="text-gray-400 hover:text-gray-700 transition-colors">
               <Edit3 className="w-4 h-4" />
             </button>
-            <button onClick={() => handleDelete(selectedRecord.id)} className="text-red-400/60 hover:text-red-400">
+            <button onClick={() => handleDelete(selectedRecord.id)} className="text-red-400 hover:text-red-600 transition-colors">
               <Trash2 className="w-4 h-4" />
             </button>
           </div>
         </div>
-        <div className="flex items-center gap-3 text-xs text-white/40">
+        <div className="flex items-center gap-3 text-xs text-gray-400">
           <span>{new Date(selectedRecord.record_date).toLocaleDateString('pt-BR')}</span>
-          {selectedRecord.category && <span className="bg-rose-500/20 text-rose-300 px-2 py-0.5 rounded-full">{selectedRecord.category}</span>}
+          {selectedRecord.category && (
+            <span className="bg-rose-100 text-rose-600 px-2 py-0.5 rounded-full">{selectedRecord.category}</span>
+          )}
         </div>
         {selectedRecord.tags && selectedRecord.tags.length > 0 && (
           <div className="flex flex-wrap gap-1">
             {selectedRecord.tags.map((tag) => (
-              <span key={tag} className="text-xs bg-white/5 text-white/50 px-2 py-0.5 rounded-full">{tag}</span>
+              <span key={tag} className="text-xs bg-gray-100 text-gray-500 px-2 py-0.5 rounded-full">{tag}</span>
             ))}
           </div>
         )}
-        <div className="bg-white/5 border border-white/10 rounded-xl p-4 text-white/80 text-sm whitespace-pre-wrap font-mono">
+        <div className="bg-gray-50 border border-gray-200 rounded-xl p-4 text-gray-700 text-sm whitespace-pre-wrap font-mono">
           {selectedRecord.content}
         </div>
       </div>
@@ -220,39 +228,39 @@ export default function MedicalRecordsPanel({ patientId }: MedicalRecordsPanelPr
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
-        <h3 className="text-lg font-semibold text-white flex items-center gap-2">
-          <FileText className="w-5 h-5 text-rose-400" />
+        <h3 className="text-base font-semibold text-gray-800 flex items-center gap-2">
+          <FileText className="w-5 h-5 text-rose-500" />
           Prontuário Privado
         </h3>
         <button
           onClick={() => { resetForm(); setView('create'); }}
-          className="text-sm bg-rose-500/20 hover:bg-rose-500/30 border border-rose-500/30 text-rose-300 px-3 py-1.5 rounded-lg flex items-center gap-1 transition-colors"
+          className="text-sm bg-rose-500 hover:bg-rose-600 text-white px-3 py-1.5 rounded-lg flex items-center gap-1 transition-colors font-medium"
         >
           <Plus className="w-4 h-4" /> Novo Registro
         </button>
       </div>
 
-      <div className="flex items-center gap-2 bg-rose-500/10 border border-rose-500/20 rounded-xl p-3 text-xs text-rose-300">
-        <Lock className="w-4 h-4 flex-shrink-0" />
+      <div className="flex items-center gap-2 bg-rose-50 border border-rose-200 rounded-xl p-3 text-xs text-rose-700">
+        <Lock className="w-4 h-4 flex-shrink-0 text-rose-500" />
         <span>Prontuário privado — somente você pode ver estes registros.</span>
       </div>
 
       <div className="flex gap-2">
         <div className="flex-1 relative">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/30" />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
           <input
             type="text"
             placeholder="Buscar..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full bg-white/5 border border-white/10 rounded-xl pl-9 pr-3 py-2 text-white text-sm placeholder-white/30"
+            className="w-full border border-gray-200 rounded-xl pl-9 pr-3 py-2 text-gray-700 text-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-rose-300 bg-white"
           />
         </div>
         {categories.length > 0 && (
           <select
             value={filterCategory}
             onChange={(e) => setFilterCategory(e.target.value)}
-            className="bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-white text-sm"
+            className="border border-gray-200 rounded-xl px-3 py-2 text-gray-700 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-rose-300"
           >
             <option value="">Todas categorias</option>
             {categories.map((c) => (
@@ -263,21 +271,23 @@ export default function MedicalRecordsPanel({ patientId }: MedicalRecordsPanelPr
       </div>
 
       {filteredRecords.length === 0 ? (
-        <p className="text-white/40 text-sm py-8 text-center">Nenhum registro encontrado.</p>
+        <p className="text-gray-400 text-sm py-8 text-center">Nenhum registro encontrado.</p>
       ) : (
         <div className="space-y-2">
           {filteredRecords.map((r) => (
             <button
               key={r.id}
               onClick={() => { setSelectedRecord(r); setView('detail'); }}
-              className="w-full bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl p-4 text-left transition-colors"
+              className="w-full bg-white hover:bg-rose-50 border border-gray-200 hover:border-rose-200 rounded-xl p-4 text-left transition-colors"
             >
               <div className="flex items-center justify-between">
-                <span className="text-white font-medium">{r.title}</span>
-                {r.category && <span className="text-xs bg-rose-500/20 text-rose-300 px-2 py-0.5 rounded-full">{r.category}</span>}
+                <span className="text-gray-800 font-medium text-sm">{r.title}</span>
+                {r.category && (
+                  <span className="text-xs bg-rose-100 text-rose-600 px-2 py-0.5 rounded-full">{r.category}</span>
+                )}
               </div>
-              <p className="text-xs text-white/40 mt-1">{new Date(r.record_date).toLocaleDateString('pt-BR')}</p>
-              <p className="text-sm text-white/50 mt-1 line-clamp-2">{r.content}</p>
+              <p className="text-xs text-gray-400 mt-1">{new Date(r.record_date).toLocaleDateString('pt-BR')}</p>
+              <p className="text-sm text-gray-500 mt-1 line-clamp-2">{r.content}</p>
             </button>
           ))}
         </div>
