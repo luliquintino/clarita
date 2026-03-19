@@ -40,6 +40,17 @@ export function getUserRoleFromToken(): string | null {
   }
 }
 
+export function getUserIdFromToken(): string | null {
+  const token = getToken();
+  if (!token) return null;
+  try {
+    const payload = JSON.parse(atob(token.split('.')[1]));
+    return payload.sub || payload.user_id || null;
+  } catch {
+    return null;
+  }
+}
+
 export function isTokenExpired(): boolean {
   const token = getToken();
   if (!token) return true;

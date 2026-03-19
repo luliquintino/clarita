@@ -51,6 +51,7 @@ import {
   milestonesApi,
   summariesApi,
   getUserRoleFromToken,
+  getUserIdFromToken,
   diagnosesApi,
 } from '@/lib/api';
 import { getRoleCapabilities } from '@/lib/roleConfig';
@@ -459,6 +460,7 @@ export default function PatientDetailPage() {
   const [activeTab, setActiveTab] = useState<Tab>('overview');
   const [loading, setLoading] = useState(true);
   const [userRole] = useState(() => getUserRoleFromToken() || 'psychologist');
+  const [currentUserId] = useState(() => getUserIdFromToken() || undefined);
   const caps = getRoleCapabilities(userRole);
 
   // Conditions states
@@ -1448,7 +1450,14 @@ export default function PatientDetailPage() {
             )}
 
             {activeTab === 'diagnostico' && (
-              <DiagnosticBrowserPanel patientId={patientId} />
+              <DiagnosticBrowserPanel
+                patientId={patientId}
+                diagnosesForPatient={diagnoses}
+                currentProfessionalId={currentUserId}
+                onDiagnosisCreated={(diag) => {
+                  setDiagnoses(prev => [diag, ...prev]);
+                }}
+              />
             )}
 
             {activeTab === 'digital-twin' && (
