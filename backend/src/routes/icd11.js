@@ -63,6 +63,29 @@ router.get('/categories', requireRole('psychologist', 'psychiatrist'), async (re
 });
 
 // ---------------------------------------------------------------------------
+// GET /api/icd11/recent
+// Returns up to 8 most-used ICD codes by the authenticated professional
+// ---------------------------------------------------------------------------
+router.get('/recent', requireRole('psychologist', 'psychiatrist'), async (req, res, next) => {
+  try {
+    const result = await query(
+      `SELECT pd.icd_code, pd.icd_name,
+              COUNT(*) AS usage_count,
+              MAX(pd.created_at) AS last_used_at
+       FROM patient_diagnoses pd
+       WHERE pd.professional_id = $1 AND pd.is_active = true
+       GROUP BY pd.icd_code, pd.icd_name
+       ORDER BY usage_count DESC, last_used_at DESC
+       LIMIT 8`,
+      [req.user.id]
+    );
+    res.json({ recent: result.rows });
+  } catch (err) {
+    next(err);
+  }
+});
+
+// ---------------------------------------------------------------------------
 // GET /api/icd11/:code
 // ICD-11 disorder detail by code
 // ---------------------------------------------------------------------------
