@@ -533,4 +533,150 @@ router.patch(
   }
 );
 
+// ---------------------------------------------------------------------------
+// POST /api/patients/:id/diagnoses
+// Register a formal diagnosis for a patient (professionals only)
+// ---------------------------------------------------------------------------
+router.post(
+  '/:id/diagnoses',
+  requireRole('psychologist', 'psychiatrist'),
+  requirePatientAccess(),
+  async (req, res, next) => {
+    try {
+      const patientId = req.params.id;
+      const { icd_code, icd_name, certainty = 'suspected', diagnosis_date, notes } = req.body;
+
+      if (!icd_code || !icd_name) {
+        return res.status(400).json({ error: 'icd_code e icd_name são obrigatórios' });
+      }
+      if (!['suspected', 'confirmed'].includes(certainty)) {
+        return res.status(400).json({ error: 'certainty deve ser suspected ou confirmed' });
+      }
+
+      const result = await query(
+        `INSERT INTO patient_diagnoses
+           (patient_id, professional_id, icd_code, icd_name, certainty, diagnosis_date, notes)
+         VALUES ($1, $2, $3, $4, $5, $6, $7)
+         RETURNING *`,
+        [
+          patientId,
+          req.user.id,
+          icd_code,
+          icd_name,
+          certainty,
+          diagnosis_date || new Date().toISOString().split('T')[0],
+          notes || null,
+        ]
+      );
+
+      res.status(201).json({ diagnosis: result.rows[0] });
+    } catch (err) {
+      next(err);
+    }
+  }
+);
+
+// ---------------------------------------------------------------------------
+// GET /api/patients/:id/diagnoses
+// List all diagnoses for a patient
+// Filtering by role: patients only see confirmed; professionals see all
+// ---------------------------------------------------------------------------
+router.get(
+  '/:id/diagnoses',
+  requirePatientAccess(),
+  async (req, res, next) => {
+    try {
+      const patientId = req.params.id;
+      const role = req.user.role;
+
+      let sql = `
+        SELECT pd.*,
+               u.first_name AS professional_first_name,
+               u.last_name AS professional_last_name,
+               u.role AS professional_role,
+               cn.title AS clinical_note_title
+        FROM patient_diagnoses pd
+        JOIN users u ON u.id = pd.professional_id
+        LEFT JOIN clinical_notes cn ON cn.id = pd.clinical_note_id
+        WHERE pd.patient_id = $1 AND pd.is_active = true
+      `;
+      const params = [patientId];
+
+      if (role === 'patient') {
+        sql += ` AND pd.certainty = 'confirmed'`;
+      }
+
+      sql += ` ORDER BY pd.diagnosis_date DESC, pd.created_at DESC`;
+
+      const result = await query(sql, params);
+      res.json({ diagnoses: result.rows });
+    } catch (err) {
+      next(err);
+    }
+  }
+);
+
+// ---------------------------------------------------------------------------
+// PATCH /api/patients/:id/diagnoses/:diagId
+// Update a diagnosis — only the professional who created it
+// ---------------------------------------------------------------------------
+router.patch(
+  '/:id/diagnoses/:diagId',
+  requireRole('psychologist', 'psychiatrist'),
+  async (req, res, next) => {
+    try {
+      const { diagId } = req.params;
+      const { certainty, notes, clinical_note_id, is_active } = req.body;
+
+      const existing = await query(
+        `SELECT * FROM patient_diagnoses WHERE id = $1`,
+        [diagId]
+      );
+      if (existing.rows.length === 0) {
+        return res.status(404).json({ error: 'Diagnóstico não encontrado' });
+      }
+      if (existing.rows[0].professional_id !== req.user.id) {
+        return res.status(403).json({ error: 'Somente o profissional que criou pode editar' });
+      }
+
+      const updates = [];
+      const params = [];
+
+      if (certainty !== undefined) {
+        if (!['suspected', 'confirmed'].includes(certainty)) {
+          return res.status(400).json({ error: 'certainty deve ser suspected ou confirmed' });
+        }
+        params.push(certainty);
+        updates.push(`certainty = $${params.length}`);
+      }
+      if (notes !== undefined) {
+        params.push(notes);
+        updates.push(`notes = $${params.length}`);
+      }
+      if (clinical_note_id !== undefined) {
+        params.push(clinical_note_id);
+        updates.push(`clinical_note_id = $${params.length}`);
+      }
+      if (is_active !== undefined) {
+        params.push(is_active);
+        updates.push(`is_active = $${params.length}`);
+      }
+
+      if (updates.length === 0) {
+        return res.status(400).json({ error: 'Nenhum campo para atualizar' });
+      }
+
+      params.push(diagId);
+      const result = await query(
+        `UPDATE patient_diagnoses SET ${updates.join(', ')} WHERE id = $${params.length} RETURNING *`,
+        params
+      );
+
+      res.json({ diagnosis: result.rows[0] });
+    } catch (err) {
+      next(err);
+    }
+  }
+);
+
 module.exports = router;
