@@ -51,6 +51,7 @@ import {
   milestonesApi,
   summariesApi,
   getUserRoleFromToken,
+  diagnosesApi,
 } from '@/lib/api';
 import { getRoleCapabilities } from '@/lib/roleConfig';
 import type {
@@ -65,6 +66,7 @@ import type {
   DigitalTwin,
   Goal,
   PatientSummary,
+  PatientDiagnosis,
 } from '@/lib/api';
 
 type Tab = 'overview' | 'timeline' | 'assessments' | 'notes' | 'exams' | 'digital-twin' | 'anamnesis' | 'medications' | 'diagnostico';
@@ -479,6 +481,7 @@ export default function PatientDetailPage() {
   const [summaries, setSummaries] = useState<PatientSummary[]>([]);
   const [summariesLoading, setSummariesLoading] = useState(true);
   const [generating, setGenerating] = useState(false);
+  const [diagnoses, setDiagnoses] = useState<PatientDiagnosis[]>([]);
 
   useEffect(() => {
     loadPatientData();
@@ -715,6 +718,14 @@ export default function PatientDetailPage() {
       // Load goals and summaries separately
       loadGoals();
       loadSummaries();
+
+      // Load formal diagnoses
+      try {
+        const diagData = await diagnosesApi.list(patientId);
+        setDiagnoses(diagData.diagnoses);
+      } catch {
+        // silent
+      }
     } catch {
       // Fallback to mock data
       setPatient(mockPatient);
@@ -1136,6 +1147,34 @@ export default function PatientDetailPage() {
                           )}
                         </span>
                       ))}
+
+                    {/* Diagnósticos formais — confirmados (visíveis para todos) */}
+                    {diagnoses
+                      .filter(d => d.certainty === 'confirmed' && d.is_active)
+                      .map(d => (
+                        <span
+                          key={d.id}
+                          className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-indigo-600 text-white"
+                          title={d.icd_name}
+                        >
+                          {d.icd_code}
+                        </span>
+                      ))
+                    }
+
+                    {/* Diagnósticos suspeitos — apenas para profissionais */}
+                    {userRole !== 'patient' && diagnoses
+                      .filter(d => d.certainty === 'suspected' && d.is_active)
+                      .map(d => (
+                        <span
+                          key={d.id}
+                          className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium border-2 border-dashed border-indigo-400 text-indigo-700 bg-indigo-50"
+                          title={`Suspeita: ${d.icd_name}`}
+                        >
+                          ? {d.icd_code}
+                        </span>
+                      ))
+                    }
 
                     {/* Add button */}
                     {!editingConditions && (
