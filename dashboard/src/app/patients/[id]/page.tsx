@@ -26,7 +26,6 @@ import { format, formatDistanceToNow } from 'date-fns';
 import Sidebar from '@/components/Sidebar';
 import EmotionalChart from '@/components/EmotionalChart';
 import Timeline from '@/components/Timeline';
-import AssessmentHistory from '@/components/AssessmentHistory';
 import ClinicalNotes from '@/components/ClinicalNotes';
 import MedicationManager from '@/components/MedicationManager';
 import InsightsPanel from '@/components/InsightsPanel';
@@ -38,8 +37,7 @@ import PatientExamsPanel from '@/components/PatientExamsPanel';
 import AnamnesisPanel from '@/components/AnamnesisPanel';
 import MedicalRecordsPanel from '@/components/MedicalRecordsPanel';
 import RecordSharingPanel from '@/components/RecordSharingPanel';
-import PrescriptionPanel from '@/components/PrescriptionPanel';
-import PsychTestPanel from '@/components/PsychTestPanel';
+import UnifiedAssessmentsPanel from '@/components/UnifiedAssessmentsPanel';
 import DiagnosticBrowserPanel from '@/components/DiagnosticBrowserPanel';
 import {
   patientsApi,
@@ -1393,16 +1391,10 @@ export default function PatientDetailPage() {
             {activeTab === 'timeline' && <Timeline entries={timeline} />}
 
             {activeTab === 'assessments' && (
-              <div className="space-y-8">
-                <AssessmentHistory assessments={assessments} />
-                <div className="border-t border-gray-200/60 pt-8">
-                  <PsychTestPanel
-                    patientId={patientId}
-                    role={userRole}
-                    assessmentFilter={caps.assessment_filter}
-                  />
-                </div>
-              </div>
+              <UnifiedAssessmentsPanel
+                patientId={patientId}
+                assessments={assessments}
+              />
             )}
 
             {activeTab === 'notes' && (
@@ -1443,9 +1435,6 @@ export default function PatientDetailPage() {
                   onDiscontinue={handleDiscontinueMedication}
                   onUpdateSideEffects={handleUpdateSideEffects}
                 />
-                <div className="border-t border-gray-200/60 pt-8">
-                  <PrescriptionPanel patientId={patientId} role={userRole} />
-                </div>
               </div>
             )}
 

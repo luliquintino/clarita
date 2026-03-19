@@ -14,8 +14,8 @@ O CLARITA foi criado para preencher uma lacuna no acompanhamento de saude mental
 
 - Check-in diario de humor, ansiedade, energia e sono
 - Registro e acompanhamento de sintomas
-- Prescricao e logs de adesao a medicamentos
-- Avaliacoes clinicas padronizadas (PHQ-9, GAD-7)
+- Gerenciamento de medicamentos e logs de adesao
+- Avaliacoes clinicas padronizadas (PHQ-9, GAD-7, DASS-21, BDI-II, BAI, Eneagrama, 16 Personalidades)
 - Registro de eventos de vida com nivel de impacto
 - Notas clinicas com opcao de privacidade
 - Journal/diario do paciente
@@ -245,8 +245,8 @@ npm run test:coverage # Rodar testes com cobertura
 | Role | Capacidades |
 |---|---|
 | **Paciente** | Check-in diario, registro de sintomas, logs de medicamento, avaliacoes, journal, upload de exames, gerenciar permissoes de dados |
-| **Psicologo** | Ver dados do paciente, timeline, notas clinicas, insights IA, alertas, metas, chat com profissionais |
-| **Psiquiatra** | Tudo do psicologo + prescrever/ajustar medicamentos |
+| **Psicologo** | Ver dados do paciente, timeline, notas clinicas, insights IA, alertas, metas, chat com profissionais, avaliações psicológicas |
+| **Psiquiatra** | Tudo do psicologo + gerenciamento de medicamentos, diagnósticos CID-11 |
 
 ---
 
@@ -269,6 +269,13 @@ Scoring automatico integrado para:
 
 - **PHQ-9** — Rastreamento de depressao (escala 0-27, 5 niveis de severidade)
 - **GAD-7** — Rastreamento de ansiedade (escala 0-21, 4 niveis de severidade)
+- **DASS-21** — Depressao, Ansiedade e Estresse (3 subscalas, 7 itens cada)
+- **BDI-II** — Inventario de Beck para Depressao (escala 0-63, 4 niveis de severidade)
+- **BAI** — Inventario de Beck para Ansiedade (escala 0-63, 4 niveis de severidade)
+- **Eneagrama Simplificado** — Avaliacao de personalidade (36 questoes, 9 tipos)
+- **16 Personalidades Simplificado** — Perfil cognitivo (32 questoes, 16 tipos)
+
+O painel unificado de avaliações (UnifiedAssessmentsPanel) consolida todos os 7 testes em uma única interface para o profissional de saúde mental.
 
 ---
 

@@ -29,7 +29,6 @@ import ExamUploadPanel from '@/components/ExamUploadPanel';
 import DisplayIdBadge from '@/components/DisplayIdBadge';
 import AnamnesisPanel from '@/components/AnamnesisPanel';
 import PsychTestPanel from '@/components/PsychTestPanel';
-import MyPrescriptionsPanel from '@/components/MyPrescriptionsPanel';
 import BottomNav from '@/components/BottomNav';
 import SideNav from '@/components/SideNav';
 import { type PatientSection } from '@/components/nav-items';
@@ -341,9 +340,6 @@ export default function PatientHomePage() {
 
           {/* ── EXAMES ── */}
           {activeSection === 'exams' && <ExamUploadPanel />}
-
-          {/* ── PRESCRIÇÕES ── */}
-          {activeSection === 'prescriptions' && <MyPrescriptionsPanel />}
 
           {/* ── TESTES ── */}
           {activeSection === 'tests' && <PsychTestPanel role="patient" />}

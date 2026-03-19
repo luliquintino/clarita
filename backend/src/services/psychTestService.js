@@ -4,17 +4,18 @@ const { query } = require('../config/database');
 
 /**
  * Calculate score based on test scoring_rules and patient answers.
- * scoring_rules shape: { method: 'sum' | 'subscale', thresholds: [...], subscales?: {...} }
+ * scoring_rules shape: { method: 'sum' | 'subscale' | 'max_subscale' | 'dimension_majority', thresholds: [...], subscales?: {...}, dimensions?: [...] }
  */
 function calculateScore(test, answers) {
   const rules = test.scoring_rules;
   if (!rules || !answers) return { total_score: 0, subscores: null };
 
   const questions = test.questions || [];
+  const method = rules.method;
   let totalScore = 0;
   const subscores = {};
 
-  if (rules.method === 'subscale' && rules.subscales) {
+  if (method === 'subscale' && rules.subscales) {
     // Each subscale has indices and its own thresholds
     for (const [scaleName, scaleConfig] of Object.entries(rules.subscales)) {
       let scaleScore = 0;
@@ -28,6 +29,34 @@ function calculateScore(test, answers) {
       };
       totalScore += scaleScore;
     }
+  } else if (method === 'max_subscale') {
+    // Enneagram-style: winner is the subscale with the highest total
+    const subscalesConfig = rules.subscales || {};
+    const subscoredFlat = {};
+    let winner = null;
+    for (const [key, sub] of Object.entries(subscalesConfig)) {
+      const total = (sub.indices || []).reduce((sum, i) => sum + (Number(answers[String(i)]) || 0), 0);
+      subscoredFlat[key] = total;
+      if (!winner || total > winner.score) {
+        winner = { key, label: sub.label || key, score: total };
+      }
+    }
+    if (!winner) return { total_score: 0, severity: 'unknown', label: 'Indeterminado', subscores: subscoredFlat };
+    return { total_score: winner.score, severity: winner.key, label: winner.label, subscores: subscoredFlat };
+  } else if (method === 'dimension_majority') {
+    // 16-Personalities-style: 4 dimensions, each with pole_a / pole_b indices
+    const dimensions = rules.dimensions || [];
+    let typeString = '';
+    const dimSubscores = {};
+    for (const dim of dimensions) {
+      const scoreA = (dim.pole_a_indices || []).reduce((s, i) => s + (Number(answers[String(i)]) || 0), 0);
+      const scoreB = (dim.pole_b_indices || []).reduce((s, i) => s + (Number(answers[String(i)]) || 0), 0);
+      const result = scoreA >= scoreB ? (dim.pole_a_label || 'A') : (dim.pole_b_label || 'B');
+      typeString += result;
+      dimSubscores[dim.key] = { score_a: scoreA, score_b: scoreB, result };
+    }
+    const label = typeString || 'Indeterminado';
+    return { total_score: 0, severity: label, label, subscores: dimSubscores };
   } else {
     // Simple sum
     for (let i = 0; i < questions.length; i++) {
@@ -72,9 +101,24 @@ async function generateAIAnalysis(session, test) {
     generated_at: new Date().toISOString(),
   };
 
-  // Determine severity from thresholds
-  const scoreInterp = interpretScore(total_score, scoring.thresholds || []);
-  analysis.summary = `Escore total: ${total_score}. Classificação: ${scoreInterp.label}.`;
+  // Determine severity from thresholds (or use label directly for personality tests)
+  const isPersonalityTest = ['max_subscale', 'dimension_majority'].includes(scoring.method);
+  let scoreInterp;
+  if (isPersonalityTest) {
+    // Contract: callers may store the calculateScore result in session.scores,
+    // session.result, or (legacy) as a top-level session.label field.
+    // All three paths are checked so the personality type is never lost.
+    const personalityLabel =
+      session.scores?.label ||
+      session.result?.label ||
+      session.label ||
+      'Indeterminado';
+    scoreInterp = { label: personalityLabel, severity: personalityLabel };
+    analysis.summary = `Tipo: ${personalityLabel}.`;
+  } else {
+    scoreInterp = interpretScore(total_score, scoring.thresholds || []);
+    analysis.summary = `Escore total: ${total_score}. Classificação: ${scoreInterp.label}.`;
+  }
 
   // Pattern detection: identify high-scoring clusters
   const questions = test.questions || [];
@@ -100,8 +144,10 @@ async function generateAIAnalysis(session, test) {
     });
   }
 
-  // DSM mapping based on test dsm_references
-  if (test.dsm_references && test.dsm_references.length > 0) {
+  // DSM mapping based on test dsm_references.
+  // Skipped for personality tests: severity is a type code (e.g. "INTJ"), not a
+  // clinical severity level, so computing relevance from it would be misleading.
+  if (!isPersonalityTest && test.dsm_references && test.dsm_references.length > 0) {
     const dsmResult = await query(
       `SELECT code, name, category FROM dsm_criteria WHERE code = ANY($1)`,
       [test.dsm_references]
@@ -122,7 +168,7 @@ async function generateAIAnalysis(session, test) {
   if (scoreInterp.severity === 'severe' || scoreInterp.severity === 'moderately_severe') {
     analysis.clinical_observations.push('Escore elevado — avaliação clínica aprofundada recomendada.');
   }
-  if (highItems.length >= questions.length * 0.5) {
+  if (questions.length > 0 && highItems.length >= questions.length * 0.5) {
     analysis.clinical_observations.push('Mais de 50% dos itens com pontuação elevada — padrão difuso.');
   }
 

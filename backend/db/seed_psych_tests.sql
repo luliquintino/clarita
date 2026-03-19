@@ -271,3 +271,144 @@ VALUES (
   true
 )
 ON CONFLICT DO NOTHING;
+
+-- Eneagrama Simplificado (36 questions, 9 types)
+INSERT INTO psychological_tests (id, name, description, category, questions, scoring_rules, interpretation_guide, is_active)
+VALUES (
+  gen_random_uuid(),
+  'Eneagrama Simplificado',
+  'Instrumento de autoconhecimento baseado no modelo eneagramático. Identifica tendências de personalidade em 9 tipos. Para uso reflexivo em contexto terapêutico.',
+  'personality',
+  '[
+    {"text": "Tenho um forte senso de certo e errado", "options": [{"label":"Não me descreve","value":0},{"label":"Descreve pouco","value":1},{"label":"Descreve bem","value":2},{"label":"Me descreve muito","value":3}], "max_value": 3, "subscale": "type_1"},
+    {"text": "Me incomoda quando as coisas não são feitas da forma correta", "options": [{"label":"Não me descreve","value":0},{"label":"Descreve pouco","value":1},{"label":"Descreve bem","value":2},{"label":"Me descreve muito","value":3}], "max_value": 3, "subscale": "type_1"},
+    {"text": "Sou autocrítico(a) quando cometo erros", "options": [{"label":"Não me descreve","value":0},{"label":"Descreve pouco","value":1},{"label":"Descreve bem","value":2},{"label":"Me descreve muito","value":3}], "max_value": 3, "subscale": "type_1"},
+    {"text": "Tenho altos padrões que me esforço para alcançar", "options": [{"label":"Não me descreve","value":0},{"label":"Descreve pouco","value":1},{"label":"Descreve bem","value":2},{"label":"Me descreve muito","value":3}], "max_value": 3, "subscale": "type_1"},
+    {"text": "Fico feliz quando consigo ajudar outras pessoas", "options": [{"label":"Não me descreve","value":0},{"label":"Descreve pouco","value":1},{"label":"Descreve bem","value":2},{"label":"Me descreve muito","value":3}], "max_value": 3, "subscale": "type_2"},
+    {"text": "Às vezes negligencio minhas necessidades para atender às dos outros", "options": [{"label":"Não me descreve","value":0},{"label":"Descreve pouco","value":1},{"label":"Descreve bem","value":2},{"label":"Me descreve muito","value":3}], "max_value": 3, "subscale": "type_2"},
+    {"text": "Me sinto satisfeito(a) quando as pessoas precisam de mim", "options": [{"label":"Não me descreve","value":0},{"label":"Descreve pouco","value":1},{"label":"Descreve bem","value":2},{"label":"Me descreve muito","value":3}], "max_value": 3, "subscale": "type_2"},
+    {"text": "Tenho dificuldade de pedir ajuda", "options": [{"label":"Não me descreve","value":0},{"label":"Descreve pouco","value":1},{"label":"Descreve bem","value":2},{"label":"Me descreve muito","value":3}], "max_value": 3, "subscale": "type_2"},
+    {"text": "Me importa muito como os outros me percebem", "options": [{"label":"Não me descreve","value":0},{"label":"Descreve pouco","value":1},{"label":"Descreve bem","value":2},{"label":"Me descreve muito","value":3}], "max_value": 3, "subscale": "type_3"},
+    {"text": "Sou muito orientado(a) a metas e realizações", "options": [{"label":"Não me descreve","value":0},{"label":"Descreve pouco","value":1},{"label":"Descreve bem","value":2},{"label":"Me descreve muito","value":3}], "max_value": 3, "subscale": "type_3"},
+    {"text": "Adapto meu comportamento conforme a situação para ter sucesso", "options": [{"label":"Não me descreve","value":0},{"label":"Descreve pouco","value":1},{"label":"Descreve bem","value":2},{"label":"Me descreve muito","value":3}], "max_value": 3, "subscale": "type_3"},
+    {"text": "Fico desconfortável quando fracasso", "options": [{"label":"Não me descreve","value":0},{"label":"Descreve pouco","value":1},{"label":"Descreve bem","value":2},{"label":"Me descreve muito","value":3}], "max_value": 3, "subscale": "type_3"},
+    {"text": "Sinto que sou fundamentalmente diferente dos outros", "options": [{"label":"Não me descreve","value":0},{"label":"Descreve pouco","value":1},{"label":"Descreve bem","value":2},{"label":"Me descreve muito","value":3}], "max_value": 3, "subscale": "type_4"},
+    {"text": "Busco experiências intensas e profundas", "options": [{"label":"Não me descreve","value":0},{"label":"Descreve pouco","value":1},{"label":"Descreve bem","value":2},{"label":"Me descreve muito","value":3}], "max_value": 3, "subscale": "type_4"},
+    {"text": "Me identifico fortemente com minhas emoções", "options": [{"label":"Não me descreve","value":0},{"label":"Descreve pouco","value":1},{"label":"Descreve bem","value":2},{"label":"Me descreve muito","value":3}], "max_value": 3, "subscale": "type_4"},
+    {"text": "Tenho forte desejo de me expressar criativamente", "options": [{"label":"Não me descreve","value":0},{"label":"Descreve pouco","value":1},{"label":"Descreve bem","value":2},{"label":"Me descreve muito","value":3}], "max_value": 3, "subscale": "type_4"},
+    {"text": "Prefiro observar antes de participar", "options": [{"label":"Não me descreve","value":0},{"label":"Descreve pouco","value":1},{"label":"Descreve bem","value":2},{"label":"Me descreve muito","value":3}], "max_value": 3, "subscale": "type_5"},
+    {"text": "Me sinto esgotado(a) após muito tempo com outras pessoas", "options": [{"label":"Não me descreve","value":0},{"label":"Descreve pouco","value":1},{"label":"Descreve bem","value":2},{"label":"Me descreve muito","value":3}], "max_value": 3, "subscale": "type_5"},
+    {"text": "Valorizo muito o conhecimento e a compreensão", "options": [{"label":"Não me descreve","value":0},{"label":"Descreve pouco","value":1},{"label":"Descreve bem","value":2},{"label":"Me descreve muito","value":3}], "max_value": 3, "subscale": "type_5"},
+    {"text": "Preciso de tempo sozinho(a) para me recarregar", "options": [{"label":"Não me descreve","value":0},{"label":"Descreve pouco","value":1},{"label":"Descreve bem","value":2},{"label":"Me descreve muito","value":3}], "max_value": 3, "subscale": "type_5"},
+    {"text": "Tendo a antecipar o que pode dar errado", "options": [{"label":"Não me descreve","value":0},{"label":"Descreve pouco","value":1},{"label":"Descreve bem","value":2},{"label":"Me descreve muito","value":3}], "max_value": 3, "subscale": "type_6"},
+    {"text": "Preciso me sentir seguro(a) antes de agir", "options": [{"label":"Não me descreve","value":0},{"label":"Descreve pouco","value":1},{"label":"Descreve bem","value":2},{"label":"Me descreve muito","value":3}], "max_value": 3, "subscale": "type_6"},
+    {"text": "Sou leal às pessoas e grupos em que confio", "options": [{"label":"Não me descreve","value":0},{"label":"Descreve pouco","value":1},{"label":"Descreve bem","value":2},{"label":"Me descreve muito","value":3}], "max_value": 3, "subscale": "type_6"},
+    {"text": "Frequentemente questiono se estou tomando a decisão certa", "options": [{"label":"Não me descreve","value":0},{"label":"Descreve pouco","value":1},{"label":"Descreve bem","value":2},{"label":"Me descreve muito","value":3}], "max_value": 3, "subscale": "type_6"},
+    {"text": "Gosto de ter muitas opções e possibilidades", "options": [{"label":"Não me descreve","value":0},{"label":"Descreve pouco","value":1},{"label":"Descreve bem","value":2},{"label":"Me descreve muito","value":3}], "max_value": 3, "subscale": "type_7"},
+    {"text": "Me entedio facilmente com rotinas", "options": [{"label":"Não me descreve","value":0},{"label":"Descreve pouco","value":1},{"label":"Descreve bem","value":2},{"label":"Me descreve muito","value":3}], "max_value": 3, "subscale": "type_7"},
+    {"text": "Busco experiências novas e estimulantes", "options": [{"label":"Não me descreve","value":0},{"label":"Descreve pouco","value":1},{"label":"Descreve bem","value":2},{"label":"Me descreve muito","value":3}], "max_value": 3, "subscale": "type_7"},
+    {"text": "Foco no lado positivo das situações", "options": [{"label":"Não me descreve","value":0},{"label":"Descreve pouco","value":1},{"label":"Descreve bem","value":2},{"label":"Me descreve muito","value":3}], "max_value": 3, "subscale": "type_7"},
+    {"text": "Defendo minha posição mesmo sob pressão", "options": [{"label":"Não me descreve","value":0},{"label":"Descreve pouco","value":1},{"label":"Descreve bem","value":2},{"label":"Me descreve muito","value":3}], "max_value": 3, "subscale": "type_8"},
+    {"text": "Me importa ser independente e não depender dos outros", "options": [{"label":"Não me descreve","value":0},{"label":"Descreve pouco","value":1},{"label":"Descreve bem","value":2},{"label":"Me descreve muito","value":3}], "max_value": 3, "subscale": "type_8"},
+    {"text": "Fico impaciente com hesitação e fraqueza", "options": [{"label":"Não me descreve","value":0},{"label":"Descreve pouco","value":1},{"label":"Descreve bem","value":2},{"label":"Me descreve muito","value":3}], "max_value": 3, "subscale": "type_8"},
+    {"text": "Prefiro ser direto(a) mesmo que isso gere conflito", "options": [{"label":"Não me descreve","value":0},{"label":"Descreve pouco","value":1},{"label":"Descreve bem","value":2},{"label":"Me descreve muito","value":3}], "max_value": 3, "subscale": "type_8"},
+    {"text": "Evito conflitos e prefiro a harmonia", "options": [{"label":"Não me descreve","value":0},{"label":"Descreve pouco","value":1},{"label":"Descreve bem","value":2},{"label":"Me descreve muito","value":3}], "max_value": 3, "subscale": "type_9"},
+    {"text": "Tendo a me adaptar às preferências dos outros", "options": [{"label":"Não me descreve","value":0},{"label":"Descreve pouco","value":1},{"label":"Descreve bem","value":2},{"label":"Me descreve muito","value":3}], "max_value": 3, "subscale": "type_9"},
+    {"text": "Me sinto bem em situações calmas e sem pressão", "options": [{"label":"Não me descreve","value":0},{"label":"Descreve pouco","value":1},{"label":"Descreve bem","value":2},{"label":"Me descreve muito","value":3}], "max_value": 3, "subscale": "type_9"},
+    {"text": "Por vezes procrastino decisões difíceis", "options": [{"label":"Não me descreve","value":0},{"label":"Descreve pouco","value":1},{"label":"Descreve bem","value":2},{"label":"Me descreve muito","value":3}], "max_value": 3, "subscale": "type_9"}
+  ]'::jsonb,
+  '{
+    "method": "max_subscale",
+    "thresholds": [],
+    "subscales": {
+      "type_1": {"label": "Tipo 1 — O Reformador", "description": "Principista, perfeccionista, senso moral elevado.", "indices": [0,1,2,3]},
+      "type_2": {"label": "Tipo 2 — O Ajudador", "description": "Generoso, atencioso, busca ser necessário e amado.", "indices": [4,5,6,7]},
+      "type_3": {"label": "Tipo 3 — O Realizador", "description": "Ambicioso, adaptável, orientado ao sucesso.", "indices": [8,9,10,11]},
+      "type_4": {"label": "Tipo 4 — O Individualista", "description": "Expressivo, autoconsciente, busca identidade única.", "indices": [12,13,14,15]},
+      "type_5": {"label": "Tipo 5 — O Investigador", "description": "Analítico, reservado, busca compreender o mundo.", "indices": [16,17,18,19]},
+      "type_6": {"label": "Tipo 6 — O Leal", "description": "Comprometido, vigilante, busca segurança.", "indices": [20,21,22,23]},
+      "type_7": {"label": "Tipo 7 — O Entusiasta", "description": "Espontâneo, versátil, busca experiências positivas.", "indices": [24,25,26,27]},
+      "type_8": {"label": "Tipo 8 — O Desafiador", "description": "Autoconfiante, decisivo, busca autonomia.", "indices": [28,29,30,31]},
+      "type_9": {"label": "Tipo 9 — O Pacificador", "description": "Receptivo, tranquilo, busca harmonia interior.", "indices": [32,33,34,35]}
+    }
+  }'::jsonb,
+  '{"notes": "Instrumento de autoconhecimento para uso reflexivo em contexto terapêutico. Não constitui diagnóstico clínico."}'::jsonb,
+  true
+)
+ON CONFLICT DO NOTHING;
+
+-- 16 Personalidades Simplificado (32 questions, 4 binary dimensions)
+INSERT INTO psychological_tests (id, name, description, category, questions, scoring_rules, interpretation_guide, is_active)
+VALUES (
+  gen_random_uuid(),
+  '16 Personalidades Simplificado',
+  'Avaliação de perfil de personalidade baseada nas 4 dimensões de preferências cognitivas. Identifica o tipo em Extroversão/Introversão, Sensação/Intuição, Pensamento/Sentimento e Julgamento/Percepção.',
+  'personality',
+  '[
+    {"text": "Prefiro socializar do que ficar sozinho(a)", "options": [{"label":"Concordo","value":1},{"label":"Discordo","value":0}], "max_value": 1, "dimension": "EI", "pole": "A"},
+    {"text": "Recarrego energias ficando sozinho(a)", "options": [{"label":"Concordo","value":1},{"label":"Discordo","value":0}], "max_value": 1, "dimension": "EI", "pole": "B"},
+    {"text": "Prefiro lidar com fatos concretos e práticos", "options": [{"label":"Concordo","value":1},{"label":"Discordo","value":0}], "max_value": 1, "dimension": "SN", "pole": "A"},
+    {"text": "Gosto de explorar ideias abstratas e possibilidades", "options": [{"label":"Concordo","value":1},{"label":"Discordo","value":0}], "max_value": 1, "dimension": "SN", "pole": "B"},
+    {"text": "Em grupos, costumo ser um dos primeiros a falar", "options": [{"label":"Concordo","value":1},{"label":"Discordo","value":0}], "max_value": 1, "dimension": "EI", "pole": "A"},
+    {"text": "Penso bastante antes de compartilhar minha opinião", "options": [{"label":"Concordo","value":1},{"label":"Discordo","value":0}], "max_value": 1, "dimension": "EI", "pole": "B"},
+    {"text": "Presto atenção aos detalhes práticos", "options": [{"label":"Concordo","value":1},{"label":"Discordo","value":0}], "max_value": 1, "dimension": "SN", "pole": "A"},
+    {"text": "Fico mais animado(a) com o que poderia ser do que com o que é", "options": [{"label":"Concordo","value":1},{"label":"Discordo","value":0}], "max_value": 1, "dimension": "SN", "pole": "B"},
+    {"text": "Faço amizades facilmente em novos ambientes", "options": [{"label":"Concordo","value":1},{"label":"Discordo","value":0}], "max_value": 1, "dimension": "EI", "pole": "A"},
+    {"text": "Prefiro poucos amigos íntimos a muitos conhecidos", "options": [{"label":"Concordo","value":1},{"label":"Discordo","value":0}], "max_value": 1, "dimension": "EI", "pole": "B"},
+    {"text": "Confio mais na experiência do que na teoria", "options": [{"label":"Concordo","value":1},{"label":"Discordo","value":0}], "max_value": 1, "dimension": "SN", "pole": "A"},
+    {"text": "Confio mais na intuição do que em dados concretos", "options": [{"label":"Concordo","value":1},{"label":"Discordo","value":0}], "max_value": 1, "dimension": "SN", "pole": "B"},
+    {"text": "Me sinto energizado(a) após estar com pessoas", "options": [{"label":"Concordo","value":1},{"label":"Discordo","value":0}], "max_value": 1, "dimension": "EI", "pole": "A"},
+    {"text": "Preciso de silêncio para me concentrar bem", "options": [{"label":"Concordo","value":1},{"label":"Discordo","value":0}], "max_value": 1, "dimension": "EI", "pole": "B"},
+    {"text": "Prefiro um plano bem definido a improvisar", "options": [{"label":"Concordo","value":1},{"label":"Discordo","value":0}], "max_value": 1, "dimension": "SN", "pole": "A"},
+    {"text": "Prefiro deixar as coisas em aberto e ver como evoluem", "options": [{"label":"Concordo","value":1},{"label":"Discordo","value":0}], "max_value": 1, "dimension": "SN", "pole": "B"},
+    {"text": "Tomo decisões com base em lógica e análise", "options": [{"label":"Concordo","value":1},{"label":"Discordo","value":0}], "max_value": 1, "dimension": "TF", "pole": "A"},
+    {"text": "Tomo decisões considerando como afetará as pessoas", "options": [{"label":"Concordo","value":1},{"label":"Discordo","value":0}], "max_value": 1, "dimension": "TF", "pole": "B"},
+    {"text": "Prefiro ter planos definidos a improvisar", "options": [{"label":"Concordo","value":1},{"label":"Discordo","value":0}], "max_value": 1, "dimension": "JP", "pole": "A"},
+    {"text": "Prefiro manter opções em aberto e ser flexível", "options": [{"label":"Concordo","value":1},{"label":"Discordo","value":0}], "max_value": 1, "dimension": "JP", "pole": "B"},
+    {"text": "Prefiro críticas diretas a feedbacks suavizados", "options": [{"label":"Concordo","value":1},{"label":"Discordo","value":0}], "max_value": 1, "dimension": "TF", "pole": "A"},
+    {"text": "Me preocupo com o impacto emocional das minhas palavras", "options": [{"label":"Concordo","value":1},{"label":"Discordo","value":0}], "max_value": 1, "dimension": "TF", "pole": "B"},
+    {"text": "Gosto de listas e organização nas tarefas", "options": [{"label":"Concordo","value":1},{"label":"Discordo","value":0}], "max_value": 1, "dimension": "JP", "pole": "A"},
+    {"text": "Prefiro trabalhar à medida que surgem as necessidades", "options": [{"label":"Concordo","value":1},{"label":"Discordo","value":0}], "max_value": 1, "dimension": "JP", "pole": "B"},
+    {"text": "Resolvo conflitos buscando a solução mais justa", "options": [{"label":"Concordo","value":1},{"label":"Discordo","value":0}], "max_value": 1, "dimension": "TF", "pole": "A"},
+    {"text": "Resolvo conflitos buscando preservar a harmonia", "options": [{"label":"Concordo","value":1},{"label":"Discordo","value":0}], "max_value": 1, "dimension": "TF", "pole": "B"},
+    {"text": "Gosto de terminar projetos antes de iniciar novos", "options": [{"label":"Concordo","value":1},{"label":"Discordo","value":0}], "max_value": 1, "dimension": "JP", "pole": "A"},
+    {"text": "Gosto de trabalhar em vários projetos ao mesmo tempo", "options": [{"label":"Concordo","value":1},{"label":"Discordo","value":0}], "max_value": 1, "dimension": "JP", "pole": "B"},
+    {"text": "Analiso situações de forma imparcial e objetiva", "options": [{"label":"Concordo","value":1},{"label":"Discordo","value":0}], "max_value": 1, "dimension": "TF", "pole": "A"},
+    {"text": "Analiso situações levando em conta as emoções envolvidas", "options": [{"label":"Concordo","value":1},{"label":"Discordo","value":0}], "max_value": 1, "dimension": "TF", "pole": "B"},
+    {"text": "Me sinto bem com rotinas previsíveis", "options": [{"label":"Concordo","value":1},{"label":"Discordo","value":0}], "max_value": 1, "dimension": "JP", "pole": "A"},
+    {"text": "Me adapto facilmente a mudanças e surpresas", "options": [{"label":"Concordo","value":1},{"label":"Discordo","value":0}], "max_value": 1, "dimension": "JP", "pole": "B"}
+  ]'::jsonb,
+  '{
+    "method": "dimension_majority",
+    "thresholds": [],
+    "dimensions": [
+      {"key":"EI","pole_a_label":"E","pole_b_label":"I","pole_a_name":"Extroversão","pole_b_name":"Introversão","pole_a_indices":[0,4,8,12],"pole_b_indices":[1,5,9,13]},
+      {"key":"SN","pole_a_label":"S","pole_b_label":"N","pole_a_name":"Sensação","pole_b_name":"Intuição","pole_a_indices":[2,6,10,14],"pole_b_indices":[3,7,11,15]},
+      {"key":"TF","pole_a_label":"T","pole_b_label":"F","pole_a_name":"Pensamento","pole_b_name":"Sentimento","pole_a_indices":[16,20,24,28],"pole_b_indices":[17,21,25,29]},
+      {"key":"JP","pole_a_label":"J","pole_b_label":"P","pole_a_name":"Julgamento","pole_b_name":"Percepção","pole_a_indices":[18,22,26,30],"pole_b_indices":[19,23,27,31]}
+    ]
+  }'::jsonb,
+  '{
+    "types": {
+      "ISTJ":"O Inspetor — metódico, confiável, responsável.",
+      "ISFJ":"O Protetor — dedicado, caloroso, observador.",
+      "INFJ":"O Conselheiro — visionário, empático, íntegro.",
+      "INTJ":"O Arquiteto — estratégico, independente, determinado.",
+      "ISTP":"O Virtuoso — prático, analítico, reservado.",
+      "ISFP":"O Aventureiro — gentil, sensível, aberto a experiências.",
+      "INFP":"O Mediador — idealista, empático, criativo.",
+      "INTP":"O Lógico — analítico, objetivo, inventivo.",
+      "ESTP":"O Empreendedor — enérgico, perceptivo, direto.",
+      "ESFP":"O Animador — espontâneo, entusiasta, sociável.",
+      "ENFP":"O Campeão — criativo, otimista, orientado a pessoas.",
+      "ENTP":"O Debatedor — curioso, engenhoso, estratégico.",
+      "ESTJ":"O Executivo — organizado, decisivo, tradicional.",
+      "ESFJ":"O Cônsul — prestativo, leal, orientado à harmonia.",
+      "ENFJ":"O Protagonista — carismático, empático, líder nato.",
+      "ENTJ":"O Comandante — assertivo, estratégico, líder visionário."
+    },
+    "notes": "Baseado nas 4 dicotomias de preferências cognitivas. Para uso educacional e de autoconhecimento. Não constitui diagnóstico clínico."
+  }'::jsonb,
+  true
+)
+ON CONFLICT DO NOTHING;

@@ -1,7 +1,6 @@
 import {
   Home,
   FileText,
-  Pill,
   FlaskConical,
   ClipboardList,
   Target,
@@ -12,7 +11,6 @@ import {
 export type PatientSection =
   | 'home'
   | 'exams'
-  | 'prescriptions'
   | 'tests'
   | 'anamnesis'
   | 'goals'
@@ -41,14 +39,6 @@ export const NAV_ITEMS: Array<{
     color: 'text-gray-400',
     activeColor: 'text-clarita-green-700',
     activeBg: 'bg-green-50 border-green-200',
-  },
-  {
-    key: 'prescriptions',
-    label: 'Prescrições',
-    icon: Pill,
-    color: 'text-gray-400',
-    activeColor: 'text-indigo-600',
-    activeBg: 'bg-indigo-50 border-indigo-200',
   },
   {
     key: 'tests',
