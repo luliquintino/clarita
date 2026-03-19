@@ -1665,6 +1665,59 @@ export interface ICDTestSuggestion {
   satepsi_expiry: string | null;
 }
 
+export interface PatientDiagnosis {
+  id: string;
+  patient_id: string;
+  professional_id: string;
+  icd_code: string;
+  icd_name: string;
+  certainty: 'suspected' | 'confirmed';
+  diagnosis_date: string;
+  notes: string | null;
+  clinical_note_id: string | null;
+  is_active: boolean;
+  created_at: string;
+  professional_first_name?: string;
+  professional_last_name?: string;
+  professional_role?: string;
+  clinical_note_title?: string | null;
+}
+
+export interface RecentIcd {
+  icd_code: string;
+  icd_name: string;
+  usage_count: number;
+  last_used_at: string;
+}
+
+export const diagnosesApi = {
+  list: (patientId: string) =>
+    request<{ diagnoses: PatientDiagnosis[] }>(`/patients/${patientId}/diagnoses`),
+
+  create: (patientId: string, data: {
+    icd_code: string;
+    icd_name: string;
+    certainty: 'suspected' | 'confirmed';
+    diagnosis_date?: string;
+    notes?: string;
+  }) =>
+    request<{ diagnosis: PatientDiagnosis }>(`/patients/${patientId}/diagnoses`, {
+      method: 'POST',
+      body: JSON.stringify(data),
+    }),
+
+  update: (patientId: string, diagId: string, data: {
+    certainty?: 'suspected' | 'confirmed';
+    notes?: string;
+    clinical_note_id?: string;
+    is_active?: boolean;
+  }) =>
+    request<{ diagnosis: PatientDiagnosis }>(`/patients/${patientId}/diagnoses/${diagId}`, {
+      method: 'PATCH',
+      body: JSON.stringify(data),
+    }),
+};
+
 export const icd11Api = {
   list: (params?: { category?: string; search?: string }) => {
     const searchParams = new URLSearchParams();
@@ -1674,11 +1727,20 @@ export const icd11Api = {
     return request<{ disorders: ICD11Disorder[] }>(`/icd11${qs ? `?${qs}` : ''}`);
   },
 
+  categories: () =>
+    request<{ categories: string[] }>('/icd11/categories'),
+
   getCategories: () =>
     request<{ categories: string[] }>('/icd11/categories'),
 
+  detail: (code: string) =>
+    request<{ disorder: ICD11Disorder }>(`/icd11/${code}`),
+
   get: (code: string) =>
     request<{ disorder: ICD11Disorder }>(`/icd11/${code}`),
+
+  tests: (code: string) =>
+    request<{ disorder: { id: string; icd_code: string; disorder_name: string }; suggested_tests: ICDTestSuggestion[]; disclaimer: string }>(`/icd11/${code}/tests`),
 
   getSuggestedTests: (code: string) =>
     request<{ disorder: { id: string; icd_code: string; disorder_name: string }; suggested_tests: ICDTestSuggestion[]; disclaimer: string }>(`/icd11/${code}/tests`),
@@ -1688,6 +1750,9 @@ export const icd11Api = {
       method: 'POST',
       body: JSON.stringify({ symptoms }),
     }),
+
+  recent: () =>
+    request<{ recent: RecentIcd[] }>('/icd11/recent'),
 };
 
 // ---------------------------------------------------------------------------
