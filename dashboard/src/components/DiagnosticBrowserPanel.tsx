@@ -617,8 +617,51 @@ export default function DiagnosticBrowserPanel({
                 }}
               />
             </NextStepBlock>
-            <NextStepBlock title="Testes sugeridos" icon={<ClipboardList className="w-4 h-4" />}>
-              <p className="text-xs text-gray-400">Veja os testes na seção acima ou volte ao detalhe do transtorno.</p>
+            <NextStepBlock title={`Testes sugeridos${suggestedTests.length > 0 ? ` (${suggestedTests.length})` : ''}`} icon={<ClipboardList className="w-4 h-4" />}>
+              {loadingTests ? (
+                <div className="flex items-center justify-center py-4">
+                  <Loader2 className="w-4 h-4 animate-spin text-indigo-400" />
+                </div>
+              ) : suggestedTests.length === 0 ? (
+                <p className="text-xs text-gray-400 text-center py-2">Nenhum teste mapeado para este transtorno.</p>
+              ) : (
+                <div className="space-y-2">
+                  {suggestedTests.map(t => (
+                    <div key={t.id} className="bg-gray-50 border border-gray-200 rounded-lg p-3">
+                      <div className="flex items-start justify-between gap-2">
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-medium text-gray-800">{t.name}</p>
+                          <div className="flex items-center gap-2 mt-1 flex-wrap">
+                            {t.category && <span className="text-xs text-gray-400">{t.category}</span>}
+                            <span className="text-xs bg-indigo-50 text-indigo-600 border border-indigo-100 px-1.5 py-0.5 rounded">
+                              Relevância: {Math.round(t.relevance_score * 100)}%
+                            </span>
+                            {t.satepsi_status && (
+                              <span className={`text-xs px-1.5 py-0.5 rounded flex items-center gap-1 ${
+                                t.satepsi_status === 'active' ? 'bg-emerald-50 text-emerald-600' : 'bg-red-50 text-red-600'
+                              }`}>
+                                {t.satepsi_status === 'active' ? <ShieldCheck className="w-3 h-3" /> : <ShieldAlert className="w-3 h-3" />}
+                                SATEPSI {t.satepsi_status === 'active' ? 'Ativo' : 'Inativo'}
+                              </span>
+                            )}
+                          </div>
+                          {t.notes && <p className="text-xs text-gray-400 mt-1">{t.notes}</p>}
+                        </div>
+                        {patientId && onAssignTest && (
+                          <button
+                            onClick={() => handleAssignTest(t.id)}
+                            disabled={assigning === t.id}
+                            className="flex-shrink-0 bg-indigo-50 hover:bg-indigo-100 border border-indigo-200 text-indigo-700 px-2 py-1 rounded-lg text-xs flex items-center gap-1 transition-colors disabled:opacity-50"
+                          >
+                            {assigning === t.id ? <Loader2 className="w-3 h-3 animate-spin" /> : <Send className="w-3 h-3" />}
+                            Atribuir
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
             </NextStepBlock>
             <NextStepBlock title="Conduta / Tratamento" icon={<Brain className="w-4 h-4" />}>
               <ConductBlock
@@ -885,12 +928,11 @@ export default function DiagnosticBrowserPanel({
               onClick={() => handleSelectDisorder(d)}
               className="w-full bg-gray-50 hover:bg-gray-100 border border-gray-200 rounded-xl p-3.5 text-left transition-colors group"
             >
-              <div className="flex items-center justify-between">
+              <div className="flex items-start justify-between gap-2">
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 flex-wrap">
                     <span className="text-xs text-indigo-400 font-mono flex-shrink-0">{d.icd_code}</span>
-                    <span className="text-gray-900 text-sm font-medium truncate">{d.disorder_name}</span>
-                    {/* Task 6b — "Diagnosticado" badge */}
+                    <span className="text-gray-900 text-sm font-medium">{d.disorder_name}</span>
                     {diagnosesForPatient?.some(diag => diag.icd_code === d.icd_code && diag.is_active) && (
                       <span className="text-xs bg-indigo-100 text-indigo-600 px-1.5 py-0.5 rounded font-medium">
                         Diagnosticado
@@ -900,8 +942,21 @@ export default function DiagnosticBrowserPanel({
                   {d.category && (
                     <span className="text-xs text-gray-400 mt-0.5 block">{d.category}</span>
                   )}
+                  {d.description && (
+                    <p className="text-xs text-gray-500 mt-1.5 leading-relaxed line-clamp-2">{d.description}</p>
+                  )}
+                  {d.symptom_keywords && d.symptom_keywords.length > 0 && (
+                    <div className="flex flex-wrap gap-1 mt-1.5">
+                      {d.symptom_keywords.slice(0, 5).map(kw => (
+                        <span key={kw} className="text-xs bg-indigo-50 text-indigo-500 px-1.5 py-0.5 rounded">{kw}</span>
+                      ))}
+                      {d.symptom_keywords.length > 5 && (
+                        <span className="text-xs text-gray-400">+{d.symptom_keywords.length - 5}</span>
+                      )}
+                    </div>
+                  )}
                 </div>
-                <ChevronRight className="w-4 h-4 text-gray-300 group-hover:text-gray-500 flex-shrink-0" />
+                <ChevronRight className="w-4 h-4 text-gray-300 group-hover:text-gray-500 flex-shrink-0 mt-0.5" />
               </div>
             </button>
           ))}
