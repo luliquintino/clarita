@@ -318,7 +318,7 @@ export default function PatientsPage() {
           userName={user.first_name}
           onComplete={() => setShowOnboarding(false)}
           token={getToken() || ''}
-          apiUrl={process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api'}
+          apiUrl={process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3005/api'}
         />
       )}
     </div>

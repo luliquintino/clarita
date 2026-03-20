@@ -2,7 +2,7 @@
 // CLARITA API Client
 // ============================================================================
 
-const BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api';
+const BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3005/api';
 
 // ---------------------------------------------------------------------------
 // Token helpers
