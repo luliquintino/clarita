@@ -1,3 +1,6 @@
+![CI](https://github.com/YOUR_USERNAME/clarita/actions/workflows/ci.yml/badge.svg)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+
 # CLARITA
 
 **Plataforma de Monitoramento Longitudinal de Saude Mental**
@@ -295,11 +298,16 @@ O sistema sinaliza padroes para revisao profissional. **Nao realiza diagnosticos
 
 ## Documentacao
 
+- [Setup Guide](docs/SETUP.md) — Full local development setup guide
 - [Documentacao da API](docs/API.md) — Todos os 65+ endpoints detalhados
-- [Arquitetura](docs/ARQUITETURA.md) — Visao geral dos servicos e fluxos
+- [Arquitetura](docs/ARCHITECTURE.md) — Visao geral dos servicos e fluxos
+- [Componentes](docs/COMPONENTS.md) — Catalogo de componentes do dashboard
+- [Product Overview](docs/PRODUTO.md) — Visao geral do produto
+- [Contributing](CONTRIBUTING.md) — Guide for contributors
+- [Arquitetura (PT)](docs/ARQUITETURA.md) — Visao geral dos servicos e fluxos
 - [Banco de Dados](docs/BANCO-DE-DADOS.md) — Schema completo com diagrama ER
 - [Contribuindo](docs/CONTRIBUINDO.md) — Guia para contribuidores
-- [Componentes](docs/COMPONENTES.md) — Catalogo de componentes do dashboard
+- [Componentes (PT)](docs/COMPONENTES.md) — Catalogo de componentes do dashboard
 
 ---
 
