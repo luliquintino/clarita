@@ -1,3361 +1,2607 @@
-# Clarita - Documentacao da API
+# API Reference
 
-Documentacao completa da API REST da plataforma Clarita de saude mental.
+**Base URL:** `http://localhost:3001/api` (development)
 
----
+**Authentication:** Include `Authorization: Bearer <token>` header on all protected endpoints.
 
-## Informacoes Gerais
+**Content-Type:** `application/json`
 
-| Item | Valor |
-|------|-------|
-| **URL Base** | `http://localhost:3001/api` |
-| **Formato** | JSON (`Content-Type: application/json`) |
-| **Autenticacao** | JWT Bearer Token |
-| **Upload de Arquivos** | `multipart/form-data` |
+---
 
-### Autenticacao
+## Table of Contents
 
-A maioria dos endpoints requer autenticacao via token JWT. O token deve ser enviado no header `Authorization`:
+- [Health Check](#health-check)
+- [Auth](#auth)
+- [Me (Account)](#me-account)
+- [Users](#users)
+- [Patients](#patients)
+- [Professionals](#professionals)
+- [Invitations](#invitations)
+- [Onboarding](#onboarding)
+- [Emotional Logs](#emotional-logs)
+- [Journal](#journal)
+- [Symptoms](#symptoms)
+- [Life Events](#life-events)
+- [Medications](#medications)
+- [Assessments](#assessments)
+- [Psychological Tests (Psych Tests)](#psychological-tests-psych-tests)
+- [ICD-11](#icd-11)
+- [SATEPSI](#satepsi)
+- [Clinical Notes](#clinical-notes)
+- [Medical Records](#medical-records)
+- [Goals & Milestones](#goals--milestones)
+- [Insights](#insights)
+- [Alerts](#alerts)
+- [Summaries](#summaries)
+- [Digital Twin](#digital-twin)
+- [Anamnesis](#anamnesis)
+- [Documents](#documents)
+- [Exams](#exams)
+- [Record Sharing](#record-sharing)
+- [Chat](#chat)
+- [Push Notifications](#push-notifications)
 
-```
-Authorization: Bearer <seu_token_jwt>
-```
+---
 
-O token e obtido nos endpoints de login ou registro e tem validade de **7 dias**.
+## Health Check
 
-### Codigos de Erro Comuns
+### GET /health
 
-| Codigo | Significado |
-|--------|-------------|
-| `400` | Requisicao invalida (campos faltantes ou formato incorreto) |
-| `401` | Nao autenticado (token ausente ou invalido) |
-| `403` | Sem permissao (role insuficiente ou sem acesso ao recurso) |
-| `404` | Recurso nao encontrado |
-| `409` | Conflito (ex: email ja cadastrado) |
-| `410` | Endpoint descontinuado |
-| `500` | Erro interno do servidor |
+Check API and database connectivity.
 
-### Roles (Papeis)
+**Auth:** None
 
-| Role | Descricao |
-|------|-----------|
-| `patient` | Paciente |
-| `psychologist` | Psicologo(a) |
-| `psychiatrist` | Psiquiatra |
+**Responses:**
+- `200` — `{ status: "ok", timestamp: "<ISO8601>" }`
+- `503` — `{ status: "error", message: "Banco de dados indisponível" }`
 
 ---
 
-## 1. Autenticacao (Auth)
+## Auth
 
-### POST /api/auth/register
+### POST /auth/register
 
-Registra um novo usuario na plataforma.
+Register a new user (patient or professional).
 
-- **Autenticacao:** Nao
-- **Role obrigatoria:** Nenhuma
+**Auth:** None
 
-**Request Body:**
+**Body:**
+| Field | Type | Required | Description |
+|---|---|---|---|
+| email | string | ✅ | User email |
+| password | string | ✅ | Password (validated by registrationValidator) |
+| first_name | string | ✅ | First name |
+| last_name | string | ✅ | Last name |
+| role | string | ✅ | `patient`, `psychologist`, or `psychiatrist` |
+| consent | boolean | ✅ | Must be `true` (LGPD requirement) |
+| phone | string | | Phone number |
+| license_number | string | professionals only | CRP/CRM number |
+| specialization | string | | Professional specialization |
+| institution | string | | Institution name |
+| bio | string | | Professional bio |
+| years_of_experience | integer | | Years of experience |
+| date_of_birth | string | patients only | ISO date (YYYY-MM-DD) |
+| gender | string | patients only | Patient gender |
 
-```json
-{
-  "email": "joao@email.com",
-  "password": "SenhaSegura123!",
-  "first_name": "Joao",
-  "last_name": "Silva",
-  "role": "patient",
-  "phone": "(11) 99999-0000",
-  "date_of_birth": "1990-05-15",
-  "gender": "male"
-}
-```
+**Responses:**
+- `201` — `{ user: { id, email, role, first_name, last_name, phone, display_id, created_at }, token }`
+- `400` — Validation error or consent not accepted
+- `409` — Email already exists
 
-Para profissionais:
+---
 
-```json
-{
-  "email": "dra.maria@email.com",
-  "password": "SenhaSegura123!",
-  "first_name": "Maria",
-  "last_name": "Santos",
-  "role": "psychologist",
-  "phone": "(11) 98888-0000",
-  "license_number": "CRP 06/123456",
-  "specialization": "Terapia Cognitivo-Comportamental",
-  "institution": "Clinica Mente Saudavel",
-  "bio": "Psicologa com 10 anos de experiencia.",
-  "years_of_experience": 10
-}
-```
+### POST /auth/login
 
-**Resposta (201 Created):**
+Authenticate and receive a JWT.
 
-```json
-{
-  "user": {
-    "id": "uuid",
-    "email": "joao@email.com",
-    "role": "patient",
-    "first_name": "Joao",
-    "last_name": "Silva",
-    "phone": "(11) 99999-0000",
-    "display_id": "CLA-AB12CD",
-    "created_at": "2025-01-15T10:00:00.000Z"
-  },
-  "token": "eyJhbGciOiJIUzI1NiIs..."
-}
-```
+**Auth:** None
 
-**Erros:**
-
-| Codigo | Mensagem |
-|--------|----------|
-| `400` | Numero de registro e obrigatorio para profissionais |
-| `409` | Email ja cadastrado |
-
-**Exemplo curl:**
-
-```bash
-curl -X POST http://localhost:3001/api/auth/register \
-  -H "Content-Type: application/json" \
-  -d '{
-    "email": "joao@email.com",
-    "password": "SenhaSegura123!",
-    "first_name": "Joao",
-    "last_name": "Silva",
-    "role": "patient"
-  }'
-```
+**Body:**
+| Field | Type | Required | Description |
+|---|---|---|---|
+| email | string | ✅ | User email |
+| password | string | ✅ | User password |
 
----
+**Responses:**
+- `200` — `{ user: { id, email, role, first_name, last_name, display_id }, token }`
+- `401` — Invalid email or password
+- `403` — Account deactivated
 
-### POST /api/auth/login
+---
 
-Autentica um usuario e retorna o token JWT.
+### GET /auth/me
 
-- **Autenticacao:** Nao
-- **Role obrigatoria:** Nenhuma
+Get the authenticated user's profile (user + role-specific profile).
 
-**Request Body:**
+**Auth:** Required (any role)
 
-```json
-{
-  "email": "joao@email.com",
-  "password": "SenhaSegura123!"
-}
-```
+**Responses:**
+- `200` — `{ user: { id, email, role, ... }, profile: { ... } }` — Profile shape depends on role (patient_profiles or professional_profiles)
 
-**Resposta (200 OK):**
+---
 
-```json
-{
-  "user": {
-    "id": "uuid",
-    "email": "joao@email.com",
-    "role": "patient",
-    "first_name": "Joao",
-    "last_name": "Silva",
-    "is_active": true,
-    "display_id": "CLA-AB12CD"
-  },
-  "token": "eyJhbGciOiJIUzI1NiIs..."
-}
-```
+### PUT /auth/me
 
-**Erros:**
+Update the authenticated user's profile.
 
-| Codigo | Mensagem |
-|--------|----------|
-| `401` | Email ou senha invalidos |
-| `403` | Conta desativada |
+**Auth:** Required (any role)
 
-**Exemplo curl:**
+**Body (all fields optional):**
+| Field | Type | Description |
+|---|---|---|
+| first_name | string | |
+| last_name | string | |
+| phone | string | |
+| avatar_url | string | |
+| **Patient only:** | | |
+| date_of_birth | string | ISO date |
+| gender | string | |
+| emergency_contact_name | string | |
+| emergency_contact_phone | string | |
+| **Professional only:** | | |
+| specialization | string | |
+| institution | string | |
+| bio | string | |
+| years_of_experience | integer | |
+| license_number | string | |
 
-```bash
-curl -X POST http://localhost:3001/api/auth/login \
-  -H "Content-Type: application/json" \
-  -d '{"email": "joao@email.com", "password": "SenhaSegura123!"}'
-```
+**Responses:**
+- `200` — `{ user: { id, email, role, first_name, last_name, phone, avatar_url, updated_at } }`
+- `400` — No fields to update
 
 ---
 
-### GET /api/auth/me
+### POST /auth/onboarding/complete
 
-Retorna os dados do usuario autenticado e seu perfil.
+Mark onboarding as completed for the authenticated user.
 
-- **Autenticacao:** Sim
-- **Role obrigatoria:** Qualquer
+**Auth:** Required (any role)
 
-**Resposta (200 OK):**
+**Responses:**
+- `200` — `{ success: true }`
 
-```json
-{
-  "user": {
-    "id": "uuid",
-    "email": "joao@email.com",
-    "role": "patient",
-    "first_name": "Joao",
-    "last_name": "Silva"
-  },
-  "profile": {
-    "user_id": "uuid",
-    "date_of_birth": "1990-05-15",
-    "gender": "male",
-    "onboarding_completed": true,
-    "onboarding_data": {}
-  }
-}
-```
+---
 
-**Exemplo curl:**
+### POST /auth/forgot-password
 
-```bash
-curl -X GET http://localhost:3001/api/auth/me \
-  -H "Authorization: Bearer <token>"
-```
+Request a password reset email.
 
+**Auth:** None
+
+**Body:**
+| Field | Type | Required | Description |
+|---|---|---|---|
+| email | string | ✅ | Registered email address |
+
+**Responses:**
+- `200` — `{ message: "Se este email estiver cadastrado, você receberá um link..." }` (always returns success to avoid email enumeration)
+
 ---
 
-### PUT /api/auth/me
+### POST /auth/reset-password
 
-Atualiza os dados do usuario autenticado.
+Reset password using the token received by email.
 
-- **Autenticacao:** Sim
-- **Role obrigatoria:** Qualquer
+**Auth:** None
 
-**Request Body (paciente):**
+**Body:**
+| Field | Type | Required | Description |
+|---|---|---|---|
+| token | string | ✅ | Reset token from email |
+| password | string | ✅ | New password |
 
-```json
-{
-  "first_name": "Joao",
-  "last_name": "Silva Jr.",
-  "phone": "(11) 99999-1111",
-  "avatar_url": "https://example.com/avatar.jpg",
-  "date_of_birth": "1990-05-15",
-  "gender": "male",
-  "emergency_contact_name": "Maria Silva",
-  "emergency_contact_phone": "(11) 98888-0000"
-}
-```
+**Responses:**
+- `200` — `{ message: "Senha redefinida com sucesso" }`
+- `400` — Invalid or expired token
 
-**Request Body (profissional):**
+---
 
-```json
-{
-  "first_name": "Maria",
-  "last_name": "Santos",
-  "phone": "(11) 98888-1111",
-  "avatar_url": "https://example.com/avatar.jpg",
-  "specialization": "Psicanalise",
-  "institution": "Clinica Nova",
-  "bio": "Bio atualizada.",
-  "years_of_experience": 12
-}
-```
+## Me (Account)
 
-**Resposta (200 OK):**
+### GET /me/export
 
-```json
-{
-  "user": {
-    "id": "uuid",
-    "email": "joao@email.com",
-    "role": "patient",
-    "first_name": "Joao",
-    "last_name": "Silva Jr.",
-    "phone": "(11) 99999-1111",
-    "avatar_url": "https://example.com/avatar.jpg",
-    "updated_at": "2025-01-15T12:00:00.000Z"
-  }
-}
-```
+Export all personal data as a JSON file (LGPD data portability).
 
-**Erros:**
+**Auth:** Required (any role)
 
-| Codigo | Mensagem |
-|--------|----------|
-| `400` | Nenhum campo para atualizar |
+**Responses:**
+- `200` — JSON file download (`Content-Disposition: attachment; filename="clarita-meus-dados-{userId}.json"`) containing `{ exported_at, user, emotional_logs, medications, goals, assessment_results }`
 
 ---
-
-### POST /api/auth/forgot-password
 
-Solicita redefinicao de senha. Envia email com token de reset.
+### DELETE /me
 
-- **Autenticacao:** Nao
-- **Role obrigatoria:** Nenhuma
+Anonymize and deactivate the account (LGPD right to erasure).
 
-**Request Body:**
+**Auth:** Required (any role)
 
-```json
-{
-  "email": "joao@email.com"
-}
-```
+**Responses:**
+- `200` — `{ message: "Conta removida com sucesso. Seus dados pessoais foram anonimizados." }`
+- `404` — Account not found or already removed
 
-**Resposta (200 OK):**
+---
 
-```json
-{
-  "message": "Se este email estiver cadastrado, voce recebera um link para redefinir sua senha"
-}
-```
+## Users
 
-> Nota: A resposta e sempre a mesma, independentemente de o email existir ou nao (por seguranca).
+### GET /users/search
 
----
+Search for a user by their display ID (e.g. `CLA-BA5A3`).
 
-### POST /api/auth/reset-password
+**Auth:** Required (any role)
 
-Redefine a senha usando o token recebido por email.
+**Query params:**
+| Param | Required | Description |
+|---|---|---|
+| display_id | ✅ | Display ID with or without hyphen |
 
-- **Autenticacao:** Nao
-- **Role obrigatoria:** Nenhuma
+**Responses:**
+- `200` — `{ user: { id, display_id, first_name, last_name, role, avatar_url, specialization, institution } }`
+- `400` — display_id is required
+- `404` — User not found
 
-**Request Body:**
+---
 
-```json
-{
-  "token": "abc123def456...",
-  "password": "NovaSenhaSegura456!"
-}
-```
+### GET /users/search-professionals
 
-**Resposta (200 OK):**
+Search professionals by name or display ID (never returns patients).
 
-```json
-{
-  "message": "Senha redefinida com sucesso"
-}
-```
+**Auth:** Required (any role)
 
-**Erros:**
+**Query params:**
+| Param | Required | Description |
+|---|---|---|
+| q | ✅ | Search term (min 2 chars) |
 
-| Codigo | Mensagem |
-|--------|----------|
-| `400` | Token invalido ou expirado |
+**Responses:**
+- `200` — `{ professionals: [{ id, display_id, first_name, last_name, role, avatar_url, specialization, institution }] }` (max 10 results)
+- `400` — Query must be at least 2 characters
 
 ---
 
-## 2. Pacientes (Patients)
+## Patients
 
-Todos os endpoints requerem autenticacao.
+### GET /patients
 
-### GET /api/patients
+List active patients linked to the authenticated professional.
 
-Lista os pacientes vinculados ao profissional autenticado.
+**Auth:** Required — `psychologist` or `psychiatrist`
 
-- **Autenticacao:** Sim
-- **Role obrigatoria:** `psychologist`, `psychiatrist`
+**Query params:**
+| Param | Description |
+|---|---|
+| search | Filter by name or email (ILIKE) |
+| page | Page number (default: 1) |
+| limit | Page size (default: 20, max: 100) |
 
-**Query Parameters:**
+**Responses:**
+- `200` — `{ patients: [...], pagination: { page, limit, total } }` — Each patient includes last check-in, mood/anxiety scores, mood trend, and active alert count.
 
-| Parametro | Tipo | Descricao |
-|-----------|------|-----------|
-| `search` | string | Busca por nome ou email |
-| `page` | integer | Pagina (padrao: 1) |
-| `limit` | integer | Itens por pagina (padrao: 20, max: 100) |
+---
 
-**Resposta (200 OK):**
+### GET /patients/my-professionals
 
-```json
-{
-  "patients": [
-    {
-      "id": "uuid",
-      "email": "joao@email.com",
-      "first_name": "Joao",
-      "last_name": "Silva",
-      "phone": "(11) 99999-0000",
-      "avatar_url": null,
-      "display_id": "CLA-AB12CD",
-      "created_at": "2025-01-15T10:00:00.000Z",
-      "date_of_birth": "1990-05-15",
-      "gender": "male",
-      "onboarding_completed": true,
-      "relationship_status": "active",
-      "relationship_type": "psychologist",
-      "started_at": "2025-01-16T10:00:00.000Z"
-    }
-  ],
-  "pagination": {
-    "page": 1,
-    "limit": 20,
-    "total": 1
-  }
-}
-```
+Get the linked professionals for the authenticated patient.
 
-**Exemplo curl:**
+**Auth:** Required — `patient`
 
-```bash
-curl -X GET "http://localhost:3001/api/patients?search=joao&page=1&limit=10" \
-  -H "Authorization: Bearer <token>"
-```
+**Responses:**
+- `200` — `{ professionals: [{ id, first_name, last_name, email, role, avatar_url, display_id, specialization, institution, license_number, relationship_type, started_at, permissions: [...] }] }`
 
 ---
 
-### GET /api/patients/:id
+### PUT /patients/revoke-access
 
-Retorna detalhes de um paciente especifico.
+Patient revokes a professional's active access (soft revoke — data is not deleted).
 
-- **Autenticacao:** Sim
-- **Role obrigatoria:** Profissional com vinculo ativo ou o proprio paciente
+**Auth:** Required — `patient`
 
-**Resposta (200 OK):**
+**Body:**
+| Field | Type | Required | Description |
+|---|---|---|---|
+| professional_id | UUID | ✅ | Professional to revoke |
 
-```json
-{
-  "patient": {
-    "id": "uuid",
-    "email": "joao@email.com",
-    "role": "patient",
-    "first_name": "Joao",
-    "last_name": "Silva",
-    "phone": "(11) 99999-0000",
-    "avatar_url": null,
-    "created_at": "2025-01-15T10:00:00.000Z",
-    "date_of_birth": "1990-05-15",
-    "gender": "male",
-    "emergency_contact_name": "Maria Silva",
-    "emergency_contact_phone": "(11) 98888-0000",
-    "onboarding_completed": true,
-    "onboarding_data": {}
-  }
-}
-```
+**Responses:**
+- `200` — `{ relationship: { ... }, message: "Acesso revogado com sucesso" }`
+- `400` — professional_id is required
+- `404` — Active relationship not found
 
-**Erros:**
+---
 
-| Codigo | Mensagem |
-|--------|----------|
-| `404` | Paciente nao encontrado |
+### GET /patients/:id
 
----
+Get patient profile detail.
 
-### GET /api/patients/:id/timeline
+**Auth:** Required — professional with active care relationship, or the patient themselves
 
-Retorna a timeline unificada do paciente (registros emocionais, eventos de vida, mudancas de medicacao, sintomas e avaliacoes).
+**Path params:** `id` — Patient UUID
 
-- **Autenticacao:** Sim
-- **Role obrigatoria:** Profissional com vinculo ativo ou o proprio paciente
+**Responses:**
+- `200` — `{ patient: { id, email, role, first_name, last_name, phone, avatar_url, date_of_birth, gender, emergency_contact_name, emergency_contact_phone, onboarding_completed, self_reported_conditions, suspicions: [...] } }` — Suspicion visibility filtered by caller role.
+- `404` — Patient not found
 
-**Query Parameters:**
+---
 
-| Parametro | Tipo | Descricao |
-|-----------|------|-----------|
-| `start_date` | ISO date | Data inicial do filtro |
-| `end_date` | ISO date | Data final do filtro |
-| `limit` | integer | Maximo de eventos (padrao: 50, max: 200) |
+### GET /patients/:id/timeline
 
-**Resposta (200 OK):**
+Unified timeline: emotional logs, life events, medication changes, symptoms, and assessments.
 
-```json
-{
-  "timeline": [
-    {
-      "event_type": "emotional_log",
-      "id": "uuid",
-      "event_date": "2025-01-15T10:00:00.000Z",
-      "data": {
-        "mood_score": 7,
-        "anxiety_score": 3,
-        "energy_score": 6,
-        "sleep_quality": "good",
-        "notes": "Dia tranquilo"
-      }
-    },
-    {
-      "event_type": "life_event",
-      "id": "uuid",
-      "event_date": "2025-01-14T00:00:00.000Z",
-      "data": {
-        "title": "Mudanca de emprego",
-        "description": "Comecei em um novo emprego",
-        "category": "work",
-        "impact_level": 4
-      }
-    }
-  ]
-}
-```
+**Auth:** Required — professional with active care relationship, or the patient themselves
 
+**Path params:** `id` — Patient UUID
+
+**Query params:**
+| Param | Description |
+|---|---|
+| start_date | ISO datetime filter (inclusive) |
+| end_date | ISO datetime filter (inclusive) |
+| limit | Max events (default: 50, max: 200) |
+
+**Responses:**
+- `200` — `{ timeline: [{ event_type, id, event_date, data: { ... } }] }` — `event_type` is one of `emotional_log`, `life_event`, `medication_change`, `symptom_report`, `assessment`.
+
 ---
 
-### GET /api/patients/my-professionals
+### PUT /patients/:id/permissions
 
-Retorna os profissionais vinculados ao paciente autenticado.
+Patient updates data permissions for a linked professional.
 
-- **Autenticacao:** Sim
-- **Role obrigatoria:** `patient`
+**Auth:** Required — `patient` (can only update own permissions)
 
-**Resposta (200 OK):**
+**Path params:** `id` — Patient UUID (must match authenticated user)
 
-```json
-{
-  "professionals": [
-    {
-      "id": "uuid",
-      "first_name": "Maria",
-      "last_name": "Santos",
-      "email": "dra.maria@email.com",
-      "role": "psychologist",
-      "avatar_url": null,
-      "display_id": "CLA-XY34ZW",
-      "specialization": "TCC",
-      "institution": "Clinica Mente Saudavel",
-      "license_number": "CRP 06/123456",
-      "relationship_type": "psychologist",
-      "started_at": "2025-01-16T10:00:00.000Z",
-      "permissions": [
-        {
-          "permission_type": "emotional_logs",
-          "granted": true
-        }
-      ]
-    }
-  ]
-}
-```
+**Body:**
+| Field | Type | Required | Description |
+|---|---|---|---|
+| professional_id | UUID | ✅ | Professional whose permissions to update |
+| permissions | array | ✅ | Array of `{ permission_type: string, granted: boolean }` |
 
+**Responses:**
+- `200` — `{ permissions: [{ ... }] }`
+- `400` — Missing fields
+- `403` — Only the patient can update own permissions
+- `404` — No care relationship found
+
 ---
 
-### PUT /api/patients/revoke-access
+### PATCH /patients/:id/conditions
 
-Paciente revoga o acesso de um profissional.
+Add or remove a condition/suspicion label for a patient.
 
-- **Autenticacao:** Sim
-- **Role obrigatoria:** `patient`
+**Auth:** Required — any role with patient access
 
-**Request Body:**
+**Path params:** `id` — Patient UUID
 
-```json
-{
-  "professional_id": "uuid-do-profissional"
-}
-```
+**Body:**
+| Field | Type | Required | Description |
+|---|---|---|---|
+| action | string | ✅ | `add` or `remove` |
+| value | string | ✅ | Condition/suspicion label text |
 
-**Resposta (200 OK):**
+**Behavior by role:**
+- `patient` — modifies `self_reported_conditions`
+- `psychiatrist` — modifies `psychiatrist_suspicions`
+- `psychologist` — modifies `psychologist_suspicions`
 
-```json
-{
-  "relationship": {
-    "id": "uuid",
-    "patient_id": "uuid",
-    "professional_id": "uuid",
-    "status": "inactive",
-    "ended_at": "2025-01-20T10:00:00.000Z"
-  },
-  "message": "Acesso revogado com sucesso"
-}
-```
+**Responses:**
+- `200` — `{ [column_name]: [...] }` — Updated array for the modified column
+- `400` — Invalid action or missing value
+- `404` — Patient profile not found
+
+---
+
+### POST /patients/:id/diagnoses
+
+Register a formal ICD-11 diagnosis for a patient.
 
-**Erros:**
+**Auth:** Required — `psychologist` or `psychiatrist` with active care relationship
 
-| Codigo | Mensagem |
-|--------|----------|
-| `400` | professional_id e obrigatorio |
-| `404` | Vinculo ativo nao encontrado |
+**Path params:** `id` — Patient UUID
 
+**Body:**
+| Field | Type | Required | Description |
+|---|---|---|---|
+| icd_code | string | ✅ | ICD-11 code (e.g. `6A00`) |
+| icd_name | string | ✅ | Disorder name |
+| certainty | string | | `suspected` (default) or `confirmed` |
+| diagnosis_date | string | | ISO date; defaults to today |
+| notes | string | | Clinical notes |
+
+**Responses:**
+- `201` — `{ diagnosis: { id, patient_id, professional_id, icd_code, icd_name, certainty, diagnosis_date, notes, ... } }`
+- `400` — Missing required fields or invalid certainty
+
 ---
+
+### GET /patients/:id/diagnoses
 
-### POST /api/patients/:id/connect (DESCONTINUADO)
+List all diagnoses for a patient.
 
-- **Status:** 410 Gone
-- **Substituido por:** `POST /api/invitations`
+**Auth:** Required — professional with care relationship, or the patient themselves
 
+**Path params:** `id` — Patient UUID
+
+**Notes:** Patients only see `confirmed` diagnoses; professionals see all active diagnoses.
+
+**Responses:**
+- `200` — `{ diagnoses: [{ ...diagnosis, professional_first_name, professional_last_name, professional_role, clinical_note_title }] }`
+
 ---
 
-### PUT /api/patients/:id/permissions
+### PATCH /patients/:id/diagnoses/:diagId
 
-Paciente atualiza as permissoes de acesso de um profissional aos seus dados.
+Update a diagnosis (only the professional who created it).
 
-- **Autenticacao:** Sim
-- **Role obrigatoria:** `patient` (apenas o proprio paciente)
+**Auth:** Required — `psychologist` or `psychiatrist` (must be the creator)
 
-**Request Body:**
+**Path params:** `id` — Patient UUID, `diagId` — Diagnosis UUID
 
-```json
-{
-  "professional_id": "uuid-do-profissional",
-  "permissions": [
-    { "permission_type": "emotional_logs", "granted": true },
-    { "permission_type": "clinical_notes", "granted": true },
-    { "permission_type": "medications", "granted": false }
-  ]
-}
-```
+**Body (all optional):**
+| Field | Type | Description |
+|---|---|---|
+| certainty | string | `suspected` or `confirmed` |
+| notes | string | Clinical notes |
+| clinical_note_id | UUID | Link to a clinical note |
+| is_active | boolean | Soft-delete by setting `false` |
 
-**Resposta (200 OK):**
+**Responses:**
+- `200` — `{ diagnosis: { ... } }`
+- `400` — Invalid certainty value or no fields to update
+- `403` — Only creator can edit
+- `404` — Diagnosis not found
 
-```json
-{
-  "permissions": [
-    {
-      "id": "uuid",
-      "patient_id": "uuid",
-      "professional_id": "uuid",
-      "permission_type": "emotional_logs",
-      "granted": true
-    }
-  ]
-}
-```
+---
+
+## Professionals
+
+### GET /professionals
+
+List all active professionals (psychologists and psychiatrists).
+
+**Auth:** Required (any role)
 
-**Erros:**
+**Query params:**
+| Param | Description |
+|---|---|
+| search | Filter by name or specialization (ILIKE) |
+| role | Filter by `psychologist` or `psychiatrist` |
+| page | Page number (default: 1) |
+| limit | Page size (default: 20, max: 100) |
 
-| Codigo | Mensagem |
-|--------|----------|
-| `400` | professional_id e array de permissoes sao obrigatorios |
-| `403` | Apenas o paciente pode atualizar suas proprias permissoes |
-| `404` | Nenhum vinculo de cuidado encontrado com este profissional |
+**Responses:**
+- `200` — `{ professionals: [...], pagination: { page, limit, total } }`
 
 ---
 
-## 3. Profissionais (Professionals)
+### GET /professionals/my-patients
 
-Todos os endpoints requerem autenticacao.
+Get the active patients linked to the authenticated professional.
 
-### GET /api/professionals
+**Auth:** Required — `psychologist` or `psychiatrist`
 
-Lista profissionais disponiveis na plataforma.
+**Responses:**
+- `200` — `{ patients: [{ id, email, first_name, last_name, phone, avatar_url, date_of_birth, gender, onboarding_completed, relationship_status, relationship_type, started_at }] }`
 
-- **Autenticacao:** Sim
-- **Role obrigatoria:** Qualquer
+---
 
-**Query Parameters:**
+### GET /professionals/:id
 
-| Parametro | Tipo | Descricao |
-|-----------|------|-----------|
-| `search` | string | Busca por nome ou especializacao |
-| `role` | string | Filtrar por `psychologist` ou `psychiatrist` |
-| `page` | integer | Pagina (padrao: 1) |
-| `limit` | integer | Itens por pagina (padrao: 20, max: 100) |
+Get a professional's public profile.
 
-**Resposta (200 OK):**
+**Auth:** Required (any role)
 
-```json
-{
-  "professionals": [
-    {
-      "id": "uuid",
-      "email": "dra.maria@email.com",
-      "role": "psychologist",
-      "first_name": "Maria",
-      "last_name": "Santos",
-      "avatar_url": null,
-      "license_number": "CRP 06/123456",
-      "specialization": "TCC",
-      "institution": "Clinica Mente Saudavel",
-      "bio": "Psicologa com 10 anos de experiencia.",
-      "years_of_experience": 10
-    }
-  ],
-  "pagination": { "page": 1, "limit": 20, "total": 1 }
-}
-```
+**Path params:** `id` — Professional UUID
 
+**Responses:**
+- `200` — `{ professional: { id, email, role, first_name, last_name, avatar_url, license_number, specialization, institution, bio, years_of_experience } }`
+- `404` — Professional not found
+
 ---
 
-### GET /api/professionals/my-patients
+## Invitations
 
-Retorna os pacientes vinculados ao profissional autenticado.
+### POST /invitations
 
-- **Autenticacao:** Sim
-- **Role obrigatoria:** `psychologist`, `psychiatrist`
+Send an invitation to connect a patient and a professional. Either side can initiate. If a previous inactive relationship exists, it is reactivated.
 
-**Resposta (200 OK):**
+**Auth:** Required (any role)
 
-```json
-{
-  "patients": [
-    {
-      "id": "uuid",
-      "email": "joao@email.com",
-      "first_name": "Joao",
-      "last_name": "Silva",
-      "phone": "(11) 99999-0000",
-      "avatar_url": null,
-      "created_at": "2025-01-15T10:00:00.000Z",
-      "date_of_birth": "1990-05-15",
-      "gender": "male",
-      "onboarding_completed": true,
-      "relationship_status": "active",
-      "relationship_type": "psychologist",
-      "started_at": "2025-01-16T10:00:00.000Z"
-    }
-  ]
-}
-```
+**Body:**
+| Field | Type | Required | Description |
+|---|---|---|---|
+| display_id | string | ✅ | Display ID of the target user (e.g. `CLA-BA5A3`) |
+| message | string | | Optional invitation message |
+
+**Responses:**
+- `201` — `{ invitation: { ...relationship, other_first_name, other_last_name, other_role, other_display_id }, reactivation: boolean }`
+- `400` — Cannot invite yourself, or both parties are same role
+- `404` — Target user not found
+- `409` — Active or pending relationship already exists
 
 ---
 
-### GET /api/professionals/:id
+### GET /invitations/pending
 
-Retorna detalhes de um profissional especifico.
+List pending invitations received by the authenticated user.
 
-- **Autenticacao:** Sim
-- **Role obrigatoria:** Qualquer
+**Auth:** Required (any role)
 
-**Resposta (200 OK):**
+**Responses:**
+- `200` — `{ invitations: [{ id, relationship_type, status, invitation_message, other_first_name, other_last_name, other_role, other_display_id, other_avatar_url, specialization, institution, ... }] }`
 
-```json
-{
-  "professional": {
-    "id": "uuid",
-    "email": "dra.maria@email.com",
-    "role": "psychologist",
-    "first_name": "Maria",
-    "last_name": "Santos",
-    "avatar_url": null,
-    "created_at": "2025-01-15T10:00:00.000Z",
-    "license_number": "CRP 06/123456",
-    "specialization": "TCC",
-    "institution": "Clinica Mente Saudavel",
-    "bio": "Psicologa com 10 anos de experiencia.",
-    "years_of_experience": 10
-  }
-}
-```
+---
 
-**Erros:**
+### GET /invitations/sent
 
-| Codigo | Mensagem |
-|--------|----------|
-| `404` | Profissional nao encontrado |
+List pending invitations sent by the authenticated user.
 
+**Auth:** Required (any role)
+
+**Responses:**
+- `200` — `{ invitations: [...] }` (same shape as `/invitations/pending`)
+
 ---
 
-## 4. Registros Emocionais (Emotional Logs)
+### PUT /invitations/:id/respond
 
-Todos os endpoints requerem autenticacao.
+Accept or reject a received invitation.
 
-### POST /api/emotional-logs
+**Auth:** Required — must be the recipient (not the sender)
 
-Cria um novo registro emocional.
+**Path params:** `id` — Care relationship UUID
 
-- **Autenticacao:** Sim
-- **Role obrigatoria:** `patient`
+**Body:**
+| Field | Type | Required | Description |
+|---|---|---|---|
+| action | string | ✅ | `accept` or `reject` |
 
-**Request Body:**
+**Responses:**
+- `200` — `{ relationship: { id, status, started_at, responded_at, ... } }`
+- `400` — Invalid action
+- `403` — Sender cannot respond to own invitation, or user not in relationship
+- `404` — Invitation not found or already responded
 
-```json
-{
-  "mood_score": 7,
-  "anxiety_score": 3,
-  "energy_score": 6,
-  "sleep_quality": "good",
-  "sleep_hours": 7.5,
-  "notes": "Dia tranquilo, sem grandes preocupacoes.",
-  "journal_entry": "Hoje acordei bem e fiz exercicios...",
-  "logged_at": "2025-01-15T10:00:00.000Z"
-}
-```
+---
 
-**Resposta (201 Created):**
+### DELETE /invitations/:id
 
-```json
-{
-  "emotional_log": {
-    "id": "uuid",
-    "patient_id": "uuid",
-    "mood_score": 7,
-    "anxiety_score": 3,
-    "energy_score": 6,
-    "sleep_quality": "good",
-    "sleep_hours": 7.5,
-    "notes": "Dia tranquilo, sem grandes preocupacoes.",
-    "journal_entry": "Hoje acordei bem e fiz exercicios...",
-    "logged_at": "2025-01-15T10:00:00.000Z",
-    "created_at": "2025-01-15T10:05:00.000Z"
-  }
-}
-```
+Cancel a pending invitation (sender only).
 
-> Nota: Apos criar o registro, alertas sao gerados automaticamente em segundo plano.
+**Auth:** Required — must be the invitation sender
 
-**Exemplo curl:**
+**Path params:** `id` — Care relationship UUID
 
-```bash
-curl -X POST http://localhost:3001/api/emotional-logs \
-  -H "Authorization: Bearer <token>" \
-  -H "Content-Type: application/json" \
-  -d '{"mood_score": 7, "anxiety_score": 3, "energy_score": 6}'
-```
+**Responses:**
+- `204` — Cancelled successfully
+- `403` — Only sender can cancel
+- `404` — Invitation not found or already responded
 
 ---
 
-### GET /api/emotional-logs
+## Onboarding
 
-Lista registros emocionais do paciente autenticado.
+### GET /onboarding
 
-- **Autenticacao:** Sim
-- **Role obrigatoria:** `patient`
+Get the current onboarding data for the authenticated patient.
 
-**Query Parameters:**
+**Auth:** Required — `patient`
 
-| Parametro | Tipo | Descricao |
-|-----------|------|-----------|
-| `start_date` | ISO date | Data inicial |
-| `end_date` | ISO date | Data final |
-| `page` | integer | Pagina (padrao: 1) |
-| `limit` | integer | Itens por pagina (padrao: 30, max: 100) |
+**Responses:**
+- `200` — `{ profile: { onboarding_completed, onboarding_data, date_of_birth, gender, emergency_contact_name, emergency_contact_phone, phone } }`
 
-**Resposta (200 OK):**
+---
 
-```json
-{
-  "emotional_logs": [ ... ],
-  "pagination": { "page": 1, "limit": 30, "total": 42 }
-}
-```
+### PUT /onboarding
 
----
+Save onboarding form data and mark onboarding as completed.
 
-### GET /api/emotional-logs/trends
+**Auth:** Required — `patient`
 
-Retorna tendencias emocionais agregadas por periodo.
+**Body (all optional):**
+| Field | Type | Description |
+|---|---|---|
+| personal | object | Personal section data |
+| physical | object | Physical health section data |
+| gynecological | object | Gynecological section data |
+| medical | object | Medical history section data |
+| family_history | string | Family history text |
+| current_treatments | string | Current treatments text |
+| date_of_birth | string | ISO date |
+| gender | string | |
+| full_name | string | Updates first_name and last_name |
+| email | string | Updates user email |
+| phone | string | |
+| emergency_contact_name | string | |
+| emergency_contact_phone | string | |
 
-- **Autenticacao:** Sim
-- **Role obrigatoria:** `patient`
+**Responses:**
+- `200` — `{ profile: { onboarding_completed: true, onboarding_data, ... } }`
 
-**Query Parameters:**
+---
 
-| Parametro | Tipo | Descricao |
-|-----------|------|-----------|
-| `period` | string | `daily`, `weekly` (padrao) ou `monthly` |
-| `start_date` | ISO date | Data inicial |
-| `end_date` | ISO date | Data final |
+## Emotional Logs
 
-**Resposta (200 OK):**
+### POST /emotional-logs
 
-```json
-{
-  "trends": [
-    {
-      "period_start": "2025-01-06T00:00:00.000Z",
-      "avg_mood": 6.5,
-      "avg_anxiety": 4.2,
-      "avg_energy": 5.8,
-      "avg_sleep_hours": 7.1,
-      "log_count": 5
-    }
-  ],
-  "period": "weekly"
-}
-```
+Create an emotional check-in log (patient only).
 
----
+**Auth:** Required — `patient`
 
-### GET /api/emotional-logs/:patientId
+**Body:**
+| Field | Type | Required | Description |
+|---|---|---|---|
+| mood_score | integer | ✅ | 1–10 |
+| anxiety_score | integer | ✅ | 1–10 |
+| energy_score | integer | ✅ | 1–10 |
+| sleep_quality | integer | | 1–10 |
+| sleep_hours | number | | 0–24 |
+| notes | string | | Short notes |
+| journal_entry | string | | Long-form journal text |
+| logged_at | ISO8601 | | Timestamp; defaults to now |
 
-Profissional visualiza registros emocionais de um paciente.
+**Responses:**
+- `201` — `{ emotional_log: { id, patient_id, mood_score, anxiety_score, energy_score, sleep_quality, sleep_hours, notes, journal_entry, logged_at, created_at } }`
 
-- **Autenticacao:** Sim
-- **Role obrigatoria:** `psychologist`, `psychiatrist`
-- **Permissao necessaria:** `emotional_logs`
+---
 
-**Query Parameters:**
+### GET /emotional-logs
 
-| Parametro | Tipo | Descricao |
-|-----------|------|-----------|
-| `start_date` | ISO date | Data inicial |
-| `end_date` | ISO date | Data final |
-| `page` | integer | Pagina |
-| `limit` | integer | Itens por pagina |
+Get the authenticated patient's emotional logs.
 
-**Resposta (200 OK):**
+**Auth:** Required — `patient`
 
-```json
-{
-  "emotional_logs": [ ... ],
-  "pagination": { "page": 1, "limit": 30, "total": 42 }
-}
-```
+**Query params:**
+| Param | Description |
+|---|---|
+| start_date | ISO datetime filter (inclusive) |
+| end_date | ISO datetime filter (inclusive) |
+| page | Page number (default: 1) |
+| limit | Page size (default: 30, max: 100) |
 
+**Responses:**
+- `200` — `{ emotional_logs: [...], pagination: { page, limit, total } }`
+
 ---
 
-## 5. Sintomas (Symptoms)
+### GET /emotional-logs/trends
 
-### GET /api/symptoms
+Get aggregated trend data for the authenticated patient.
 
-Lista todos os sintomas de referencia disponiveis.
+**Auth:** Required — `patient`
 
-- **Autenticacao:** Sim
-- **Role obrigatoria:** Qualquer
+**Query params:**
+| Param | Description |
+|---|---|
+| period | `daily`, `weekly` (default), or `monthly` |
+| start_date | ISO datetime filter |
+| end_date | ISO datetime filter |
 
-**Query Parameters:**
+**Responses:**
+- `200` — `{ trends: [{ period_start, avg_mood, avg_anxiety, avg_energy, avg_sleep_hours, log_count }], period }`
 
-| Parametro | Tipo | Descricao |
-|-----------|------|-----------|
-| `category` | string | Filtrar por categoria |
+---
 
-**Resposta (200 OK):**
+### GET /emotional-logs/:patientId
 
-```json
-{
-  "symptoms": [
-    {
-      "id": "uuid",
-      "name": "Insonia",
-      "category": "sleep",
-      "description": "Dificuldade para dormir"
-    }
-  ]
-}
-```
+Get emotional logs for a specific patient (professional view).
+
+**Auth:** Required — `psychologist` or `psychiatrist` with `emotional_logs` permission
+
+**Path params:** `patientId` — Patient UUID
+
+**Query params:** Same as `GET /emotional-logs`
 
+**Responses:**
+- `200` — `{ emotional_logs: [...], pagination: { page, limit, total } }`
+
 ---
 
-### POST /api/patient-symptoms
+## Journal
 
-Paciente reporta um sintoma.
+### POST /journal
 
-- **Autenticacao:** Sim
-- **Role obrigatoria:** `patient`
+Create a daily journal check-in for the authenticated patient.
 
-**Request Body:**
+**Auth:** Required — `patient`
 
-```json
-{
-  "symptom_id": "uuid-do-sintoma",
-  "severity": 7,
-  "notes": "Dificuldade para dormir nos ultimos 3 dias.",
-  "reported_at": "2025-01-15T22:00:00.000Z"
-}
-```
+**Body:**
+| Field | Type | Required | Description |
+|---|---|---|---|
+| mood_score | integer | ✅ | 1–10 |
+| anxiety_score | integer | ✅ | 1–10 |
+| energy_score | integer | ✅ | 1–10 |
+| sleep_quality | integer | | 1–10 |
+| sleep_hours | number | | 0–24 |
+| journal_entry | string | | Max 10,000 chars |
+| notes | string | | Short notes |
+| logged_at | ISO8601 | | Defaults to now |
 
-**Resposta (201 Created):**
+**Responses:**
+- `201` — `{ journal: { id, patient_id, mood_score, anxiety_score, energy_score, sleep_quality, sleep_hours, notes, journal_entry, logged_at, created_at } }`
 
-```json
-{
-  "patient_symptom": {
-    "id": "uuid",
-    "patient_id": "uuid",
-    "symptom_id": "uuid",
-    "severity": 7,
-    "notes": "Dificuldade para dormir nos ultimos 3 dias.",
-    "reported_at": "2025-01-15T22:00:00.000Z"
-  }
-}
-```
+---
+
+### GET /journal
 
-**Erros:**
+Get the authenticated patient's journal entries.
 
-| Codigo | Mensagem |
-|--------|----------|
-| `404` | Sintoma nao encontrado |
+**Auth:** Required — `patient`
 
+**Query params:**
+| Param | Description |
+|---|---|
+| start_date | ISO datetime filter |
+| end_date | ISO datetime filter |
+| page | Page number (default: 1) |
+| limit | Page size (default: 20, max: 100) |
+
+**Responses:**
+- `200` — `{ journals: [...], pagination: { page, limit, total } }`
+
 ---
 
-### GET /api/patient-symptoms
+### GET /journal/:patientId
 
-Lista historico de sintomas do paciente autenticado.
+Get a patient's journal entries (professional view, requires `journal_entries` permission).
 
-- **Autenticacao:** Sim
-- **Role obrigatoria:** `patient`
+**Auth:** Required — `psychologist` or `psychiatrist` with `journal_entries` permission
 
-**Query Parameters:**
+**Path params:** `patientId` — Patient UUID
 
-| Parametro | Tipo | Descricao |
-|-----------|------|-----------|
-| `start_date` | ISO date | Data inicial |
-| `end_date` | ISO date | Data final |
-| `page` | integer | Pagina |
-| `limit` | integer | Itens por pagina (padrao: 30) |
+**Query params:** Same as `GET /journal`
 
-**Resposta (200 OK):**
+**Notes:** Only returns entries that have a `journal_entry` value.
 
-```json
-{
-  "patient_symptoms": [
-    {
-      "id": "uuid",
-      "patient_id": "uuid",
-      "symptom_id": "uuid",
-      "severity": 7,
-      "notes": "...",
-      "reported_at": "2025-01-15T22:00:00.000Z",
-      "symptom_name": "Insonia",
-      "symptom_category": "sleep"
-    }
-  ],
-  "pagination": { "page": 1, "limit": 30, "total": 15 }
-}
-```
+**Responses:**
+- `200` — `{ journals: [...], pagination: { page, limit, total } }`
 
 ---
+
+## Symptoms
 
-### GET /api/patient-symptoms/:patientId
+### GET /symptoms
 
-Profissional visualiza sintomas de um paciente.
+List the symptom reference catalog.
 
-- **Autenticacao:** Sim
-- **Role obrigatoria:** `psychologist`, `psychiatrist`
-- **Permissao necessaria:** `symptoms`
+**Auth:** Required (any role)
 
-**Query Parameters:** Mesmos de `GET /api/patient-symptoms`
+**Query params:**
+| Param | Description |
+|---|---|
+| category | Filter by symptom category |
 
-**Resposta (200 OK):** Mesmo formato de `GET /api/patient-symptoms`
+**Responses:**
+- `200` — `{ symptoms: [{ id, name, category, ... }] }`
 
 ---
 
-## 6. Medicacoes (Medications)
+### POST /patient-symptoms
 
-### GET /api/medications
+Report a symptom (patient only).
 
-Lista medicamentos de referencia disponiveis.
+**Auth:** Required — `patient`
 
-- **Autenticacao:** Sim
-- **Role obrigatoria:** Qualquer
+**Body:**
+| Field | Type | Required | Description |
+|---|---|---|---|
+| symptom_id | UUID | ✅ | Reference to a symptom in catalog |
+| severity | integer | ✅ | Severity score |
+| notes | string | | Optional notes |
+| reported_at | ISO8601 | | Defaults to now |
 
-**Query Parameters:**
+**Responses:**
+- `201` — `{ patient_symptom: { id, patient_id, symptom_id, severity, notes, reported_at } }`
+- `404` — Symptom not found
 
-| Parametro | Tipo | Descricao |
-|-----------|------|-----------|
-| `category` | string | Filtrar por categoria |
-| `search` | string | Busca por nome |
+---
 
-**Resposta (200 OK):**
+### GET /patient-symptoms
 
-```json
-{
-  "medications": [
-    {
-      "id": "uuid",
-      "name": "Sertralina",
-      "category": "antidepressant",
-      "description": "Inibidor seletivo da recaptacao de serotonina"
-    }
-  ]
-}
-```
+Get the authenticated patient's symptom history.
 
----
+**Auth:** Required — `patient`
 
-### POST /api/patient-medications
+**Query params:**
+| Param | Description |
+|---|---|
+| start_date | ISO datetime filter |
+| end_date | ISO datetime filter |
+| page | Page number (default: 1) |
+| limit | Page size (default: 30, max: 100) |
 
-Prescreve medicacao para um paciente (somente psiquiatra).
+**Responses:**
+- `200` — `{ patient_symptoms: [{ ...symptom, symptom_name, symptom_category }], pagination: { page, limit, total } }`
 
-- **Autenticacao:** Sim
-- **Role obrigatoria:** `psychiatrist`
+---
 
-**Request Body:**
+### GET /patient-symptoms/:patientId
 
-```json
-{
-  "patient_id": "uuid-do-paciente",
-  "medication_id": "uuid-do-medicamento",
-  "dosage": "50mg",
-  "frequency": "1x ao dia",
-  "start_date": "2025-01-15",
-  "end_date": "2025-04-15",
-  "notes": "Iniciar com dose baixa"
-}
-```
+Get a patient's symptom history (professional view, requires `symptoms` permission).
 
-**Resposta (201 Created):**
+**Auth:** Required — `psychologist` or `psychiatrist` with `symptoms` permission
 
-```json
-{
-  "patient_medication": {
-    "id": "uuid",
-    "patient_id": "uuid",
-    "medication_id": "uuid",
-    "prescribed_by": "uuid",
-    "dosage": "50mg",
-    "frequency": "1x ao dia",
-    "start_date": "2025-01-15",
-    "end_date": "2025-04-15",
-    "status": "active",
-    "notes": "Iniciar com dose baixa"
-  }
-}
-```
+**Path params:** `patientId` — Patient UUID
 
-**Erros:**
+**Query params:** Same as `GET /patient-symptoms`
 
-| Codigo | Mensagem |
-|--------|----------|
-| `403` | Sem vinculo de cuidado ativo com este paciente |
-| `404` | Medicamento nao encontrado |
+**Responses:**
+- `200` — `{ patient_symptoms: [...], pagination: { page, limit, total } }`
 
 ---
 
-### PUT /api/patient-medications/:id
+## Life Events
 
-Atualiza uma prescricao (somente psiquiatra).
+### POST /life-events
 
-- **Autenticacao:** Sim
-- **Role obrigatoria:** `psychiatrist`
+Create a life event for the authenticated patient.
 
-**Request Body (campos opcionais):**
+**Auth:** Required — `patient`
 
-```json
-{
-  "dosage": "100mg",
-  "frequency": "2x ao dia",
-  "end_date": "2025-06-15",
-  "status": "discontinued",
-  "notes": "Aumento de dose apos avaliacao"
-}
-```
+**Body:**
+| Field | Type | Required | Description |
+|---|---|---|---|
+| title | string | ✅ | Event title |
+| category | string | ✅ | Event category |
+| impact_level | integer | ✅ | Impact level score |
+| event_date | string | ✅ | ISO date |
+| description | string | | Longer description |
 
-**Resposta (200 OK):**
+**Responses:**
+- `201` — `{ life_event: { id, patient_id, title, description, category, impact_level, event_date, ... } }`
 
-```json
-{
-  "patient_medication": { ... }
-}
-```
+---
+
+### GET /life-events
+
+Get the authenticated patient's life events.
+
+**Auth:** Required — `patient`
 
-**Erros:**
+**Query params:**
+| Param | Description |
+|---|---|
+| category | Filter by category |
+| start_date | ISO date filter |
+| end_date | ISO date filter |
+| page | Page number (default: 1) |
+| limit | Page size (default: 30, max: 100) |
 
-| Codigo | Mensagem |
-|--------|----------|
-| `400` | Nenhum campo para atualizar |
-| `404` | Prescricao nao encontrada ou sem acesso |
+**Responses:**
+- `200` — `{ life_events: [...], pagination: { page, limit, total } }`
 
 ---
 
-### GET /api/patient-medications
+### GET /life-events/:patientId
 
-Lista medicacoes do paciente.
+Get a patient's life events (professional view, requires `life_events` permission).
 
-- **Autenticacao:** Sim
-- **Role obrigatoria:** Qualquer (paciente ve as proprias; profissional precisa de `patient_id`)
+**Auth:** Required — `psychologist` or `psychiatrist` with `life_events` permission
 
-**Query Parameters:**
+**Path params:** `patientId` — Patient UUID
 
-| Parametro | Tipo | Descricao |
-|-----------|------|-----------|
-| `patient_id` | UUID | Obrigatorio para profissionais |
-| `status` | string | Filtrar por status (`active`, `discontinued`, etc.) |
+**Query params:** Same as `GET /life-events`
 
-**Resposta (200 OK):**
+**Responses:**
+- `200` — `{ life_events: [...], pagination: { page, limit, total } }`
 
-```json
-{
-  "patient_medications": [
-    {
-      "id": "uuid",
-      "patient_id": "uuid",
-      "medication_id": "uuid",
-      "dosage": "50mg",
-      "frequency": "1x ao dia",
-      "status": "active",
-      "medication_name": "Sertralina",
-      "medication_category": "antidepressant",
-      "prescriber_first_name": "Dra. Ana",
-      "prescriber_last_name": "Lima"
-    }
-  ]
-}
-```
+---
+
+## Medications
+
+### GET /medications
+
+List the medication reference catalog.
+
+**Auth:** Required (any role)
 
+**Query params:**
+| Param | Description |
+|---|---|
+| category | Filter by medication category |
+| search | Filter by name (ILIKE) |
+
+**Responses:**
+- `200` — `{ medications: [{ id, name, category, ... }] }`
+
 ---
 
-### POST /api/medication-logs
+### POST /patient-medications
 
-Registra tomada ou pulo de medicacao (somente paciente).
+Prescribe a medication to a patient (psychiatrist only).
 
-- **Autenticacao:** Sim
-- **Role obrigatoria:** `patient`
+**Auth:** Required — `psychiatrist` with active care relationship
 
-**Request Body:**
+**Body:**
+| Field | Type | Required | Description |
+|---|---|---|---|
+| patient_id | UUID | ✅ | Patient to prescribe to |
+| medication_id | UUID | ✅ | Medication from catalog |
+| dosage | string | ✅ | Dosage instructions |
+| frequency | string | ✅ | Frequency instructions |
+| start_date | string | ✅ | ISO date |
+| end_date | string | | ISO date |
+| notes | string | | Additional notes |
 
-```json
-{
-  "patient_medication_id": "uuid-da-prescricao",
-  "taken_at": "2025-01-15T08:00:00.000Z",
-  "skipped": false,
-  "skip_reason": null,
-  "notes": "Tomei no horario"
-}
-```
+**Responses:**
+- `201` — `{ patient_medication: { id, patient_id, medication_id, prescribed_by, dosage, frequency, start_date, end_date, notes, status, ... } }`
+- `403` — No active care relationship
+- `404` — Medication not found
 
-Para registro de dose pulada:
+---
 
-```json
-{
-  "patient_medication_id": "uuid-da-prescricao",
-  "skipped": true,
-  "skip_reason": "Esqueci de tomar",
-  "notes": null
-}
-```
+### PUT /patient-medications/:id
 
-**Resposta (201 Created):**
+Update a prescription (psychiatrist only).
 
-```json
-{
-  "medication_log": {
-    "id": "uuid",
-    "patient_medication_id": "uuid",
-    "taken_at": "2025-01-15T08:00:00.000Z",
-    "skipped": false,
-    "skip_reason": null,
-    "notes": "Tomei no horario"
-  }
-}
-```
+**Auth:** Required — `psychiatrist` with active care relationship to patient
 
-**Erros:**
+**Path params:** `id` — Patient medication UUID
 
-| Codigo | Mensagem |
-|--------|----------|
-| `400` | patient_medication_id e obrigatorio |
-| `400` | skip_reason e obrigatorio quando a medicacao e pulada |
-| `404` | Prescricao nao encontrada |
+**Body (all optional):**
+| Field | Type | Description |
+|---|---|---|
+| dosage | string | |
+| frequency | string | |
+| end_date | string | ISO date |
+| status | string | |
+| notes | string | |
 
+**Responses:**
+- `200` — `{ patient_medication: { ... } }`
+- `404` — Prescription not found or no access
+
 ---
 
-### GET /api/medication-logs
+### GET /patient-medications
 
-Lista logs de medicacao com resumo de aderencia.
+Get patient medications.
 
-- **Autenticacao:** Sim
-- **Role obrigatoria:** Qualquer (paciente ve os proprios; profissional precisa de `patient_id`)
+**Auth:** Required (any role)
 
-**Query Parameters:**
+- **Patient:** Returns own medications automatically.
+- **Professional:** Must supply `?patient_id=` query param and have an active care relationship.
 
-| Parametro | Tipo | Descricao |
-|-----------|------|-----------|
-| `patient_id` | UUID | Obrigatorio para profissionais |
-| `patient_medication_id` | UUID | Filtrar por prescricao especifica |
-| `start_date` | ISO date | Data inicial |
-| `end_date` | ISO date | Data final |
+**Query params:**
+| Param | Description |
+|---|---|
+| patient_id | UUID (required for professionals) |
+| status | Filter by medication status |
 
-**Resposta (200 OK):**
+**Responses:**
+- `200` — `{ patient_medications: [{ ...prescription, medication_name, medication_category, prescriber_first_name, prescriber_last_name }] }`
 
-```json
-{
-  "medication_logs": [ ... ],
-  "summary": {
-    "total": 30,
-    "taken": 27,
-    "skipped": 3,
-    "adherence_rate": 90
-  }
-}
-```
+---
+
+### POST /medication-logs
+
+Log a medication as taken or skipped (patient only).
 
+**Auth:** Required — `patient`
+
+**Body:**
+| Field | Type | Required | Description |
+|---|---|---|---|
+| patient_medication_id | UUID | ✅ | The prescription being logged |
+| taken_at | ISO8601 | | Defaults to now |
+| skipped | boolean | | `true` if medication was skipped |
+| skip_reason | string | if skipped=true | Reason for skipping |
+| notes | string | | Optional notes |
+
+**Responses:**
+- `201` — `{ medication_log: { id, patient_medication_id, taken_at, skipped, skip_reason, notes } }`
+- `400` — skip_reason required when skipped=true
+- `404` — Prescription not found
+
 ---
 
-## 7. Avaliacoes (Assessments)
+### GET /medication-logs
 
-### GET /api/assessments
+Get medication adherence logs.
 
-Lista instrumentos de avaliacao disponiveis (PHQ-9, GAD-7, etc.).
+**Auth:** Required (any role)
 
-- **Autenticacao:** Sim
-- **Role obrigatoria:** Qualquer
+- **Patient:** Returns own logs.
+- **Professional:** Must supply `?patient_id=` and have an active care relationship.
 
-**Resposta (200 OK):**
+**Query params:**
+| Param | Description |
+|---|---|
+| patient_id | UUID (required for professionals) |
+| patient_medication_id | Filter by prescription |
+| start_date | ISO datetime filter |
+| end_date | ISO datetime filter |
 
-```json
-{
-  "assessments": [
-    {
-      "id": "uuid",
-      "name": "PHQ-9",
-      "description": "Questionario sobre a Saude do Paciente - Depressao",
-      "questions": [ ... ]
-    }
-  ]
-}
-```
+**Responses:**
+- `200` — `{ medication_logs: [{ ...log, dosage, frequency, medication_name }], summary: { total, taken, skipped, adherence_rate } }`
 
 ---
 
-### POST /api/assessment-results
+## Assessments
 
-Envia resultado de uma avaliacao com calculo automatico de score.
+### GET /assessments
 
-- **Autenticacao:** Sim
-- **Role obrigatoria:** `patient`
+List all assessment templates (e.g. PHQ-9, GAD-7).
 
-**Request Body:**
+**Auth:** Required (any role)
 
-```json
-{
-  "assessment_id": "uuid-da-avaliacao",
-  "answers": [
-    { "question_id": 1, "value": 2 },
-    { "question_id": 2, "value": 1 },
-    { "question_id": 3, "value": 3 }
-  ]
-}
-```
+**Responses:**
+- `200` — `{ assessments: [{ id, name, ... }] }`
 
-**Resposta (201 Created):**
+---
 
-```json
-{
-  "assessment_result": {
-    "id": "uuid",
-    "patient_id": "uuid",
-    "assessment_id": "uuid",
-    "answers": [ ... ],
-    "total_score": 12,
-    "severity_level": "moderate",
-    "completed_at": "2025-01-15T10:00:00.000Z"
-  },
-  "scoring": {
-    "total_score": 12,
-    "severity_level": "moderate",
-    "assessment_name": "PHQ-9"
-  }
-}
-```
+### POST /assessment-results
 
-**Erros:**
+Submit an assessment result (auto-scored by the server).
 
-| Codigo | Mensagem |
-|--------|----------|
-| `400` | Respostas invalidas |
-| `404` | Avaliacao nao encontrada |
+**Auth:** Required — `patient`
 
+**Body:**
+| Field | Type | Required | Description |
+|---|---|---|---|
+| assessment_id | UUID | ✅ | Assessment template ID |
+| answers | object | ✅ | Answer map (validated by assessmentResultValidator) |
+
+**Responses:**
+- `201` — `{ assessment_result: { id, patient_id, assessment_id, answers, total_score, severity_level, completed_at, ... }, scoring: { total_score, severity_level, assessment_name } }`
+- `400` — Invalid answer structure
+- `404` — Assessment not found
+
 ---
 
-### GET /api/assessment-results
+### GET /assessment-results
 
-Lista resultados de avaliacoes do paciente autenticado.
+Get the authenticated patient's own assessment history.
 
-- **Autenticacao:** Sim
-- **Role obrigatoria:** `patient`
+**Auth:** Required — `patient`
 
-**Query Parameters:**
+**Query params:**
+| Param | Description |
+|---|---|
+| assessment_id | Filter by assessment type |
+| page | Page number (default: 1) |
+| limit | Page size (default: 20, max: 100) |
 
-| Parametro | Tipo | Descricao |
-|-----------|------|-----------|
-| `assessment_id` | UUID | Filtrar por avaliacao especifica |
-| `page` | integer | Pagina |
-| `limit` | integer | Itens por pagina (padrao: 20) |
+**Responses:**
+- `200` — `{ assessment_results: [{ ...result, assessment_name }], pagination: { page, limit, total } }`
 
-**Resposta (200 OK):**
+---
 
-```json
-{
-  "assessment_results": [
-    {
-      "id": "uuid",
-      "assessment_id": "uuid",
-      "total_score": 12,
-      "severity_level": "moderate",
-      "completed_at": "2025-01-15T10:00:00.000Z",
-      "assessment_name": "PHQ-9"
-    }
-  ],
-  "pagination": { "page": 1, "limit": 20, "total": 5 }
-}
-```
+### GET /assessment-results/:patientId
+
+Get a patient's assessment history (professional view, requires `assessments` permission).
+
+**Auth:** Required — `psychologist` or `psychiatrist` with `assessments` permission
 
+**Path params:** `patientId` — Patient UUID
+
+**Query params:** Same as `GET /assessment-results`
+
+**Responses:**
+- `200` — `{ assessment_results: [...], pagination: { page, limit, total } }`
+
 ---
 
-### GET /api/assessment-results/:patientId
+## Psychological Tests (Psych Tests)
 
-Profissional visualiza resultados de avaliacoes de um paciente.
+### GET /psych-tests
 
-- **Autenticacao:** Sim
-- **Role obrigatoria:** `psychologist`, `psychiatrist`
-- **Permissao necessaria:** `assessments`
+List available psychological tests catalog (SATEPSI-validated only).
 
-**Query Parameters:** Mesmos de `GET /api/assessment-results`
+**Auth:** Required — `psychologist` or `psychiatrist`
 
-**Resposta (200 OK):** Mesmo formato de `GET /api/assessment-results`
+**Responses:**
+- `200` — `{ tests: [...], disclaimer: "..." }`
 
 ---
+
+### GET /psych-tests/dsm-criteria
 
-## 8. Eventos de Vida (Life Events)
+List all DSM criteria entries.
 
-### POST /api/life-events
+**Auth:** Required (any role)
 
-Cria um evento de vida.
+**Responses:**
+- `200` — `{ criteria: [{ id, code, name, category, version, created_at }] }`
 
-- **Autenticacao:** Sim
-- **Role obrigatoria:** `patient`
+---
 
-**Request Body:**
+### GET /psych-tests/dsm-criteria/:code
 
-```json
-{
-  "title": "Mudanca de emprego",
-  "description": "Comecei em um novo cargo na empresa X.",
-  "category": "work",
-  "impact_level": 4,
-  "event_date": "2025-01-10"
-}
-```
+Get DSM criteria detail by code.
 
-**Resposta (201 Created):**
+**Auth:** Required (any role)
 
-```json
-{
-  "life_event": {
-    "id": "uuid",
-    "patient_id": "uuid",
-    "title": "Mudanca de emprego",
-    "description": "Comecei em um novo cargo na empresa X.",
-    "category": "work",
-    "impact_level": 4,
-    "event_date": "2025-01-10"
-  }
-}
-```
+**Path params:** `code` — DSM criteria code
+
+**Responses:**
+- `200` — `{ criteria: { ... } }`
+- `404` — Criteria not found
 
 ---
 
-### GET /api/life-events
+### GET /psych-tests/sessions/pending
 
-Lista eventos de vida do paciente autenticado.
+List pending/in-progress test sessions for the authenticated patient.
 
-- **Autenticacao:** Sim
-- **Role obrigatoria:** `patient`
+**Auth:** Required — `patient`
 
-**Query Parameters:**
+**Responses:**
+- `200` — `{ sessions: [{ ...session, test_name, test_description, test_category, assigned_by_first_name, assigned_by_last_name }] }`
 
-| Parametro | Tipo | Descricao |
-|-----------|------|-----------|
-| `category` | string | Filtrar por categoria |
-| `start_date` | ISO date | Data inicial |
-| `end_date` | ISO date | Data final |
-| `page` | integer | Pagina |
-| `limit` | integer | Itens por pagina (padrao: 30) |
+---
 
-**Resposta (200 OK):**
+### GET /psych-tests/sessions/history
 
-```json
-{
-  "life_events": [ ... ],
-  "pagination": { "page": 1, "limit": 30, "total": 8 }
-}
-```
+List completed test sessions for the authenticated patient.
+
+**Auth:** Required — `patient`
+
+**Responses:**
+- `200` — `{ sessions: [...] }` (same shape as `/sessions/pending`)
 
 ---
 
-### GET /api/life-events/:patientId
+### GET /psych-tests/sessions/patient/:patientId
 
-Profissional visualiza eventos de vida de um paciente.
+List all test sessions for a patient (professional view).
 
-- **Autenticacao:** Sim
-- **Role obrigatoria:** `psychologist`, `psychiatrist`
-- **Permissao necessaria:** `life_events`
+**Auth:** Required — `psychologist` or `psychiatrist` with `psychological_tests` permission
 
-**Query Parameters:** Mesmos de `GET /api/life-events`
+**Path params:** `patientId` — Patient UUID
 
-**Resposta (200 OK):** Mesmo formato de `GET /api/life-events`
+**Query params:**
+| Param | Description |
+|---|---|
+| page | Page number (default: 1) |
+| limit | Page size (default: 20, max: 100) |
 
+**Responses:**
+- `200` — `{ sessions: [...], pagination: { page, limit, total } }`
+
 ---
 
-## 9. Notas Clinicas (Clinical Notes)
+### GET /psych-tests/:id
 
-### POST /api/clinical-notes
+Get test detail.
 
-Profissional cria uma nota clinica.
+**Auth:** Required (any role)
 
-- **Autenticacao:** Sim
-- **Role obrigatoria:** `psychologist`, `psychiatrist`
+**Path params:** `id` — Psychological test UUID
 
-**Request Body:**
+**Responses:**
+- `200` — `{ test: { id, name, description, category, questions, scoring_rules, interpretation_guide, ... } }`
+- `404` — Test not found
 
-```json
-{
-  "patient_id": "uuid-do-paciente",
-  "session_date": "2025-01-15",
-  "note_type": "session_note",
-  "content": "Paciente relatou melhora no humor...",
-  "is_private": false
-}
-```
+---
 
-**Resposta (201 Created):**
+### POST /psych-tests/assign
 
-```json
-{
-  "clinical_note": {
-    "id": "uuid",
-    "professional_id": "uuid",
-    "patient_id": "uuid",
-    "session_date": "2025-01-15",
-    "note_type": "session_note",
-    "content": "Paciente relatou melhora no humor...",
-    "is_private": false,
-    "created_at": "2025-01-15T15:00:00.000Z"
-  }
-}
-```
+Assign a psychological test to a patient.
 
-**Erros:**
+**Auth:** Required — `psychologist` or `psychiatrist` with active care relationship
 
-| Codigo | Mensagem |
-|--------|----------|
-| `403` | Sem vinculo de cuidado ativo com este paciente |
+**Body:**
+| Field | Type | Required | Description |
+|---|---|---|---|
+| test_id | UUID | ✅ | Psychological test ID |
+| patient_id | UUID | ✅ | Patient to assign to |
+| deadline | ISO8601 | | Defaults to 7 days from now |
 
-> Nota: Notas marcadas como `is_private: true` so sao visiveis pelo autor.
+**Responses:**
+- `201` — `{ session: { id, test_id, patient_id, assigned_by, deadline, status, ... } }`
+- `403` — No active care relationship or test requires SATEPSI approval
+- `404` — Test not found
 
 ---
 
-### GET /api/clinical-notes/:patientId
+### GET /psych-tests/sessions/:id
 
-Lista notas clinicas de um paciente.
+Get a test session detail (including questions for the patient).
 
-- **Autenticacao:** Sim
-- **Role obrigatoria:** Qualquer (com vinculo ativo)
-- **Permissao necessaria:** `clinical_notes`
+**Auth:** Required — patient who owns the session, or a professional with patient access
 
-**Query Parameters:**
+**Path params:** `id` — Session UUID
 
-| Parametro | Tipo | Descricao |
-|-----------|------|-----------|
-| `note_type` | string | Filtrar por tipo de nota |
-| `page` | integer | Pagina |
-| `limit` | integer | Itens por pagina (padrao: 20) |
+**Notes:** Professionals cannot see `answers` until the session is completed.
 
-**Regras de visibilidade:**
+**Responses:**
+- `200` — `{ session: { ...session, test_name, test_description, test_category, test_questions, scoring_rules, interpretation_guide, dsm_references, assigned_by_first_name, assigned_by_last_name } }`
+- `403` — Access denied
+- `404` — Session not found
 
-- **Paciente:** Ve apenas notas nao privadas (`is_private = false`)
-- **Profissional autor:** Ve todas as suas notas
-- **Outro profissional:** Ve apenas notas nao privadas de outros autores
+---
 
-**Resposta (200 OK):**
+### PUT /psych-tests/sessions/:id
 
-```json
-{
-  "clinical_notes": [
-    {
-      "id": "uuid",
-      "professional_id": "uuid",
-      "patient_id": "uuid",
-      "session_date": "2025-01-15",
-      "note_type": "session_note",
-      "content": "...",
-      "is_private": false,
-      "professional_first_name": "Maria",
-      "professional_last_name": "Santos",
-      "professional_role": "psychologist"
-    }
-  ],
-  "pagination": { "page": 1, "limit": 20, "total": 12 }
-}
-```
+Patient submits answers for a test session. The server auto-scores and generates an AI analysis.
 
----
+**Auth:** Required — `patient` (must own the session)
 
-### PUT /api/clinical-notes/:id
+**Path params:** `id` — Session UUID
 
-Atualiza uma nota clinica (somente o autor).
+**Body:**
+| Field | Type | Required | Description |
+|---|---|---|---|
+| answers | object | ✅ | Map of question index to answer value |
 
-- **Autenticacao:** Sim
-- **Role obrigatoria:** `psychologist`, `psychiatrist` (somente o autor)
+**Responses:**
+- `200` — `{ session: { ...updated }, score: { total_score, subscores, interpretation }, ai_analysis: { ... } }`
+- `400` — Session already completed or expired
+- `404` — Session not found
 
-**Request Body (campos opcionais):**
+---
 
-```json
-{
-  "session_date": "2025-01-16",
-  "note_type": "follow_up",
-  "content": "Conteudo atualizado...",
-  "is_private": true
-}
-```
+### POST /psych-tests/admin
 
-**Resposta (200 OK):**
+Create a custom psychological test.
 
-```json
-{
-  "clinical_note": { ... }
-}
-```
+**Auth:** Required — `psychologist` or `psychiatrist`
 
-**Erros:**
+**Body:**
+| Field | Type | Required | Description |
+|---|---|---|---|
+| name | string | ✅ | Test name (max 300 chars) |
+| category | string | ✅ | Test category |
+| questions | array | ✅ | Array of question objects |
+| scoring_rules | object | ✅ | Scoring configuration |
+| description | string | | Optional description |
+| dsm_references | any | | DSM references |
+| interpretation_guide | any | | Interpretation guide |
 
-| Codigo | Mensagem |
-|--------|----------|
-| `400` | Nenhum campo para atualizar |
-| `403` | Sem permissao (nao e o autor) |
+**Responses:**
+- `201` — `{ test: { ... } }`
 
 ---
 
-## 10. Insights de IA (Insights)
+## ICD-11
 
-### GET /api/insights
+### GET /icd11
 
-Lista insights de IA do paciente autenticado.
+List ICD-11 disorders.
 
-- **Autenticacao:** Sim
-- **Role obrigatoria:** `patient`
+**Auth:** Required — `psychologist` or `psychiatrist`
 
-**Query Parameters:**
+**Query params:**
+| Param | Description |
+|---|---|
+| category | Filter by category |
+| search | Search disorder name, code, or description (ILIKE) |
 
-| Parametro | Tipo | Descricao |
-|-----------|------|-----------|
-| `insight_type` | string | Filtrar por tipo de insight |
-| `impact_level` | string | Filtrar por nivel de impacto |
-| `page` | integer | Pagina |
-| `limit` | integer | Itens por pagina (padrao: 20) |
+**Responses:**
+- `200` — `{ disorders: [{ id, icd_code, disorder_name, description, symptom_keywords, category, created_at }] }`
 
-**Resposta (200 OK):**
+---
 
-```json
-{
-  "insights": [
-    {
-      "id": "uuid",
-      "patient_id": "uuid",
-      "insight_type": "mood_pattern",
-      "content": "Observamos uma tendencia de queda no humor nas segundas-feiras...",
-      "impact_level": "medium",
-      "is_reviewed": false,
-      "reviewed_by": null,
-      "created_at": "2025-01-15T10:00:00.000Z"
-    }
-  ],
-  "pagination": { "page": 1, "limit": 20, "total": 3 }
-}
-```
+### GET /icd11/categories
 
----
+List distinct ICD-11 categories.
 
-### GET /api/insights/:patientId
+**Auth:** Required — `psychologist` or `psychiatrist`
 
-Profissional visualiza insights de um paciente.
+**Responses:**
+- `200` — `{ categories: ["string", ...] }`
 
-- **Autenticacao:** Sim
-- **Role obrigatoria:** `psychologist`, `psychiatrist`
+---
+
+### GET /icd11/recent
 
-**Query Parameters:**
+Get up to 8 most recently used ICD codes by the authenticated professional.
 
-| Parametro | Tipo | Descricao |
-|-----------|------|-----------|
-| `insight_type` | string | Filtrar por tipo |
-| `impact_level` | string | Filtrar por impacto |
-| `is_reviewed` | string | `true` ou `false` |
-| `page` | integer | Pagina |
-| `limit` | integer | Itens por pagina |
+**Auth:** Required — `psychologist` or `psychiatrist`
 
-**Resposta (200 OK):** Mesmo formato de `GET /api/insights`
+**Responses:**
+- `200` — `{ recent: [{ icd_code, icd_name, usage_count, last_used_at }] }`
 
 ---
 
-### PUT /api/insights/:id/review
+### GET /icd11/:code
 
-Profissional marca um insight como revisado.
+Get ICD-11 disorder detail by code.
 
-- **Autenticacao:** Sim
-- **Role obrigatoria:** `psychologist`, `psychiatrist`
+**Auth:** Required — `psychologist` or `psychiatrist`
 
-**Resposta (200 OK):**
+**Path params:** `code` — ICD-11 code (e.g. `6A00`)
 
-```json
-{
-  "insight": {
-    "id": "uuid",
-    "is_reviewed": true,
-    "reviewed_by": "uuid-do-profissional"
-  }
-}
-```
+**Responses:**
+- `200` — `{ disorder: { ... } }`
+- `404` — Disorder not found
+
+---
+
+### GET /icd11/:code/tests
+
+Get suggested psychological tests for a given ICD-11 disorder (SATEPSI-active only).
 
-**Erros:**
+**Auth:** Required — `psychologist` or `psychiatrist`
 
-| Codigo | Mensagem |
-|--------|----------|
-| `403` | Sem vinculo de cuidado ativo com este paciente |
-| `404` | Insight nao encontrado |
+**Path params:** `code` — ICD-11 code
 
+**Responses:**
+- `200` — `{ disorder: { icd_code, disorder_name }, suggested_tests: [{ id, name, description, category, relevance_score, satepsi_status, ... }], disclaimer: "..." }`
+- `404` — Disorder not found
+
 ---
 
-## 11. Alertas (Alerts)
+### POST /icd11/suggest-by-symptoms
 
-### GET /api/alerts
+Suggest ICD-11 disorders based on symptom keywords.
 
-Lista alertas dos pacientes do profissional autenticado.
+**Auth:** Required — `psychologist` or `psychiatrist`
 
-- **Autenticacao:** Sim
-- **Role obrigatoria:** `psychologist`, `psychiatrist`
+**Body:**
+| Field | Type | Required | Description |
+|---|---|---|---|
+| symptoms | array | ✅ | Array of symptom keyword strings |
 
-**Query Parameters:**
+**Responses:**
+- `200` — `{ suggestions: [{ icd_code, disorder_name, match_count, ... }], disclaimer: "..." }` (max 10 results)
+- `400` — symptoms array is required
 
-| Parametro | Tipo | Descricao |
-|-----------|------|-----------|
-| `severity` | string | Filtrar por severidade (`low`, `medium`, `high`, `critical`) |
-| `is_acknowledged` | string | `true` ou `false` |
-| `page` | integer | Pagina |
-| `limit` | integer | Itens por pagina (padrao: 30) |
+---
 
-**Resposta (200 OK):**
+## SATEPSI
 
-```json
-{
-  "alerts": [
-    {
-      "id": "uuid",
-      "patient_id": "uuid",
-      "alert_type": "mood_drop",
-      "severity": "high",
-      "title": "Queda significativa no humor",
-      "description": "O paciente registrou queda de 3 pontos no humor nos ultimos 3 dias.",
-      "is_acknowledged": false,
-      "acknowledged_by": null,
-      "acknowledged_at": null,
-      "patient_first_name": "Joao",
-      "patient_last_name": "Silva",
-      "created_at": "2025-01-15T10:00:00.000Z"
-    }
-  ],
-  "pagination": { "page": 1, "limit": 30, "total": 5 }
-}
-```
+### GET /satepsi
 
-**Exemplo curl:**
+List SATEPSI-approved psychological tests.
 
-```bash
-curl -X GET "http://localhost:3001/api/alerts?severity=high&is_acknowledged=false" \
-  -H "Authorization: Bearer <token>"
-```
+**Auth:** Required — `psychologist` or `psychiatrist`
+
+**Query params:**
+| Param | Description |
+|---|---|
+| status | `all` to include expired/revoked; default shows only active |
+| category | Filter by test category |
+| search | Filter by test name or author (ILIKE) |
+
+**Responses:**
+- `200` — `{ tests: [{ id, test_name, test_author, approval_status, approval_date, expiry_date, test_category, cfp_code, last_updated }] }`
 
 ---
 
-### GET /api/alerts/:patientId
+### GET /satepsi/categories
 
-Lista alertas de um paciente especifico.
+List distinct SATEPSI test categories.
 
-- **Autenticacao:** Sim
-- **Role obrigatoria:** `psychologist`, `psychiatrist`
+**Auth:** Required — `psychologist` or `psychiatrist`
 
-**Query Parameters:**
+**Responses:**
+- `200` — `{ categories: ["string", ...] }`
 
-| Parametro | Tipo | Descricao |
-|-----------|------|-----------|
-| `severity` | string | Filtrar por severidade |
-| `is_acknowledged` | string | `true` ou `false` |
+---
 
-**Resposta (200 OK):**
+### GET /satepsi/sync-status
 
-```json
-{
-  "alerts": [ ... ]
-}
-```
+Get the last SATEPSI data sync status.
 
----
+**Auth:** Required — `psychologist` or `psychiatrist`
 
-### PUT /api/alerts/:id/acknowledge
+**Responses:**
+- `200` — `{ last_sync: { ... } | null }`
 
-Profissional reconhece (acknowledge) um alerta.
+---
 
-- **Autenticacao:** Sim
-- **Role obrigatoria:** `psychologist`, `psychiatrist`
+### GET /satepsi/:id
 
-**Resposta (200 OK):**
+Get SATEPSI test detail including linked psychological tests.
 
-```json
-{
-  "alert": {
-    "id": "uuid",
-    "is_acknowledged": true,
-    "acknowledged_by": "uuid-do-profissional",
-    "acknowledged_at": "2025-01-15T12:00:00.000Z"
-  }
-}
-```
+**Auth:** Required — `psychologist` or `psychiatrist`
 
-**Erros:**
+**Path params:** `id` — SATEPSI test UUID
 
-| Codigo | Mensagem |
-|--------|----------|
-| `400` | Alerta ja reconhecido |
-| `403` | Sem vinculo de cuidado ativo com este paciente |
-| `404` | Alerta nao encontrado |
+**Responses:**
+- `200` — `{ satepsi_test: { ... }, linked_tests: [{ id, name, category, is_active }] }`
+- `404` — SATEPSI test not found
 
 ---
 
-## 12. Gemeo Digital (Digital Twin)
+### GET /satepsi/validate/:testId
 
-Todos os endpoints requerem autenticacao e sao restritos a profissionais.
+Check if a psychological test has valid SATEPSI approval.
 
-### GET /api/digital-twin/:patientId
+**Auth:** Required — `psychologist` or `psychiatrist`
 
-Retorna o estado mais recente do gemeo digital do paciente.
+**Path params:** `testId` — Psychological test UUID
 
-- **Autenticacao:** Sim
-- **Role obrigatoria:** `psychologist`, `psychiatrist`
-- **Permissao necessaria:** `digital_twin`
+**Responses:**
+- `200` — `{ test_id, test_name, requires_satepsi, satepsi_approved, satepsi_status, satepsi_expiry }`
+- `404` — Test not found
 
-**Resposta (200 OK):**
+---
 
-```json
-{
-  "id": "uuid",
-  "patient_id": "uuid",
-  "current_state": {
-    "mood": 6.5,
-    "anxiety": 4.2,
-    "energy": 5.8
-  },
-  "correlations": { ... },
-  "baseline": { ... },
-  "predictions": [ ... ],
-  "treatment_responses": { ... },
-  "data_points_used": 150,
-  "model_version": "1.0",
-  "confidence_overall": 0.85,
-  "computed_at": "2025-01-15T10:00:00.000Z",
-  "created_at": "2025-01-15T10:00:00.000Z"
-}
-```
+## Clinical Notes
 
-**Erros:**
+### POST /clinical-notes
 
-| Codigo | Mensagem |
-|--------|----------|
-| `404` | Gemeo digital ainda nao disponivel para este paciente |
+Create a clinical session note (professional only).
 
+**Auth:** Required — `psychologist` or `psychiatrist` with active care relationship
+
+**Body:**
+| Field | Type | Required | Description |
+|---|---|---|---|
+| patient_id | UUID | ✅ | Patient UUID |
+| session_date | string | ✅ | ISO date of the session |
+| note_type | string | ✅ | Note type (e.g. `session`, `evaluation`) |
+| content | string | ✅ | Note content |
+| is_private | boolean | | If `true`, hidden from other professionals (default: `false`) |
+
+**Responses:**
+- `201` — `{ clinical_note: { id, professional_id, patient_id, session_date, note_type, content, is_private, ... } }`
+- `403` — No active care relationship
+
 ---
 
-### GET /api/digital-twin/:patientId/history
+### GET /clinical-notes/:patientId
 
-Retorna a evolucao do gemeo digital ao longo do tempo.
+Get clinical notes for a patient.
 
-- **Autenticacao:** Sim
-- **Role obrigatoria:** `psychologist`, `psychiatrist`
-- **Permissao necessaria:** `digital_twin`
+**Auth:** Required — professional with `clinical_notes` permission, or patient (for non-private notes)
 
-**Query Parameters:**
+**Path params:** `patientId` — Patient UUID
 
-| Parametro | Tipo | Descricao |
-|-----------|------|-----------|
-| `days` | integer | Numero de dias retroativos (padrao: 90) |
+**Query params:**
+| Param | Description |
+|---|---|
+| note_type | Filter by note type |
+| page | Page number (default: 1) |
+| limit | Page size (default: 20, max: 100) |
 
-**Resposta (200 OK):**
+**Notes:**
+- Professionals see their own notes plus other professionals' non-private notes.
+- Patients never see private notes.
 
-```json
-{
-  "history": [
-    {
-      "id": "uuid",
-      "computed_at": "2025-01-01T00:00:00.000Z",
-      "current_state": { ... },
-      "confidence_overall": 0.82
-    }
-  ]
-}
-```
+**Responses:**
+- `200` — `{ clinical_notes: [{ ...note, professional_first_name, professional_last_name, professional_role }], pagination: { page, limit, total } }`
 
 ---
 
-### GET /api/digital-twin/:patientId/predictions
+### PUT /clinical-notes/:id
 
-Retorna apenas as predicoes mais recentes (endpoint leve).
+Update a clinical note (author only).
 
-- **Autenticacao:** Sim
-- **Role obrigatoria:** `psychologist`, `psychiatrist`
-- **Permissao necessaria:** `digital_twin`
+**Auth:** Required — `psychologist` or `psychiatrist` (must be the note author)
 
-**Resposta (200 OK):**
+**Path params:** `id` — Clinical note UUID
 
-```json
-{
-  "predictions": [
-    {
-      "type": "mood_forecast",
-      "value": 5.8,
-      "confidence": 0.78,
-      "horizon_days": 7
-    }
-  ],
-  "confidence_overall": 0.85,
-  "computed_at": "2025-01-15T10:00:00.000Z"
-}
-```
+**Body (all optional):**
+| Field | Type | Description |
+|---|---|---|
+| session_date | string | ISO date |
+| note_type | string | |
+| content | string | |
+| is_private | boolean | |
 
----
+**Responses:**
+- `200` — `{ clinical_note: { ... } }`
+- `400` — No fields to update
 
-### POST /api/digital-twin/:patientId/refresh
+---
 
-Dispara recomputacao do gemeo digital via motor de IA.
+## Medical Records
 
-- **Autenticacao:** Sim
-- **Role obrigatoria:** `psychologist`, `psychiatrist`
-- **Permissao necessaria:** `digital_twin`
+### POST /medical-records
 
-**Resposta (200 OK):**
+Create a private medical record for a patient (professional only, visible only to the creator).
 
-```json
-{
-  "status": "success",
-  "message": "Gemeo digital atualizado com sucesso",
-  "analysis": { ... }
-}
-```
+**Auth:** Required — `psychologist` or `psychiatrist` with active care relationship
 
-**Erros:**
+**Body:**
+| Field | Type | Required | Description |
+|---|---|---|---|
+| patient_id | UUID | ✅ | Patient UUID |
+| title | string | ✅ | Record title |
+| content | string | ✅ | Record content |
+| record_date | string | | ISO date; defaults to today |
+| category | string | | Record category |
+| tags | any | | Tags (JSONB) |
 
-| Codigo | Mensagem |
-|--------|----------|
-| `503` | Motor de IA indisponivel. Tente novamente mais tarde. |
+**Responses:**
+- `201` — `{ record: { id, professional_id, patient_id, title, content, record_date, category, tags, ... } }`
+- `403` — No active care relationship
 
 ---
 
-## 13. Diario (Journal)
+### GET /medical-records/:patientId
 
-### POST /api/journal
+List the authenticated professional's private records for a patient.
 
-Cria uma entrada de diario com check-in diario.
+**Auth:** Required — `psychologist` or `psychiatrist` with `private_records` permission
 
-- **Autenticacao:** Sim
-- **Role obrigatoria:** `patient`
+**Path params:** `patientId` — Patient UUID
 
-**Request Body:**
+**Query params:**
+| Param | Description |
+|---|---|
+| category | Filter by category |
+| page | Page number (default: 1) |
+| limit | Page size (default: 20, max: 100) |
 
-```json
-{
-  "mood_score": 7,
-  "anxiety_score": 3,
-  "energy_score": 6,
-  "sleep_quality": "good",
-  "sleep_hours": 7.5,
-  "journal_entry": "Hoje foi um dia produtivo. Consegui manter o foco...",
-  "notes": "Sem observacoes adicionais",
-  "logged_at": "2025-01-15T22:00:00.000Z"
-}
-```
+**Responses:**
+- `200` — `{ records: [...], pagination: { page, limit, total } }`
 
-**Resposta (201 Created):**
+---
 
-```json
-{
-  "journal": {
-    "id": "uuid",
-    "patient_id": "uuid",
-    "mood_score": 7,
-    "anxiety_score": 3,
-    "energy_score": 6,
-    "sleep_quality": "good",
-    "sleep_hours": 7.5,
-    "journal_entry": "Hoje foi um dia produtivo. Consegui manter o foco...",
-    "notes": "Sem observacoes adicionais",
-    "logged_at": "2025-01-15T22:00:00.000Z"
-  }
-}
-```
+### GET /medical-records/detail/:id
+
+Get a private record detail (owner only).
+
+**Auth:** Required — `psychologist` or `psychiatrist` (must be the creator)
+
+**Path params:** `id` — Record UUID
 
-> Nota: Os dados sao salvos na tabela `emotional_logs`. Alertas sao gerados automaticamente.
+**Responses:**
+- `200` — `{ record: { ... } }`
 
 ---
 
-### GET /api/journal
+### PUT /medical-records/:id
 
-Lista entradas de diario do paciente autenticado.
+Update a private medical record (creator only).
 
-- **Autenticacao:** Sim
-- **Role obrigatoria:** `patient`
+**Auth:** Required — `psychologist` or `psychiatrist` (must be the creator)
 
-**Query Parameters:**
+**Path params:** `id` — Record UUID
 
-| Parametro | Tipo | Descricao |
-|-----------|------|-----------|
-| `start_date` | ISO date | Data inicial |
-| `end_date` | ISO date | Data final |
-| `page` | integer | Pagina |
-| `limit` | integer | Itens por pagina (padrao: 20) |
+**Body (all optional):**
+| Field | Type | Description |
+|---|---|---|
+| title | string | |
+| content | string | |
+| record_date | string | ISO date |
+| category | string | |
+| tags | any | |
 
-**Resposta (200 OK):**
+**Responses:**
+- `200` — `{ record: { ... } }`
+- `400` — No fields to update
 
-```json
-{
-  "journals": [ ... ],
-  "pagination": { "page": 1, "limit": 20, "total": 30 }
-}
-```
+---
+
+### DELETE /medical-records/:id
+
+Delete a private medical record (creator only).
+
+**Auth:** Required — `psychologist` or `psychiatrist` (must be the creator)
+
+**Path params:** `id` — Record UUID
 
+**Responses:**
+- `200` — `{ message: "Registro deletado com sucesso" }`
+
 ---
 
-### GET /api/journal/:patientId
+## Goals & Milestones
 
-Profissional acessa diarios de um paciente (somente entradas com texto).
+### POST /goals
 
-- **Autenticacao:** Sim
-- **Role obrigatoria:** `psychologist`, `psychiatrist`
-- **Permissao necessaria:** `journal_entries`
+Create a therapeutic goal for a patient.
 
-**Query Parameters:** Mesmos de `GET /api/journal`
+**Auth:** Required — `psychologist` or `psychiatrist` with active care relationship
 
-**Resposta (200 OK):** Mesmo formato de `GET /api/journal`
+**Body:**
+| Field | Type | Required | Description |
+|---|---|---|---|
+| patient_id | UUID | ✅ | Patient UUID |
+| title | string | ✅ | Goal title (max 300 chars) |
+| description | string | | Goal description (max 5000 chars) |
+| target_date | ISO8601 | | Target completion date |
 
+**Responses:**
+- `201` — `{ goal: { id, patient_id, created_by, title, description, status, patient_status, target_date, ... } }`
+- `403` — No active care relationship
+
 ---
 
-## 14. Metas (Goals)
+### GET /goals/:patientId
 
-### POST /api/goals
+List goals for a patient.
 
-Profissional cria uma meta para um paciente.
+**Auth:** Required — professional with active care relationship, or the patient themselves
 
-- **Autenticacao:** Sim
-- **Role obrigatoria:** `psychologist`, `psychiatrist`
+**Path params:** `patientId` — Patient UUID
 
-**Request Body:**
+**Responses:**
+- `200` — `{ goals: [{ ...goal, created_by_first_name, created_by_last_name }] }` — Sorted by patient_status then status.
 
-```json
-{
-  "patient_id": "uuid-do-paciente",
-  "title": "Praticar 30 min de exercicio 3x por semana",
-  "description": "Meta para melhorar o humor e a qualidade do sono.",
-  "target_date": "2025-03-15"
-}
-```
+---
 
-**Resposta (201 Created):**
+### PUT /goals/:id
 
-```json
-{
-  "goal": {
-    "id": "uuid",
-    "patient_id": "uuid",
-    "created_by": "uuid",
-    "title": "Praticar 30 min de exercicio 3x por semana",
-    "description": "Meta para melhorar o humor e a qualidade do sono.",
-    "status": "in_progress",
-    "patient_status": "pending",
-    "target_date": "2025-03-15",
-    "created_at": "2025-01-15T10:00:00.000Z"
-  }
-}
-```
+Update a goal (professional only, cannot change status while goal is pending patient acceptance).
 
-**Erros:**
+**Auth:** Required — `psychologist` or `psychiatrist` with active care relationship
 
-| Codigo | Mensagem |
-|--------|----------|
-| `403` | Acesso negado a este paciente |
+**Path params:** `id` — Goal UUID
 
+**Body (all optional):**
+| Field | Type | Description |
+|---|---|---|
+| title | string | Max 300 chars |
+| description | string | Max 5000 chars |
+| status | string | `in_progress`, `paused`, or `cancelled` |
+| target_date | ISO8601 | |
+
+**Responses:**
+- `200` — `{ goal: { ... } }`
+- `400` — Cannot change status of a pending goal
+- `404` — Goal not found or access denied
+
 ---
 
-### GET /api/goals/:patientId
+### PUT /goals/:id/achieve
 
-Lista metas de um paciente.
+Mark a goal as achieved (professional only). Goal must be accepted by the patient first.
 
-- **Autenticacao:** Sim
-- **Role obrigatoria:** Qualquer (paciente ve as proprias; profissional precisa de vinculo)
+**Auth:** Required — `psychologist` or `psychiatrist` with active care relationship
 
-**Resposta (200 OK):**
+**Path params:** `id` — Goal UUID
 
-```json
-{
-  "goals": [
-    {
-      "id": "uuid",
-      "patient_id": "uuid",
-      "title": "Praticar exercicios",
-      "description": "...",
-      "status": "in_progress",
-      "patient_status": "accepted",
-      "target_date": "2025-03-15",
-      "achieved_at": null,
-      "created_by_first_name": "Maria",
-      "created_by_last_name": "Santos"
-    }
-  ]
-}
-```
+**Responses:**
+- `200` — `{ goal: { ...goal, status: "achieved", achieved_at } }`
+- `400` — Goal must be accepted by patient first
+- `404` — Goal not found or access denied
 
 ---
 
-### PUT /api/goals/:id
+### PUT /goals/:id/respond
 
-Profissional atualiza uma meta.
+Patient accepts or rejects a goal.
 
-- **Autenticacao:** Sim
-- **Role obrigatoria:** `psychologist`, `psychiatrist`
+**Auth:** Required — `patient` (must own the goal)
 
-**Request Body (campos opcionais):**
+**Path params:** `id` — Goal UUID
 
-```json
-{
-  "title": "Titulo atualizado",
-  "description": "Descricao atualizada",
-  "status": "paused",
-  "target_date": "2025-04-15"
-}
-```
+**Body:**
+| Field | Type | Required | Description |
+|---|---|---|---|
+| action | string | ✅ | `accept` or `reject` |
+| rejection_reason | string | | Max 2000 chars; encouraged when action is `reject` |
+
+**Responses:**
+- `200` — `{ goal: { ...goal, patient_status: "accepted"/"rejected" } }`
+- `400` — Goal already responded to
+- `404` — Goal not found
+
+---
+
+### POST /goals/milestones
+
+Create a milestone for a patient (professional only).
 
-**Valores aceitos para `status`:** `in_progress`, `paused`, `cancelled`
+**Auth:** Required — `psychologist` or `psychiatrist` with active care relationship
 
-**Erros:**
+**Body:**
+| Field | Type | Required | Description |
+|---|---|---|---|
+| patient_id | UUID | ✅ | Patient UUID |
+| title | string | ✅ | Milestone title (max 300 chars) |
+| milestone_type | string | ✅ | `positive` or `difficult` |
+| event_date | ISO8601 | ✅ | Date of the milestone |
+| description | string | | Max 5000 chars |
+| goal_id | UUID | | Link to a specific goal |
 
-| Codigo | Mensagem |
-|--------|----------|
-| `400` | Nao e possivel alterar o status de uma meta pendente de aceitacao |
-| `404` | Meta nao encontrada ou acesso negado |
+**Responses:**
+- `201` — `{ milestone: { id, patient_id, goal_id, title, description, milestone_type, event_date, created_by, ... } }`
+- `403` — No active care relationship
 
 ---
 
-### PUT /api/goals/:id/achieve
+### GET /goals/milestones/:patientId
 
-Profissional marca uma meta como conquistada.
+List milestones for a patient.
 
-- **Autenticacao:** Sim
-- **Role obrigatoria:** `psychologist`, `psychiatrist`
+**Auth:** Required — professional with active care relationship, or the patient themselves
 
-**Resposta (200 OK):**
+**Path params:** `patientId` — Patient UUID
 
-```json
-{
-  "goal": {
-    "id": "uuid",
-    "status": "achieved",
-    "achieved_at": "2025-02-15T10:00:00.000Z"
-  }
-}
-```
+**Responses:**
+- `200` — `{ milestones: [{ ...milestone, created_by_first_name, created_by_last_name, goal_title }] }`
+
+---
 
-**Erros:**
+## Insights
 
-| Codigo | Mensagem |
-|--------|----------|
-| `400` | Meta precisa ser aceita pelo paciente antes de ser conquistada |
-| `404` | Meta nao encontrada ou acesso negado |
+### GET /insights
 
+Get AI-generated insights for the authenticated patient.
+
+**Auth:** Required — `patient`
+
+**Query params:**
+| Param | Description |
+|---|---|
+| insight_type | Filter by type |
+| impact_level | Filter by impact level |
+| page | Page number (default: 1) |
+| limit | Page size (default: 20, max: 100) |
+
+**Responses:**
+- `200` — `{ insights: [{ ...insight, reviewer_first_name, reviewer_last_name }], pagination: { page, limit, total } }`
+
 ---
 
-### PUT /api/goals/:id/respond
+### GET /insights/:patientId
 
-Paciente aceita ou rejeita uma meta proposta.
+Get AI insights for a patient (professional view).
 
-- **Autenticacao:** Sim
-- **Role obrigatoria:** `patient`
+**Auth:** Required — `psychologist` or `psychiatrist` with patient access
 
-**Request Body:**
+**Path params:** `patientId` — Patient UUID
 
-```json
-{
-  "action": "accept"
-}
-```
+**Query params:**
+| Param | Description |
+|---|---|
+| insight_type | Filter by type |
+| impact_level | Filter by impact level |
+| is_reviewed | `true` or `false` |
+| page | Page number (default: 1) |
+| limit | Page size (default: 20, max: 100) |
 
-Ou para rejeitar:
+**Responses:**
+- `200` — `{ insights: [...], pagination: { page, limit, total } }`
 
-```json
-{
-  "action": "reject",
-  "rejection_reason": "Nao me sinto pronto para essa meta neste momento."
-}
-```
+---
 
-**Resposta (200 OK):**
+### PUT /insights/:id/review
 
-```json
-{
-  "goal": {
-    "id": "uuid",
-    "patient_status": "accepted",
-    "responded_at": "2025-01-16T10:00:00.000Z"
-  }
-}
-```
+Mark an AI insight as reviewed by the professional.
 
-> Nota: Quando o paciente rejeita uma meta, um alerta e criado automaticamente para os profissionais vinculados.
+**Auth:** Required — `psychologist` or `psychiatrist` with active care relationship
 
-**Erros:**
+**Path params:** `id` — Insight UUID
 
-| Codigo | Mensagem |
-|--------|----------|
-| `400` | Esta meta ja foi respondida |
-| `404` | Meta nao encontrada |
+**Responses:**
+- `200` — `{ insight: { ...insight, is_reviewed: true, reviewed_by } }`
+- `403` — No active care relationship
+- `404` — Insight not found
 
 ---
 
-### POST /api/goals/milestones
+## Alerts
 
-Profissional cria um marco (milestone).
+### GET /alerts
 
-- **Autenticacao:** Sim
-- **Role obrigatoria:** `psychologist`, `psychiatrist`
+Get all alerts for the professional's active patients.
 
-**Request Body:**
+**Auth:** Required — `psychologist` or `psychiatrist`
 
-```json
-{
-  "patient_id": "uuid-do-paciente",
-  "title": "Primeira semana de exercicios completa",
-  "description": "Paciente completou a primeira semana de atividades fisicas.",
-  "milestone_type": "positive",
-  "event_date": "2025-01-22",
-  "goal_id": "uuid-da-meta"
-}
-```
+**Query params:**
+| Param | Description |
+|---|---|
+| severity | Filter by severity |
+| is_acknowledged | `true` or `false` |
+| page | Page number (default: 1) |
+| limit | Page size (default: 30, max: 100) |
+
+**Responses:**
+- `200` — `{ alerts: [{ ...alert, patient_first_name, patient_last_name, acknowledged_by_first_name, acknowledged_by_last_name }], pagination: { page, limit, total } }`
 
-**Valores aceitos para `milestone_type`:** `positive`, `difficult`
+---
 
-**Resposta (201 Created):**
+### GET /alerts/:patientId
 
-```json
-{
-  "milestone": {
-    "id": "uuid",
-    "patient_id": "uuid",
-    "goal_id": "uuid",
-    "title": "Primeira semana de exercicios completa",
-    "milestone_type": "positive",
-    "event_date": "2025-01-22",
-    "created_by": "uuid"
-  }
-}
-```
+Get alerts for a specific patient.
+
+**Auth:** Required — `psychologist` or `psychiatrist` with patient access
 
-**Erros:**
+**Path params:** `patientId` — Patient UUID
 
-| Codigo | Mensagem |
-|--------|----------|
-| `403` | Acesso negado a este paciente |
+**Query params:**
+| Param | Description |
+|---|---|
+| severity | Filter by severity |
+| is_acknowledged | `true` or `false` |
 
+**Responses:**
+- `200` — `{ alerts: [...] }`
+
 ---
 
-### GET /api/goals/milestones/:patientId
+### PUT /alerts/:id/acknowledge
 
-Lista marcos de um paciente.
+Acknowledge an alert (professional only).
 
-- **Autenticacao:** Sim
-- **Role obrigatoria:** Qualquer (paciente ve os proprios; profissional precisa de vinculo)
+**Auth:** Required — `psychologist` or `psychiatrist` with active care relationship
 
-**Resposta (200 OK):**
+**Path params:** `id` — Alert UUID
 
-```json
-{
-  "milestones": [
-    {
-      "id": "uuid",
-      "patient_id": "uuid",
-      "goal_id": "uuid",
-      "title": "Primeira semana de exercicios completa",
-      "description": "...",
-      "milestone_type": "positive",
-      "event_date": "2025-01-22",
-      "created_by_first_name": "Maria",
-      "created_by_last_name": "Santos",
-      "goal_title": "Praticar exercicios"
-    }
-  ]
-}
-```
+**Responses:**
+- `200` — `{ alert: { ...alert, is_acknowledged: true, acknowledged_by, acknowledged_at } }`
+- `400` — Alert already acknowledged
+- `403` — No active care relationship
+- `404` — Alert not found
 
 ---
 
-## 15. Chat
+## Summaries
 
-Todos os endpoints requerem autenticacao e role de profissional.
+### POST /summaries/:patientId/generate
 
-### GET /api/chat/conversations
+Generate a new AI-powered patient summary.
 
-Lista conversas do profissional autenticado.
+**Auth:** Required — `psychologist` or `psychiatrist` with `emotional_logs` permission
 
-- **Autenticacao:** Sim
-- **Role obrigatoria:** `psychologist`, `psychiatrist`
+**Path params:** `patientId` — Patient UUID
 
-**Resposta (200 OK):**
+**Body:**
+| Field | Type | Required | Description |
+|---|---|---|---|
+| period_days | integer | | Days of data to summarize (default: 7) |
 
-```json
-{
-  "conversations": [
-    {
-      "id": "uuid",
-      "patient_id": "uuid",
-      "patient_first_name": "Joao",
-      "patient_last_name": "Silva",
-      "other_user_id": "uuid",
-      "other_first_name": "Ana",
-      "other_last_name": "Lima",
-      "other_role": "psychiatrist",
-      "last_message": "Combinado, vou ajustar a medicacao.",
-      "last_message_at": "2025-01-15T14:30:00.000Z",
-      "last_message_sender_id": "uuid",
-      "unread_count": 2,
-      "created_at": "2025-01-10T10:00:00.000Z"
-    }
-  ]
-}
-```
+**Responses:**
+- `201` — `{ summary: { ... } }`
 
 ---
 
-### POST /api/chat/conversations
+### GET /summaries/:patientId
 
-Cria ou retorna conversa existente entre dois profissionais sobre um paciente.
+List generated summaries for a patient.
 
-- **Autenticacao:** Sim
-- **Role obrigatoria:** `psychologist`, `psychiatrist`
+**Auth:** Required — `psychologist` or `psychiatrist` with `emotional_logs` permission
 
-**Request Body:**
+**Path params:** `patientId` — Patient UUID
 
-```json
-{
-  "other_user_id": "uuid-do-outro-profissional",
-  "patient_id": "uuid-do-paciente"
-}
-```
+**Query params:**
+| Param | Description |
+|---|---|
+| limit | Max results (default: 10, max: 50) |
 
-**Resposta (201 Created):**
+**Responses:**
+- `200` — `{ summaries: [{ ... }] }`
 
-```json
-{
-  "conversation": {
-    "id": "uuid",
-    "existing": false
-  }
-}
-```
+---
 
-Se ja existir:
+### GET /summaries/:patientId/brief
 
-```json
-{
-  "conversation": {
-    "id": "uuid",
-    "existing": true
-  }
-}
-```
+Get a compiled professional brief for a patient.
 
-**Erros:**
+**Auth:** Required — `psychologist` or `psychiatrist` with `emotional_logs` permission
 
-| Codigo | Mensagem |
-|--------|----------|
-| `403` | Ambos profissionais devem ter acesso ao paciente |
+**Path params:** `patientId` — Patient UUID
 
+**Responses:**
+- `200` — `{ brief: { ... } }`
+
 ---
 
-### GET /api/chat/conversations/:id/messages
+## Digital Twin
 
-Lista mensagens de uma conversa.
+### GET /digital-twin/:patientId
 
-- **Autenticacao:** Sim
-- **Role obrigatoria:** `psychologist`, `psychiatrist`
+Get the latest digital twin state for a patient.
 
-**Query Parameters:**
+**Auth:** Required — `psychologist` or `psychiatrist` with `digital_twin` permission
 
-| Parametro | Tipo | Descricao |
-|-----------|------|-----------|
-| `page` | integer | Pagina |
-| `limit` | integer | Itens por pagina (padrao: 50, max: 100) |
+**Path params:** `patientId` — Patient UUID
 
-**Resposta (200 OK):**
+**Responses:**
+- `200` — `{ id, patient_id, current_state, correlations, baseline, predictions, treatment_responses, data_points_used, model_version, confidence_overall, computed_at, created_at }`
+- `404` — Digital twin not yet available
 
-```json
-{
-  "messages": [
-    {
-      "id": "uuid",
-      "conversation_id": "uuid",
-      "sender_id": "uuid",
-      "content": "Boa tarde, gostaria de discutir o caso do paciente.",
-      "read_at": null,
-      "created_at": "2025-01-15T14:00:00.000Z",
-      "sender_first_name": "Maria",
-      "sender_last_name": "Santos"
-    }
-  ],
-  "pagination": { "page": 1, "limit": 50, "total": 12 }
-}
-```
+---
 
-**Erros:**
+### GET /digital-twin/:patientId/history
 
-| Codigo | Mensagem |
-|--------|----------|
-| `403` | Acesso negado a esta conversa |
+Get digital twin evolution over time.
 
----
+**Auth:** Required — `psychologist` or `psychiatrist` with `digital_twin` permission
 
-### POST /api/chat/conversations/:id/messages
+**Path params:** `patientId` — Patient UUID
 
-Envia uma mensagem em uma conversa.
+**Query params:**
+| Param | Description |
+|---|---|
+| days | Number of days of history (default: 90) |
 
-- **Autenticacao:** Sim
-- **Role obrigatoria:** `psychologist`, `psychiatrist`
+**Responses:**
+- `200` — `{ history: [{ ...state }] }`
 
-**Request Body:**
+---
 
-```json
-{
-  "content": "Boa tarde, gostaria de discutir o caso do paciente."
-}
-```
+### GET /digital-twin/:patientId/predictions
 
-**Resposta (201 Created):**
+Get current predictions only (lightweight endpoint).
 
-```json
-{
-  "message": {
-    "id": "uuid",
-    "conversation_id": "uuid",
-    "sender_id": "uuid",
-    "content": "Boa tarde, gostaria de discutir o caso do paciente.",
-    "created_at": "2025-01-15T14:00:00.000Z"
-  }
-}
-```
+**Auth:** Required — `psychologist` or `psychiatrist` with `digital_twin` permission
 
-**Erros:**
+**Path params:** `patientId` — Patient UUID
 
-| Codigo | Mensagem |
-|--------|----------|
-| `403` | Acesso negado a esta conversa |
+**Responses:**
+- `200` — `{ predictions: [...], confidence_overall, computed_at }`
 
 ---
 
-### PUT /api/chat/conversations/:id/read
+### POST /digital-twin/:patientId/refresh
 
-Marca mensagens como lidas em uma conversa.
+Trigger a fresh digital twin computation via the AI engine.
 
-- **Autenticacao:** Sim
-- **Role obrigatoria:** `psychologist`, `psychiatrist`
+**Auth:** Required — `psychologist` or `psychiatrist` with `digital_twin` permission
 
-**Resposta (200 OK):**
+**Path params:** `patientId` — Patient UUID
 
-```json
-{
-  "success": true
-}
-```
+**Responses:**
+- `200` — `{ status: "success", message: "...", analysis: { ... } }`
+- `503` — AI engine unavailable
 
 ---
 
-### GET /api/chat/unread-count
+## Anamnesis
 
-Retorna o total de mensagens nao lidas para o profissional.
+### POST /anamnesis/templates
 
-- **Autenticacao:** Sim
-- **Role obrigatoria:** `psychologist`, `psychiatrist`
+Create an anamnesis template.
 
-**Resposta (200 OK):**
+**Auth:** Required — `psychologist` or `psychiatrist`
 
-```json
-{
-  "unread_count": 5
-}
-```
+**Body:**
+| Field | Type | Required | Description |
+|---|---|---|---|
+| title | string | ✅ | Template title |
+| questions | array | ✅ | Array of question objects (min 1) |
+| description | string | | Optional description |
+
+Each question object:
+| Field | Type | Required | Description |
+|---|---|---|---|
+| question_text | string | ✅ | |
+| question_type | string | ✅ | `text`, `scale`, `multiple_choice`, `yes_no`, or `date` |
+| options | array | | For `multiple_choice` type |
+| is_required | boolean | | Defaults to `true` |
 
+**Responses:**
+- `201` — `{ template: { ...template, questions: [...] } }`
+
 ---
 
-## 16. Resumos (Summaries)
+### GET /anamnesis/templates
 
-Todos os endpoints sao restritos a profissionais.
+List the authenticated professional's anamnesis templates.
 
-### POST /api/summaries/:patientId/generate
+**Auth:** Required — `psychologist` or `psychiatrist`
 
-Gera um novo resumo via IA para o paciente.
+**Responses:**
+- `200` — `{ templates: [{ ...template, question_count, response_count }] }`
 
-- **Autenticacao:** Sim
-- **Role obrigatoria:** `psychologist`, `psychiatrist`
-- **Permissao necessaria:** `emotional_logs`
+---
 
-**Request Body (opcional):**
+### GET /anamnesis/templates/:id
 
-```json
-{
-  "period_days": 7
-}
-```
+Get template detail with questions.
 
-**Resposta (201 Created):**
+**Auth:** Required — `psychologist` or `psychiatrist` (must be the template owner)
 
-```json
-{
-  "summary": {
-    "id": "uuid",
-    "patient_id": "uuid",
-    "content": "Resumo dos ultimos 7 dias...",
-    "period_days": 7,
-    "generated_at": "2025-01-15T10:00:00.000Z"
-  }
-}
-```
+**Path params:** `id` — Template UUID
 
+**Responses:**
+- `200` — `{ template: { ...template, questions: [...] } }`
+- `404` — Template not found
+
 ---
 
-### GET /api/summaries/:patientId
+### PUT /anamnesis/templates/:id
 
-Lista resumos gerados para um paciente.
+Update a template (owner only). If `questions` is provided, all existing questions are replaced.
 
-- **Autenticacao:** Sim
-- **Role obrigatoria:** `psychologist`, `psychiatrist`
-- **Permissao necessaria:** `emotional_logs`
+**Auth:** Required — `psychologist` or `psychiatrist` (must be the template owner)
 
-**Query Parameters:**
+**Path params:** `id` — Template UUID
 
-| Parametro | Tipo | Descricao |
-|-----------|------|-----------|
-| `limit` | integer | Maximo de resumos (padrao: 10, max: 50) |
+**Body (all optional):**
+| Field | Type | Description |
+|---|---|---|
+| title | string | |
+| description | string | |
+| questions | array | Replaces all existing questions |
 
-**Resposta (200 OK):**
+**Responses:**
+- `200` — `{ template: { ...template, questions: [...] } }`
 
-```json
-{
-  "summaries": [
-    {
-      "id": "uuid",
-      "patient_id": "uuid",
-      "content": "...",
-      "generated_at": "2025-01-15T10:00:00.000Z"
-    }
-  ]
-}
-```
+---
+
+### DELETE /anamnesis/templates/:id
+
+Soft-delete a template (owner only).
+
+**Auth:** Required — `psychologist` or `psychiatrist` (must be the template owner)
 
+**Path params:** `id` — Template UUID
+
+**Responses:**
+- `200` — `{ message: "Template desativado com sucesso" }`
+
 ---
 
-### GET /api/summaries/:patientId/brief
+### POST /anamnesis/send
 
-Retorna um briefing compilado do paciente para o profissional.
+Send an anamnesis to a patient.
 
-- **Autenticacao:** Sim
-- **Role obrigatoria:** `psychologist`, `psychiatrist`
-- **Permissao necessaria:** `emotional_logs`
+**Auth:** Required — `psychologist` or `psychiatrist` with active care relationship
 
-**Resposta (200 OK):**
+**Body:**
+| Field | Type | Required | Description |
+|---|---|---|---|
+| template_id | UUID | ✅ | Anamnesis template ID |
+| patient_id | UUID | ✅ | Patient UUID |
+| deadline | ISO8601 | | Optional completion deadline |
 
-```json
-{
-  "brief": {
-    "patient_id": "uuid",
-    "summary": "...",
-    "key_metrics": { ... },
-    "recent_alerts": [ ... ],
-    "compiled_at": "2025-01-15T10:00:00.000Z"
-  }
-}
-```
+**Responses:**
+- `201` — `{ response: { id, template_id, patient_id, professional_id, status, deadline, ... } }`
+- `403` — No active care relationship
+- `404` — Template not found
 
 ---
 
-## 17. Onboarding
+### GET /anamnesis/pending
 
-### GET /api/onboarding
+List pending anamneses for the authenticated patient.
 
-Retorna os dados de onboarding do paciente autenticado.
+**Auth:** Required — `patient`
 
-- **Autenticacao:** Sim
-- **Role obrigatoria:** `patient`
+**Responses:**
+- `200` — `{ pending: [{ ...response, template_title, template_description, professional_first_name, professional_last_name, question_count }] }`
 
-**Resposta (200 OK):**
+---
 
-```json
-{
-  "profile": {
-    "onboarding_completed": false,
-    "onboarding_data": {},
-    "date_of_birth": null,
-    "gender": null,
-    "emergency_contact_name": null,
-    "emergency_contact_phone": null,
-    "phone": null
-  }
-}
-```
+### GET /anamnesis/responses/:id
 
+Get anamnesis response detail (patient owner or sending professional).
+
+**Auth:** Required — patient who owns it or the professional who sent it
+
+**Path params:** `id` — Response UUID
+
+**Responses:**
+- `200` — `{ response: { ...response, template_title, template_description, professional_first_name, professional_last_name, questions: [...] } }`
+- `403` — No permission
+- `404` — Response not found
+
 ---
 
-### PUT /api/onboarding
+### PUT /anamnesis/responses/:id
 
-Salva o formulario de onboarding completo e marca como finalizado.
+Patient saves or submits anamnesis answers.
 
-- **Autenticacao:** Sim
-- **Role obrigatoria:** `patient`
+**Auth:** Required — `patient` (must own the response)
 
-**Request Body:**
+**Path params:** `id` — Response UUID
 
-```json
-{
-  "full_name": "Joao da Silva",
-  "email": "joao@email.com",
-  "phone": "(11) 99999-0000",
-  "date_of_birth": "1990-05-15",
-  "gender": "male",
-  "emergency_contact_name": "Maria Silva",
-  "emergency_contact_phone": "(11) 98888-0000",
-  "personal": {
-    "marital_status": "single",
-    "occupation": "Engenheiro"
-  },
-  "physical": {
-    "height": 175,
-    "weight": 70,
-    "exercises": true
-  },
-  "gynecological": {},
-  "medical": {
-    "allergies": "Nenhuma",
-    "chronic_conditions": [],
-    "previous_treatments": "Nenhum"
-  },
-  "family_history": "Historico de depressao na familia materna.",
-  "current_treatments": "Nenhum tratamento atual."
-}
-```
+**Body:**
+| Field | Type | Required | Description |
+|---|---|---|---|
+| answers | object | | Answer map |
+| status | string | | `in_progress` (default) or `completed` |
 
-**Resposta (200 OK):**
+**Responses:**
+- `200` — `{ response: { ...updated } }`
+- `400` — Anamnesis already completed
+- `404` — Response not found
 
-```json
-{
-  "profile": {
-    "onboarding_completed": true,
-    "onboarding_data": { ... },
-    "date_of_birth": "1990-05-15",
-    "gender": "male",
-    "emergency_contact_name": "Maria Silva",
-    "emergency_contact_phone": "(11) 98888-0000",
-    "phone": "(11) 99999-0000"
-  }
-}
-```
+---
 
-**Exemplo curl:**
-
-```bash
-curl -X PUT http://localhost:3001/api/onboarding \
-  -H "Authorization: Bearer <token>" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "full_name": "Joao da Silva",
-    "date_of_birth": "1990-05-15",
-    "gender": "male",
-    "personal": {"marital_status": "single"},
-    "medical": {"allergies": "Nenhuma"}
-  }'
-```
+### GET /anamnesis/patient/:patientId
+
+Professional views anamnesis responses sent by them to a patient.
 
+**Auth:** Required — `psychologist` or `psychiatrist` with `anamnesis` permission
+
+**Path params:** `patientId` — Patient UUID
+
+**Responses:**
+- `200` — `{ responses: [{ ...response, template_title, template_description, question_count }] }`
+
 ---
 
-## 18. Documentos (Documents)
+## Documents
 
-### POST /api/documents
+### POST /documents
 
-Paciente faz upload de um documento.
+Upload a document (multipart/form-data, patient only). Max file size: 10MB. Accepted types: PDF, JPEG, PNG.
 
-- **Autenticacao:** Sim
-- **Role obrigatoria:** `patient`
-- **Content-Type:** `multipart/form-data`
+**Auth:** Required — `patient`
 
-**Form Data:**
+**Content-Type:** `multipart/form-data`
 
-| Campo | Tipo | Descricao |
-|-------|------|-----------|
-| `file` | File | Arquivo (max: 10MB, PDF/JPEG/PNG) |
-| `document_type` | string | Tipo do documento (opcional) |
-| `document_date` | ISO date | Data do documento (opcional) |
-| `notes` | string | Observacoes (opcional) |
+**Form fields:**
+| Field | Type | Required | Description |
+|---|---|---|---|
+| file | file | ✅ | Document file |
+| document_type | string | | Document type label |
+| document_date | string | | ISO date of document |
+| notes | string | | Notes |
 
-**Resposta (201 Created):**
+**Responses:**
+- `201` — `{ document: { id, patient_id, file_name, original_name, file_type, file_size, document_type, document_date, notes, ... } }`
+- `400` — No file sent or file too large
 
-```json
-{
-  "document": {
-    "id": "uuid",
-    "patient_id": "uuid",
-    "file_name": "abc123.pdf",
-    "original_name": "laudo_medico.pdf",
-    "file_type": "pdf",
-    "file_size": 204800,
-    "document_type": "laudo",
-    "document_date": "2025-01-10",
-    "notes": null,
-    "uploaded_at": "2025-01-15T10:00:00.000Z"
-  }
-}
-```
+---
 
-**Erros:**
+### GET /documents
 
-| Codigo | Mensagem |
-|--------|----------|
-| `400` | Arquivo muito grande. Maximo: 10MB. |
-| `400` | Nenhum arquivo enviado. |
+List all documents for the authenticated patient.
 
-**Exemplo curl:**
+**Auth:** Required — `patient`
 
-```bash
-curl -X POST http://localhost:3001/api/documents \
-  -H "Authorization: Bearer <token>" \
-  -F "file=@/caminho/para/laudo.pdf" \
-  -F "document_type=laudo" \
-  -F "document_date=2025-01-10"
-```
+**Responses:**
+- `200` — `{ documents: [...] }`
 
 ---
 
-### GET /api/documents
+### GET /documents/:id/file
 
-Lista documentos do paciente autenticado.
+Serve a document file (authenticated, access-controlled).
 
-- **Autenticacao:** Sim
-- **Role obrigatoria:** `patient`
+**Auth:** Required — patient who owns it, or professional with `documents` permission and specific document access
 
-**Resposta (200 OK):**
+**Path params:** `id` — Document UUID
 
-```json
-{
-  "documents": [
-    {
-      "id": "uuid",
-      "patient_id": "uuid",
-      "file_name": "abc123.pdf",
-      "original_name": "laudo_medico.pdf",
-      "file_type": "pdf",
-      "file_size": 204800,
-      "document_type": "laudo",
-      "document_date": "2025-01-10",
-      "notes": null,
-      "uploaded_at": "2025-01-15T10:00:00.000Z"
-    }
-  ]
-}
-```
+**Responses:**
+- `200` — File stream (Content-Type: pdf / image)
+- `403` — Access denied
+- `404` — Document not found
 
 ---
+
+### DELETE /documents/:id
+
+Delete a document and its file (patient only, must own).
 
-### GET /api/documents/:id/file
+**Auth:** Required — `patient`
 
-Serve o arquivo do documento (com controle de acesso).
+**Path params:** `id` — Document UUID
 
-- **Autenticacao:** Sim
-- **Role obrigatoria:** Qualquer (paciente: deve ser dono; profissional: precisa de `documents` permission + `document_access`)
+**Responses:**
+- `204` — Deleted
+- `404` — Document not found
 
-**Resposta:** Arquivo binario com headers `Content-Type` e `Content-Disposition`.
+---
+
+### GET /documents/:id/access
+
+List which professionals have access to a specific document (patient only).
 
-**Erros:**
+**Auth:** Required — `patient` (must own the document)
 
-| Codigo | Mensagem |
-|--------|----------|
-| `403` | Acesso negado / Acesso negado a este documento |
-| `404` | Documento nao encontrado / Arquivo nao encontrado no servidor |
+**Path params:** `id` — Document UUID
 
+**Responses:**
+- `200` — `{ access: [{ id, document_id, professional_id, granted_at, first_name, last_name, role }] }`
+
 ---
 
-### DELETE /api/documents/:id
+### PUT /documents/:id/access
 
-Paciente exclui um documento.
+Grant or revoke a professional's access to a specific document (patient only).
 
-- **Autenticacao:** Sim
-- **Role obrigatoria:** `patient`
+**Auth:** Required — `patient` (must own the document)
 
-**Resposta:** `204 No Content`
+**Path params:** `id` — Document UUID
 
-**Erros:**
+**Body:**
+| Field | Type | Required | Description |
+|---|---|---|---|
+| professional_id | UUID | ✅ | Professional to grant/revoke |
+| granted | boolean | ✅ | `true` to grant, `false` to revoke |
 
-| Codigo | Mensagem |
-|--------|----------|
-| `404` | Documento nao encontrado |
+**Responses:**
+- `200` — `{ access: [...] }` — Updated access list
 
 ---
 
-### GET /api/documents/:id/access
+### GET /documents/patient/:patientId
 
-Lista quais profissionais tem acesso a um documento especifico.
+List documents shared with the authenticated professional by a patient.
 
-- **Autenticacao:** Sim
-- **Role obrigatoria:** `patient`
+**Auth:** Required — `psychologist` or `psychiatrist` with `documents` permission
 
-**Resposta (200 OK):**
+**Path params:** `patientId` — Patient UUID
 
-```json
-{
-  "access": [
-    {
-      "id": "uuid",
-      "document_id": "uuid",
-      "professional_id": "uuid",
-      "granted_at": "2025-01-15T10:00:00.000Z",
-      "first_name": "Maria",
-      "last_name": "Santos",
-      "role": "psychologist"
-    }
-  ]
-}
-```
+**Responses:**
+- `200` — `{ documents: [...] }` — Only documents where specific access was granted
 
 ---
 
-### PUT /api/documents/:id/access
+## Exams
 
-Paciente concede ou revoga acesso de um profissional a um documento.
+### POST /exams
 
-- **Autenticacao:** Sim
-- **Role obrigatoria:** `patient`
+Upload a lab exam or imaging file (multipart/form-data, patient only). Max file size: 10MB.
 
-**Request Body:**
+**Auth:** Required — `patient`
 
-```json
-{
-  "professional_id": "uuid-do-profissional",
-  "granted": true
-}
-```
+**Content-Type:** `multipart/form-data`
 
-Para revogar:
+**Form fields:**
+| Field | Type | Required | Description |
+|---|---|---|---|
+| file | file | ✅ | Exam file |
+| exam_type | string | ✅ | Exam type label |
+| exam_date | string | ✅ | ISO date |
+| notes | string | | Notes |
+| professional_ids | JSON string | | Array of professional UUIDs to share with immediately |
 
-```json
-{
-  "professional_id": "uuid-do-profissional",
-  "granted": false
-}
-```
+**Responses:**
+- `201` — `{ exam: { id, patient_id, exam_type, exam_date, file_name, original_name, mime_type, file_size, notes, permissions: [...] } }`
+- `400` — exam_type and exam_date required, or file issues
 
-**Resposta (200 OK):**
+---
 
-```json
-{
-  "access": [ ... ]
-}
-```
+### GET /exams/my-exams
+
+List all exams for the authenticated patient.
 
-**Erros:**
+**Auth:** Required — `patient`
 
-| Codigo | Mensagem |
-|--------|----------|
-| `400` | professional_id e obrigatorio / Profissional nao vinculado |
-| `404` | Documento nao encontrado |
+**Responses:**
+- `200` — `{ exams: [{ ...exam, permissions: [{ professional_id, first_name, last_name, role }] }] }`
 
 ---
 
-### GET /api/documents/patient/:patientId
+### GET /exams/patient/:patientId
 
-Profissional lista documentos compartilhados por um paciente.
+List exams shared with the authenticated professional by a patient.
 
-- **Autenticacao:** Sim
-- **Role obrigatoria:** `psychologist`, `psychiatrist`
+**Auth:** Required — `psychologist` or `psychiatrist` with active care relationship
 
-**Resposta (200 OK):**
+**Path params:** `patientId` — Patient UUID
 
-```json
-{
-  "documents": [
-    {
-      "id": "uuid",
-      "patient_id": "uuid",
-      "file_name": "abc123.pdf",
-      "original_name": "laudo_medico.pdf",
-      "file_type": "pdf",
-      "file_size": 204800,
-      "document_type": "laudo",
-      "document_date": "2025-01-10",
-      "notes": null,
-      "uploaded_at": "2025-01-15T10:00:00.000Z"
-    }
-  ]
-}
-```
+**Responses:**
+- `200` — `{ exams: [...] }` — Only exams where specific permission was granted
 
 ---
 
-## 19. Exames (Exams)
+### GET /exams/download/:examId
 
-### POST /api/exams
+Download an exam file (authenticated, access-controlled).
 
-Paciente faz upload de um exame.
+**Auth:** Required — patient who owns it or professional with exam permission
 
-- **Autenticacao:** Sim
-- **Role obrigatoria:** `patient`
-- **Content-Type:** `multipart/form-data`
+**Path params:** `examId` — Exam UUID
 
-**Form Data:**
+**Responses:**
+- `200` — File stream
+- `403` — Access denied
+- `404` — Exam not found
 
-| Campo | Tipo | Descricao |
-|-------|------|-----------|
-| `file` | File | Arquivo do exame (max: 10MB) |
-| `exam_type` | string | Tipo do exame (obrigatorio) |
-| `exam_date` | ISO date | Data do exame (obrigatorio) |
-| `notes` | string | Observacoes (opcional) |
-| `professional_ids` | JSON string | Array de UUIDs de profissionais para conceder acesso (opcional) |
+---
 
-**Resposta (201 Created):**
+### DELETE /exams/:examId
 
-```json
-{
-  "exam": {
-    "id": "uuid",
-    "patient_id": "uuid",
-    "exam_type": "hemograma",
-    "exam_date": "2025-01-10",
-    "file_name": "abc123.pdf",
-    "original_name": "hemograma_jan2025.pdf",
-    "mime_type": "application/pdf",
-    "file_size": 512000,
-    "notes": null,
-    "permissions": [
-      { "professional_id": "uuid" }
-    ]
-  }
-}
-```
+Delete an exam and its file (patient only, must own).
+
+**Auth:** Required — `patient`
 
-> Nota: Um alerta e criado automaticamente para os profissionais vinculados.
+**Path params:** `examId` — Exam UUID
 
-**Erros:**
+**Responses:**
+- `204` — Deleted
+- `404` — Exam not found
 
-| Codigo | Mensagem |
-|--------|----------|
-| `400` | Arquivo muito grande. Maximo: 10MB. |
-| `400` | Nenhum arquivo enviado. |
-| `400` | exam_type e exam_date sao obrigatorios. |
+---
 
-**Exemplo curl:**
+### PUT /exams/:examId/permissions
 
-```bash
-curl -X POST http://localhost:3001/api/exams \
-  -H "Authorization: Bearer <token>" \
-  -F "file=@/caminho/para/hemograma.pdf" \
-  -F "exam_type=hemograma" \
-  -F "exam_date=2025-01-10" \
-  -F 'professional_ids=["uuid-prof-1", "uuid-prof-2"]'
-```
+Update which professionals can access an exam (replaces all existing permissions).
 
+**Auth:** Required — `patient` (must own the exam)
+
+**Path params:** `examId` — Exam UUID
+
+**Body:**
+| Field | Type | Required | Description |
+|---|---|---|---|
+| professional_ids | array | ✅ | Array of professional UUIDs to grant access |
+
+**Responses:**
+- `200` — `{ permissions: [{ professional_id, first_name, last_name, role }] }`
+- `400` — professional_ids must be an array
+- `404` — Exam not found
+
 ---
 
-### GET /api/exams/my-exams
+## Record Sharing
 
-Lista todos os exames do paciente autenticado.
+### POST /record-sharing/generate-token
 
-- **Autenticacao:** Sim
-- **Role obrigatoria:** `patient`
+Generate a QR-sharable access token for a patient's records (20-day expiry).
 
-**Resposta (200 OK):**
+**Auth:** Required — `psychologist` or `psychiatrist` with active care relationship
 
-```json
-{
-  "exams": [
-    {
-      "id": "uuid",
-      "patient_id": "uuid",
-      "exam_type": "hemograma",
-      "exam_date": "2025-01-10",
-      "file_name": "abc123.pdf",
-      "original_name": "hemograma_jan2025.pdf",
-      "mime_type": "application/pdf",
-      "file_size": 512000,
-      "notes": null,
-      "permissions": [
-        {
-          "professional_id": "uuid",
-          "first_name": "Maria",
-          "last_name": "Santos",
-          "role": "psychologist"
-        }
-      ]
-    }
-  ]
-}
-```
+**Body:**
+| Field | Type | Required | Description |
+|---|---|---|---|
+| patient_id | UUID | ✅ | Patient UUID |
+
+**Responses:**
+- `201` — `{ access_token: { id, token, patient_id, expires_at, ... } }`
+- `403` — No active care relationship
 
 ---
 
-### GET /api/exams/patient/:patientId
+### GET /record-sharing/verify/:token
 
-Profissional visualiza exames de um paciente (somente os com permissao).
+Verify a sharing token's validity without accessing records.
 
-- **Autenticacao:** Sim
-- **Role obrigatoria:** `psychologist`, `psychiatrist`
+**Auth:** Required (any role)
 
-**Resposta (200 OK):**
+**Path params:** `token` — Sharing token string
 
-```json
-{
-  "exams": [ ... ]
-}
-```
+**Responses:**
+- `200` — `{ valid: boolean, expires_at, granting_professional: "Full Name", patient: "Full Name", already_accessed: boolean }`
+- `404` — Token not found
+
+---
 
-**Erros:**
+### POST /record-sharing/access/:token
 
-| Codigo | Mensagem |
-|--------|----------|
-| `403` | Sem vinculo de cuidado ativo com este paciente. |
+Access patient records via a sharing token (single-use).
 
----
+**Auth:** Required — `psychologist` or `psychiatrist`
 
-### GET /api/exams/download/:examId
+**Path params:** `token` — Sharing token string
 
-Download do arquivo de um exame.
+**Responses:**
+- `200` — `{ records: { ... }, token_info: { id, expires_at, patient_id } }`
+- `400` — Token invalid, expired, or revoked
+
+---
 
-- **Autenticacao:** Sim
-- **Role obrigatoria:** Qualquer (paciente: deve ser dono; profissional: precisa de `exam_permissions`)
+### GET /record-sharing/my-shares
 
-**Resposta:** Arquivo binario com headers `Content-Type` e `Content-Disposition`.
+List record shares made or received by the authenticated professional.
 
-**Erros:**
+**Auth:** Required — `psychologist` or `psychiatrist`
 
-| Codigo | Mensagem |
-|--------|----------|
-| `403` | Acesso negado. / Acesso negado a este exame. |
-| `404` | Exame nao encontrado. / Arquivo nao encontrado no servidor. |
+**Responses:**
+- `200` — `{ granted: [{ ...token, patient_first_name, patient_last_name, accessed_by_first_name, accessed_by_last_name }], received: [{ ...share, granting_first_name, granting_last_name, patient_first_name, patient_last_name }] }`
 
 ---
 
-### DELETE /api/exams/:examId
+### POST /record-sharing/save-summary
 
-Paciente exclui um exame.
+Save a text summary of shared records before the token expires.
 
-- **Autenticacao:** Sim
-- **Role obrigatoria:** `patient`
+**Auth:** Required — `psychologist` or `psychiatrist`
 
-**Resposta:** `204 No Content`
+**Body:**
+| Field | Type | Required | Description |
+|---|---|---|---|
+| access_token_id | UUID | ✅ | ID of the access token used |
+| summary | string | ✅ | Summary text to save |
 
-**Erros:**
+**Responses:**
+- `200` — `{ shared_record: { ...updated } }`
+- `404` — Share not found
 
-| Codigo | Mensagem |
-|--------|----------|
-| `404` | Exame nao encontrado. |
+---
+
+### DELETE /record-sharing/revoke/:tokenId
+
+Revoke a sharing token (creator only).
 
+**Auth:** Required — `psychologist` or `psychiatrist` (must be the token creator)
+
+**Path params:** `tokenId` — Token UUID
+
+**Responses:**
+- `200` — `{ message: "Token revogado com sucesso" }`
+
 ---
 
-### PUT /api/exams/:examId/permissions
+## Chat
 
-Paciente atualiza permissoes de acesso a um exame.
+All chat routes require the `psychologist` or `psychiatrist` role.
 
-- **Autenticacao:** Sim
-- **Role obrigatoria:** `patient`
+### GET /chat/conversations
 
-**Request Body:**
+List conversations for the authenticated professional.
 
-```json
-{
-  "professional_ids": ["uuid-prof-1", "uuid-prof-2"]
-}
-```
+**Auth:** Required — `psychologist` or `psychiatrist`
 
-> Nota: As permissoes sao substituidas integralmente. Profissionais que nao estiverem na lista perdem acesso. Novos profissionais recebem um alerta.
+**Responses:**
+- `200` — `{ conversations: [{ id, patient_id, patient_first_name, patient_last_name, other_user_id, other_first_name, other_last_name, other_role, last_message, last_message_at, last_message_sender_id, unread_count, created_at }] }`
 
-**Resposta (200 OK):**
+---
 
-```json
-{
-  "permissions": [
-    {
-      "professional_id": "uuid",
-      "first_name": "Maria",
-      "last_name": "Santos",
-      "role": "psychologist"
-    }
-  ]
-}
-```
+### POST /chat/conversations
 
-**Erros:**
+Create or retrieve an existing conversation between two professionals (optionally in context of a patient).
 
-| Codigo | Mensagem |
-|--------|----------|
-| `400` | professional_ids deve ser um array. |
-| `404` | Exame nao encontrado. |
+**Auth:** Required — `psychologist` or `psychiatrist`
 
+**Body:**
+| Field | Type | Required | Description |
+|---|---|---|---|
+| other_user_id | UUID | ✅ | The other professional's user ID |
+| patient_id | UUID | | Patient context (both professionals must have access) |
+
+**Responses:**
+- `200` — `{ conversation: { id, existing: true } }` — if already exists
+- `201` — `{ conversation: { id, existing: false } }` — if newly created
+- `403` — Cannot create conversation with patient, or professionals lack shared patient access
+- `404` — Other user not found
+
 ---
 
-## 20. Convites (Invitations)
+### GET /chat/conversations/:id/messages
 
-### POST /api/invitations
+Get messages in a conversation.
 
-Envia um convite de vinculo (paciente-profissional).
+**Auth:** Required — `psychologist` or `psychiatrist` (must be a conversation participant)
 
-- **Autenticacao:** Sim
-- **Role obrigatoria:** Qualquer
+**Path params:** `id` — Conversation UUID
 
-**Request Body:**
+**Query params:**
+| Param | Description |
+|---|---|
+| page | Page number (default: 1) |
+| limit | Page size (default: 50, max: 100) |
 
-```json
-{
-  "display_id": "CLA-XY34ZW",
-  "message": "Gostaria de iniciar acompanhamento com voce."
-}
-```
+**Responses:**
+- `200` — `{ messages: [{ id, conversation_id, sender_id, content, created_at, read_at, sender_first_name, sender_last_name, attachment_id, attachment_name, attachment_mime_type, attachment_file_size }], pagination: { page, limit, total } }`
+- `403` — Not a participant
 
-**Resposta (201 Created):**
+---
 
-```json
-{
-  "invitation": {
-    "id": "uuid",
-    "patient_id": "uuid",
-    "professional_id": "uuid",
-    "relationship_type": "psychologist",
-    "status": "pending",
-    "invited_by": "uuid",
-    "invitation_message": "Gostaria de iniciar acompanhamento com voce.",
-    "other_first_name": "Maria",
-    "other_last_name": "Santos",
-    "other_role": "psychologist",
-    "other_display_id": "CLA-XY34ZW"
-  },
-  "reactivation": false
-}
-```
+### POST /chat/conversations/:id/messages
 
-**Erros:**
-
-| Codigo | Mensagem |
-|--------|----------|
-| `400` | display_id e obrigatorio |
-| `400` | Voce nao pode enviar um convite para si mesmo |
-| `400` | O convite deve ser entre um paciente e um profissional |
-| `404` | Usuario nao encontrado com este ID |
-| `409` | Ja existe um vinculo ativo com este usuario |
-| `409` | Ja existe um convite pendente com este usuario |
-
-**Exemplo curl:**
-
-```bash
-curl -X POST http://localhost:3001/api/invitations \
-  -H "Authorization: Bearer <token>" \
-  -H "Content-Type: application/json" \
-  -d '{"display_id": "CLA-XY34ZW", "message": "Gostaria de ser seu paciente."}'
-```
+Send a text message in a conversation.
+
+**Auth:** Required — `psychologist` or `psychiatrist` (must be a participant)
+
+**Path params:** `id` — Conversation UUID
+
+**Body:**
+| Field | Type | Required | Description |
+|---|---|---|---|
+| content | string | ✅ | Message text (1–10000 chars) |
 
+**Responses:**
+- `201` — `{ message: { id, conversation_id, sender_id, content, created_at } }`
+- `403` — Not a participant
+
 ---
 
-### GET /api/invitations/pending
+### PUT /chat/conversations/:id/read
 
-Lista convites pendentes recebidos pelo usuario autenticado.
+Mark all unread messages in a conversation as read.
 
-- **Autenticacao:** Sim
-- **Role obrigatoria:** Qualquer
+**Auth:** Required — `psychologist` or `psychiatrist`
 
-**Resposta (200 OK):**
+**Path params:** `id` — Conversation UUID
 
-```json
-{
-  "invitations": [
-    {
-      "id": "uuid",
-      "patient_id": "uuid",
-      "professional_id": "uuid",
-      "relationship_type": "psychologist",
-      "status": "pending",
-      "invited_by": "uuid",
-      "invitation_message": "Gostaria de iniciar acompanhamento.",
-      "created_at": "2025-01-15T10:00:00.000Z",
-      "other_first_name": "Joao",
-      "other_last_name": "Silva",
-      "other_role": "patient",
-      "other_display_id": "CLA-AB12CD",
-      "other_avatar_url": null,
-      "specialization": "TCC",
-      "institution": "Clinica Mente Saudavel"
-    }
-  ]
-}
-```
+**Responses:**
+- `200` — `{ success: true }`
 
 ---
 
-### GET /api/invitations/sent
+### GET /chat/unread-count
 
-Lista convites pendentes enviados pelo usuario autenticado.
+Get total unread message count for the authenticated professional.
 
-- **Autenticacao:** Sim
-- **Role obrigatoria:** Qualquer
+**Auth:** Required — `psychologist` or `psychiatrist`
 
-**Resposta (200 OK):** Mesmo formato de `GET /api/invitations/pending`
+**Responses:**
+- `200` — `{ unread_count: integer }`
 
 ---
 
-### PUT /api/invitations/:id/respond
+### POST /chat/conversations/:conversationId/messages/file
 
-Aceita ou rejeita um convite recebido.
+Send a message with a file attachment (multipart/form-data). Max file size: 10MB.
 
-- **Autenticacao:** Sim
-- **Role obrigatoria:** Qualquer (somente o destinatario pode responder)
+**Auth:** Required — `psychologist` or `psychiatrist` (must be a participant)
 
-**Request Body:**
+**Path params:** `conversationId` — Conversation UUID
 
-```json
-{
-  "action": "accept"
-}
-```
+**Content-Type:** `multipart/form-data`
 
-Ou:
+**Form fields:**
+| Field | Type | Required | Description |
+|---|---|---|---|
+| file | file | ✅ | File to attach |
 
-```json
-{
-  "action": "reject"
-}
-```
+**Responses:**
+- `201` — `{ message: { ... }, attachment: { id, file_name, original_name, mime_type, file_size, ... } }`
+- `400` — No file sent or file too large
+
+---
 
-**Resposta (200 OK):**
+### GET /chat/attachments/:id/file
 
-```json
-{
-  "relationship": {
-    "id": "uuid",
-    "status": "active",
-    "started_at": "2025-01-16T10:00:00.000Z",
-    "responded_at": "2025-01-16T10:00:00.000Z"
-  }
-}
-```
+Download a chat attachment.
 
-**Erros:**
+**Auth:** Required — `psychologist` or `psychiatrist` (must be a conversation participant)
 
-| Codigo | Mensagem |
-|--------|----------|
-| `400` | action deve ser "accept" ou "reject" |
-| `403` | Voce nao pode responder ao proprio convite / Acesso negado |
-| `404` | Convite nao encontrado ou ja respondido |
+**Path params:** `id` — Attachment UUID
 
+**Responses:**
+- `200` — File download stream
+- `403` — Not a participant
+- `404` — Attachment not found
+
 ---
+
+## Push Notifications
+
+### GET /push/vapid-public-key
+
+Get the VAPID public key for Web Push subscription setup.
 
-### DELETE /api/invitations/:id
+**Auth:** None
 
-Cancela um convite enviado (somente o remetente pode cancelar).
+**Responses:**
+- `200` — `{ publicKey: "string" | null }`
 
-- **Autenticacao:** Sim
-- **Role obrigatoria:** Qualquer (somente o remetente)
+---
+
+### POST /push/subscribe
 
-**Resposta:** `204 No Content`
+Register or update a push notification subscription.
 
-**Erros:**
+**Auth:** Required (any role)
 
-| Codigo | Mensagem |
-|--------|----------|
-| `403` | Apenas quem enviou pode cancelar o convite |
-| `404` | Convite nao encontrado ou ja respondido |
+**Body:**
+| Field | Type | Required | Description |
+|---|---|---|---|
+| subscription | object | ✅ | Web Push subscription object (must include `endpoint`) |
 
+**Responses:**
+- `200` — `{ success: true }`
+- `400` — Invalid subscription
+
 ---
 
-## 21. Usuarios (Users)
+### DELETE /push/unsubscribe
 
-### GET /api/users/search
+Remove the push notification subscription for the authenticated user.
 
-Busca um usuario pelo display_id (retorna informacoes basicas).
+**Auth:** Required (any role)
 
-- **Autenticacao:** Sim
-- **Role obrigatoria:** Qualquer
+**Responses:**
+- `200` — `{ success: true }`
 
-**Query Parameters:**
+---
 
-| Parametro | Tipo | Descricao |
-|-----------|------|-----------|
-| `display_id` | string | ID publico do usuario (ex: `CLA-AB12CD`) |
+## Error Responses
 
-**Resposta (200 OK):**
+All endpoints return JSON error objects in the following format:
 
 ```json
-{
-  "user": {
-    "id": "uuid",
-    "display_id": "CLA-AB12CD",
-    "first_name": "Joao",
-    "last_name": "Silva",
-    "role": "patient",
-    "avatar_url": null,
-    "specialization": null,
-    "institution": null
-  }
-}
+{ "error": "Human-readable error message" }
 ```
 
-**Erros:**
+Common HTTP status codes:
 
-| Codigo | Mensagem |
-|--------|----------|
-| `400` | display_id e obrigatorio |
-| `404` | Usuario nao encontrado |
+| Code | Meaning |
+|---|---|
+| `400` | Bad request — missing or invalid fields |
+| `401` | Authentication required or invalid credentials |
+| `403` | Forbidden — insufficient permissions |
+| `404` | Resource not found |
+| `409` | Conflict — resource already exists |
+| `410` | Gone — deprecated endpoint |
+| `500` | Internal server error |
+| `503` | Service unavailable (e.g. database or AI engine down) |
 
-**Exemplo curl:**
+---
 
-```bash
-curl -X GET "http://localhost:3001/api/users/search?display_id=CLA-AB12CD" \
-  -H "Authorization: Bearer <token>"
-```
+## Permission Types
 
----
+The `data_permissions` table controls what data a professional can see for a patient. Valid `permission_type` values used across the codebase:
+
+| Permission | Data Covered |
+|---|---|
+| `emotional_logs` | Emotional check-ins and trends |
+| `journal_entries` | Journal text entries |
+| `symptoms` | Reported symptoms |
+| `life_events` | Life events |
+| `assessments` | Assessment results |
+| `clinical_notes` | Clinical session notes |
+| `medications` | Medication data |
+| `documents` | Uploaded documents |
+| `private_records` | Private medical records |
+| `anamnesis` | Anamnesis responses |
+| `psychological_tests` | Psych test sessions |
+| `digital_twin` | Digital twin state |
 
-## Referencia Rapida de Endpoints
-
-| # | Metodo | Endpoint | Role |
-|---|--------|----------|------|
-| 1 | POST | `/api/auth/register` | Publico |
-| 2 | POST | `/api/auth/login` | Publico |
-| 3 | GET | `/api/auth/me` | Qualquer |
-| 4 | PUT | `/api/auth/me` | Qualquer |
-| 5 | POST | `/api/auth/forgot-password` | Publico |
-| 6 | POST | `/api/auth/reset-password` | Publico |
-| 7 | GET | `/api/patients` | Profissional |
-| 8 | GET | `/api/patients/:id` | Vinculo ativo |
-| 9 | GET | `/api/patients/:id/timeline` | Vinculo ativo |
-| 10 | GET | `/api/patients/my-professionals` | Paciente |
-| 11 | PUT | `/api/patients/revoke-access` | Paciente |
-| 12 | PUT | `/api/patients/:id/permissions` | Paciente |
-| 13 | GET | `/api/professionals` | Qualquer |
-| 14 | GET | `/api/professionals/my-patients` | Profissional |
-| 15 | GET | `/api/professionals/:id` | Qualquer |
-| 16 | POST | `/api/emotional-logs` | Paciente |
-| 17 | GET | `/api/emotional-logs` | Paciente |
-| 18 | GET | `/api/emotional-logs/trends` | Paciente |
-| 19 | GET | `/api/emotional-logs/:patientId` | Profissional |
-| 20 | GET | `/api/symptoms` | Qualquer |
-| 21 | POST | `/api/patient-symptoms` | Paciente |
-| 22 | GET | `/api/patient-symptoms` | Paciente |
-| 23 | GET | `/api/patient-symptoms/:patientId` | Profissional |
-| 24 | GET | `/api/medications` | Qualquer |
-| 25 | POST | `/api/patient-medications` | Psiquiatra |
-| 26 | PUT | `/api/patient-medications/:id` | Psiquiatra |
-| 27 | GET | `/api/patient-medications` | Qualquer |
-| 28 | POST | `/api/medication-logs` | Paciente |
-| 29 | GET | `/api/medication-logs` | Qualquer |
-| 30 | GET | `/api/assessments` | Qualquer |
-| 31 | POST | `/api/assessment-results` | Paciente |
-| 32 | GET | `/api/assessment-results` | Paciente |
-| 33 | GET | `/api/assessment-results/:patientId` | Profissional |
-| 34 | POST | `/api/life-events` | Paciente |
-| 35 | GET | `/api/life-events` | Paciente |
-| 36 | GET | `/api/life-events/:patientId` | Profissional |
-| 37 | POST | `/api/clinical-notes` | Profissional |
-| 38 | GET | `/api/clinical-notes/:patientId` | Vinculo ativo |
-| 39 | PUT | `/api/clinical-notes/:id` | Autor |
-| 40 | GET | `/api/insights` | Paciente |
-| 41 | GET | `/api/insights/:patientId` | Profissional |
-| 42 | PUT | `/api/insights/:id/review` | Profissional |
-| 43 | GET | `/api/alerts` | Profissional |
-| 44 | GET | `/api/alerts/:patientId` | Profissional |
-| 45 | PUT | `/api/alerts/:id/acknowledge` | Profissional |
-| 46 | GET | `/api/digital-twin/:patientId` | Profissional |
-| 47 | GET | `/api/digital-twin/:patientId/history` | Profissional |
-| 48 | GET | `/api/digital-twin/:patientId/predictions` | Profissional |
-| 49 | POST | `/api/digital-twin/:patientId/refresh` | Profissional |
-| 50 | POST | `/api/journal` | Paciente |
-| 51 | GET | `/api/journal` | Paciente |
-| 52 | GET | `/api/journal/:patientId` | Profissional |
-| 53 | POST | `/api/goals` | Profissional |
-| 54 | GET | `/api/goals/:patientId` | Vinculo ativo |
-| 55 | PUT | `/api/goals/:id` | Profissional |
-| 56 | PUT | `/api/goals/:id/achieve` | Profissional |
-| 57 | PUT | `/api/goals/:id/respond` | Paciente |
-| 58 | POST | `/api/goals/milestones` | Profissional |
-| 59 | GET | `/api/goals/milestones/:patientId` | Vinculo ativo |
-| 60 | GET | `/api/chat/conversations` | Profissional |
-| 61 | POST | `/api/chat/conversations` | Profissional |
-| 62 | GET | `/api/chat/conversations/:id/messages` | Profissional |
-| 63 | POST | `/api/chat/conversations/:id/messages` | Profissional |
-| 64 | PUT | `/api/chat/conversations/:id/read` | Profissional |
-| 65 | GET | `/api/chat/unread-count` | Profissional |
-| 66 | POST | `/api/summaries/:patientId/generate` | Profissional |
-| 67 | GET | `/api/summaries/:patientId` | Profissional |
-| 68 | GET | `/api/summaries/:patientId/brief` | Profissional |
-| 69 | GET | `/api/onboarding` | Paciente |
-| 70 | PUT | `/api/onboarding` | Paciente |
-| 71 | POST | `/api/documents` | Paciente |
-| 72 | GET | `/api/documents` | Paciente |
-| 73 | GET | `/api/documents/:id/file` | Vinculo ativo |
-| 74 | DELETE | `/api/documents/:id` | Paciente |
-| 75 | GET | `/api/documents/:id/access` | Paciente |
-| 76 | PUT | `/api/documents/:id/access` | Paciente |
-| 77 | GET | `/api/documents/patient/:patientId` | Profissional |
-| 78 | POST | `/api/exams` | Paciente |
-| 79 | GET | `/api/exams/my-exams` | Paciente |
-| 80 | GET | `/api/exams/patient/:patientId` | Profissional |
-| 81 | GET | `/api/exams/download/:examId` | Vinculo ativo |
-| 82 | DELETE | `/api/exams/:examId` | Paciente |
-| 83 | PUT | `/api/exams/:examId/permissions` | Paciente |
-| 84 | POST | `/api/invitations` | Qualquer |
-| 85 | GET | `/api/invitations/pending` | Qualquer |
-| 86 | GET | `/api/invitations/sent` | Qualquer |
-| 87 | PUT | `/api/invitations/:id/respond` | Destinatario |
-| 88 | DELETE | `/api/invitations/:id` | Remetente |
-| 89 | GET | `/api/users/search` | Qualquer |
+Permissions are set by the patient via `PUT /patients/:id/permissions`.
