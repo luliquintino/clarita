@@ -294,7 +294,7 @@ removeToken()    // clear on logout
 isTokenExpired() // decode JWT exp claim to check expiry client-side
 ```
 
-The base URL is configured via `NEXT_PUBLIC_API_URL` (defaults to `http://localhost:3005/api`).
+The base URL is configured via `NEXT_PUBLIC_API_URL` (defaults to `http://localhost:3001/api`).
 
 ---
 
