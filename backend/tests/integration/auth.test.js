@@ -244,6 +244,63 @@ describe('POST /api/auth/login', () => {
     expect(res.body.user.password_hash).toBeUndefined();
     expect(res.body.user.password).toBeUndefined();
   });
+
+  it('should return 400 for empty email field', async () => {
+    const res = await request(app)
+      .post('/api/auth/login')
+      .send({ email: '', password: patientPassword });
+
+    expect(res.status).toBe(400);
+    expect(res.body.error).toBeDefined();
+  });
+
+  it('should return 400 for empty password field', async () => {
+    const res = await request(app)
+      .post('/api/auth/login')
+      .send({ email: patientEmail, password: '' });
+
+    expect(res.status).toBe(400);
+    expect(res.body.error).toBeDefined();
+  });
+
+  it('should return 400 for invalid email format', async () => {
+    const res = await request(app)
+      .post('/api/auth/login')
+      .send({ email: 'not-a-valid-email', password: patientPassword });
+
+    expect(res.status).toBe(400);
+    expect(res.body.error).toBeDefined();
+  });
+
+  it('should return 400 or 401 for SQL injection attempt in email (never 200)', async () => {
+    const res = await request(app)
+      .post('/api/auth/login')
+      .send({ email: "' OR '1'='1'; --", password: 'AnyPass123' });
+
+    expect([400, 401]).toContain(res.status);
+    expect(res.body.token).toBeUndefined();
+  });
+
+  it('should return 401 for expired JWT on protected route', async () => {
+    const { user } = await createTestPatient({ email: 'expired-jwt@test.com' });
+    const expired = generateExpiredToken(user.id, user.role);
+
+    const res = await request(app)
+      .get('/api/auth/me')
+      .set('Authorization', `Bearer ${expired}`);
+
+    expect(res.status).toBe(401);
+    expect(res.body.error).toBeDefined();
+  });
+
+  it('should return 401 for tampered/invalid JWT on protected route', async () => {
+    const res = await request(app)
+      .get('/api/auth/me')
+      .set('Authorization', 'Bearer eyJhbGciOiJIUzI1NiJ9.tampered.signature');
+
+    expect(res.status).toBe(401);
+    expect(res.body.error).toBeDefined();
+  });
 });
 
 // ===========================================================================
