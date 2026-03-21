@@ -12,15 +12,13 @@ export function usePushNotifications(token: string | null) {
     if (!('Notification' in window)) return;
     setPermission(Notification.permission);
 
-    // Check if already subscribed
     if (Notification.permission === 'granted' && 'serviceWorker' in navigator) {
-      navigator.serviceWorker.ready.then(reg =>
-        reg.pushManager.getSubscription()
-      ).then(sub => {
-        if (sub) setSubscribed(true);
-      }).catch(() => {});
+      navigator.serviceWorker.ready
+        .then(reg => reg.pushManager.getSubscription())
+        .then(sub => { if (sub) setSubscribed(true); })
+        .catch(() => {});
     }
-  }, []);
+  }, [token]);
 
   async function subscribe() {
     if (!('serviceWorker' in navigator) || !token) return;
