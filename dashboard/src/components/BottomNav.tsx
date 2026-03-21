@@ -15,7 +15,7 @@ export default function BottomNav({ active, onChange, badges = {} }: BottomNavPr
         className="flex items-center gap-1 px-2 py-2 overflow-x-auto scrollbar-none"
         style={{
           WebkitOverflowScrolling: 'touch',
-          paddingBottom: 'max(env(safe-area-inset-bottom), 0.5rem)',
+          paddingBottom: 'max(env(safe-area-inset-bottom), 0.5rem)', // safe area for home indicator
         }}
       >
         {NAV_ITEMS.map(({ key, label, icon: Icon, color, activeColor, activeBg }) => {
