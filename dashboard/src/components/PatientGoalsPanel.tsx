@@ -217,7 +217,7 @@ export default function PatientGoalsPanel({ goals, loading, onRespond }: Patient
                         value={rejectReason}
                         onChange={(e) => setRejectReason(e.target.value)}
                         placeholder="Motivo da recusa (opcional) — ex: 'Acho essa meta muito dificil agora'"
-                        className="input-field text-sm min-h-[70px] resize-none"
+                        className="input-field text-sm min-h-[70px] resize-none" /* text-sm overrides .input-field's text-base intentionally — keeps this textarea compact */
                         maxLength={2000}
                       />
                       <div className="flex gap-2">
