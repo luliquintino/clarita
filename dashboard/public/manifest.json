@@ -3,8 +3,10 @@
   "short_name": "Clarita",
   "description": "Monitore sua saúde mental com acompanhamento profissional",
   "start_url": "/patient-home",
+  "scope": "/",
+  "lang": "pt-BR",
   "display": "standalone",
-  "background_color": "#f0fdf4",
+  "background_color": "#fafaf9",
   "theme_color": "#22c55e",
   "orientation": "portrait",
   "icons": [
