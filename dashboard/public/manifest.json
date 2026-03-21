@@ -2,7 +2,7 @@
   "name": "CLARITA — Saúde Mental",
   "short_name": "Clarita",
   "description": "Monitore sua saúde mental com acompanhamento profissional",
-  "start_url": "/",
+  "start_url": "/patient-home",
   "display": "standalone",
   "background_color": "#f0fdf4",
   "theme_color": "#22c55e",
