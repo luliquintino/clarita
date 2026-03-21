@@ -7,7 +7,6 @@ const { sendPushToUser } = require('../services/pushService');
 function startEveningReminderJob() {
   // 22:00 UTC = 19:00 BRT
   cron.schedule('0 22 * * *', async () => {
-    console.log('[eveningReminder] Sending 19h reminders...');
     try {
       const result = await query(`
         SELECT ps.user_id
@@ -21,6 +20,11 @@ function startEveningReminderJob() {
           )
       `);
 
+      if (result.rows.length === 0) {
+        console.log('[eveningReminder] Nenhum paciente pendente.');
+        return;
+      }
+
       for (const row of result.rows) {
         sendPushToUser(row.user_id, {
           title: 'Não esqueça do seu check-in hoje 🌙',
@@ -32,7 +36,7 @@ function startEveningReminderJob() {
         );
       }
 
-      console.log(`[eveningReminder] ${result.rows.length} lembrete(s) enviado(s).`);
+      console.log(`[eveningReminder] ${result.rows.length} lembrete(s) selecionados para envio.`);
     } catch (err) {
       console.error('[eveningReminder] Erro:', err.message);
     }
