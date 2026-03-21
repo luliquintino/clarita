@@ -6,7 +6,14 @@ import { fileURLToPath } from 'url';
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const publicDir = join(__dirname, '..', 'public');
 const svgPath = join(publicDir, 'logo-clarita.svg');
-const svgBuffer = readFileSync(svgPath);
+let svgBuffer;
+try {
+  svgBuffer = readFileSync(svgPath);
+} catch {
+  console.error(`Error: logo-clarita.svg not found at ${svgPath}`);
+  console.error('Place the SVG in dashboard/public/ and re-run npm run pwa:assets');
+  process.exit(1);
+}
 
 // Background color matching Clarita brand
 const BG = { r: 240, g: 253, b: 244, alpha: 1 }; // #f0fdf4
@@ -29,7 +36,6 @@ async function makeIcon(size, filename) {
 }
 
 async function makeSplash(width, height, filename) {
-  mkdirSync(join(publicDir, 'splash'), { recursive: true });
   const logoSize = Math.round(Math.min(width, height) * 0.25);
 
   await sharp({
@@ -54,6 +60,7 @@ async function main() {
   await makeIcon(180, 'apple-touch-icon.png');
 
   // Splash screens (portrait: width x height in px at 1x — stored as full resolution)
+  mkdirSync(join(publicDir, 'splash'), { recursive: true });
   await makeSplash(1290, 2796, 'splash-2796x1290.png'); // iPhone 14/15 Pro Max
   await makeSplash(1179, 2556, 'splash-2556x1179.png'); // iPhone 15 Pro
   await makeSplash(1170, 2532, 'splash-2532x1170.png'); // iPhone 14/15
