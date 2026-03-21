@@ -13,7 +13,10 @@ export default function BottomNav({ active, onChange, badges = {} }: BottomNavPr
     <nav className="md:hidden fixed bottom-0 left-0 right-0 z-40 glass border-t border-white/40 shadow-lg">
       <div
         className="flex items-center gap-1 px-2 py-2 overflow-x-auto scrollbar-none"
-        style={{ WebkitOverflowScrolling: 'touch' }}
+        style={{
+          WebkitOverflowScrolling: 'touch',
+          paddingBottom: 'max(env(safe-area-inset-bottom), 0.5rem)',
+        }}
       >
         {NAV_ITEMS.map(({ key, label, icon: Icon, color, activeColor, activeBg }) => {
           const isActive = active === key;
