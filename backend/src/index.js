@@ -44,6 +44,7 @@ const pushRoutes = require('./routes/pushSubscriptions');
 const { pool } = require('./config/database');
 const { startNoCheckinJob } = require('./jobs/noCheckinJob');
 const { startCheckinReminderJob } = require('./jobs/checkinReminderJob');
+const { startEveningReminderJob } = require('./jobs/eveningReminderJob');
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -198,6 +199,9 @@ if (process.env.NODE_ENV !== 'test') {
 
   // Push check-in reminder (hourly, per-user configurable UTC hour)
   startCheckinReminderJob();
+
+  // Evening reminder (daily at 22:00 UTC / 19:00 BRT)
+  startEveningReminderJob();
 }
 
 // ---------------------------------------------------------------------------
