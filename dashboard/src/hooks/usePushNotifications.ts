@@ -79,6 +79,7 @@ export function usePushNotifications(token: string | null) {
   }
 
   async function unsubscribe() {
+    if (!token) return;
     try {
       await fetch(`${API_URL}/push/unsubscribe`, {
         method: 'DELETE',
