@@ -8,6 +8,7 @@
     "dev": "nodemon src/index.js",
     "db:init": "psql \"$DATABASE_URL\" -f db/schema.sql",
     "db:seed": "psql \"$DATABASE_URL\" -f db/seed.sql",
+    "db:demo": "node db/seed_demo.js",
     "lint": "eslint src/",
     "lint:fix": "eslint src/ --fix",
     "format": "prettier --write \"src/**/*.js\"",

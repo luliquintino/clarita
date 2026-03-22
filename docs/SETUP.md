@@ -99,7 +99,26 @@ psql "$DATABASE_URL" -f db/seed_satepsi_tests.sql
 psql "$DATABASE_URL" -f db/seed_icd_test_mapping.sql
 ```
 
-### 2e. Start the backend server
+### 2e. Load demo data (optional)
+
+Populate a complete demo environment — 4 users with 30 days of patient history, medications, assessments, clinical notes, and goals:
+
+```bash
+npm run db:demo
+```
+
+This is idempotent: safe to run multiple times. It resets demo data to the initial state each run.
+
+| Role | Email | Password |
+|------|-------|----------|
+| Psychiatrist | pedro@clarita.demo | Demo1234 |
+| Psychologist | ana@clarita.demo | Demo1234 |
+| Patient | maria@clarita.demo | Demo1234 |
+| Patient | joao@clarita.demo | Demo1234 |
+
+> Requires `npm run db:seed` to have been run first (medications and assessments must exist).
+
+### 2f. Start the backend server
 
 ```bash
 npm run dev
