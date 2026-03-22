@@ -73,6 +73,25 @@ async function runAutoMigrations() {
        ON patient_diagnoses(professional_id)`,
     // clinical_notes — optional diagnosis_id backlink
     `ALTER TABLE clinical_notes ADD COLUMN IF NOT EXISTS diagnosis_id UUID`,
+    // alert_type enum — add values used by psych-tests and other modules
+    `DO $$ BEGIN
+       IF NOT EXISTS (
+         SELECT 1 FROM pg_enum
+         WHERE enumlabel = 'test_assigned'
+           AND enumtypid = 'alert_type'::regtype
+       ) THEN
+         ALTER TYPE alert_type ADD VALUE 'test_assigned';
+       END IF;
+     END $$`,
+    `DO $$ BEGIN
+       IF NOT EXISTS (
+         SELECT 1 FROM pg_enum
+         WHERE enumlabel = 'test_completed'
+           AND enumtypid = 'alert_type'::regtype
+       ) THEN
+         ALTER TYPE alert_type ADD VALUE 'test_completed';
+       END IF;
+     END $$`,
   ];
 
   for (const sql of migrations) {
