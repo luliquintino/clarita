@@ -248,9 +248,13 @@ router.post(
 
       // Create alert for the patient
       await query(
-        `INSERT INTO alerts (patient_id, professional_id, alert_type, title, description)
-         VALUES ($1, $2, 'test_assigned', 'Novo teste atribuído', $3)`,
-        [patient_id, req.user.id, `Um teste psicológico foi atribuído a você. Prazo: ${new Date(deadlineDate).toLocaleDateString('pt-BR')}`]
+        `INSERT INTO alerts (patient_id, alert_type, severity, title, description, trigger_data)
+         VALUES ($1, 'test_assigned', 'low', 'Novo teste atribuído', $2, $3)`,
+        [
+          patient_id,
+          `Um teste psicológico foi atribuído a você. Prazo: ${new Date(deadlineDate).toLocaleDateString('pt-BR')}`,
+          JSON.stringify({ test_id, assigned_by: req.user.id }),
+        ]
       );
 
       res.status(201).json({ session: session.rows[0] });
@@ -390,11 +394,15 @@ router.put(
         );
       }
 
-      // Create alert for the professional
+      // Create alert for the patient (self) on completion
       await query(
-        `INSERT INTO alerts (patient_id, professional_id, alert_type, title, description)
-         VALUES ($1, $2, 'test_completed', 'Teste completado', $3)`,
-        [req.user.id, session.assigned_by, `Paciente completou o teste "${session.test_name}". Escore: ${total_score}.`]
+        `INSERT INTO alerts (patient_id, alert_type, severity, title, description, trigger_data)
+         VALUES ($1, 'test_completed', 'low', 'Teste completado', $2, $3)`,
+        [
+          req.user.id,
+          `Você completou o teste "${session.test_name}". Escore: ${total_score}.`,
+          JSON.stringify({ session_id: req.params.id, total_score, assigned_by: session.assigned_by }),
+        ]
       );
 
       res.json({
