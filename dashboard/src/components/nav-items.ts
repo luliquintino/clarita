@@ -5,6 +5,7 @@ import {
   ClipboardList,
   Target,
   BookOpen,
+  Pill,
   type LucideIcon,
 } from 'lucide-react';
 
@@ -14,7 +15,8 @@ export type PatientSection =
   | 'tests'
   | 'anamnesis'
   | 'goals'
-  | 'history';
+  | 'history'
+  | 'medications';
 
 export const NAV_ITEMS: Array<{
   key: PatientSection;
@@ -71,5 +73,13 @@ export const NAV_ITEMS: Array<{
     color: 'text-gray-400',
     activeColor: 'text-blue-600',
     activeBg: 'bg-blue-50 border-blue-200',
+  },
+  {
+    key: 'medications',
+    label: 'Medicamentos',
+    icon: Pill,
+    color: 'text-gray-400',
+    activeColor: 'text-amber-600',
+    activeBg: 'bg-amber-50 border-amber-200',
   },
 ];

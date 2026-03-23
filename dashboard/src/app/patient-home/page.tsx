@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
-import { LogOut, Loader2, Star } from 'lucide-react';
+import { LogOut, Loader2, Star, AlertCircle } from 'lucide-react';
 import Image from 'next/image';
 import {
   authApi,
@@ -33,6 +33,9 @@ import BottomNav from '@/components/BottomNav';
 import SideNav from '@/components/SideNav';
 import { type PatientSection } from '@/components/nav-items';
 import AddLifeEventModal from '@/components/AddLifeEventModal';
+import ReportSymptomModal from '@/components/ReportSymptomModal';
+import MedicationCheckCard from '@/components/MedicationCheckCard';
+import MyPrescriptionsPanel from '@/components/MyPrescriptionsPanel';
 
 export default function PatientHomePage() {
   const router = useRouter();
@@ -56,6 +59,7 @@ export default function PatientHomePage() {
 
   const [activeSection, setActiveSection] = useState<PatientSection>('home');
   const [showLifeEventModal, setShowLifeEventModal] = useState(false);
+  const [showSymptomModal, setShowSymptomModal] = useState(false);
 
   const { permission, subscribed, loading: pushLoading, subscribe } = usePushNotifications(getToken());
 
@@ -323,6 +327,19 @@ export default function PatientHomePage() {
               {/* Left: check-in */}
               <div className="md:col-span-3 space-y-4">
                 <JournalEntry onSubmit={handleJournalSubmit} saving={saving} medications={medications} />
+                {/* Relatar sintoma */}
+                <button
+                  onClick={() => setShowSymptomModal(true)}
+                  className="w-full flex items-center gap-3 p-4 bg-orange-50 hover:bg-orange-100 border border-orange-200/60 rounded-2xl transition-all duration-200 text-left"
+                >
+                  <div className="w-9 h-9 rounded-xl bg-orange-100 flex items-center justify-center flex-shrink-0">
+                    <AlertCircle size={18} className="text-orange-500" />
+                  </div>
+                  <div>
+                    <p className="font-medium text-gray-800 text-sm">Relatar Sintoma</p>
+                    <p className="text-xs text-gray-500">Registre um sintoma que está sentindo</p>
+                  </div>
+                </button>
               </div>
 
               {/* Right: professionals */}
@@ -365,6 +382,20 @@ export default function PatientHomePage() {
             />
           )}
 
+          {/* ── MEDICAMENTOS ── */}
+          {activeSection === 'medications' && (
+            <div className="space-y-6">
+              <div>
+                <h2 className="text-lg font-semibold text-gray-800 mb-3">Medicações Ativas</h2>
+                <MedicationCheckCard />
+              </div>
+              <div>
+                <h2 className="text-lg font-semibold text-gray-800 mb-3">Minhas Prescrições</h2>
+                <MyPrescriptionsPanel />
+              </div>
+            </div>
+          )}
+
           {/* ── HISTÓRICO ── */}
           {activeSection === 'history' && (
             <div className="space-y-6">
@@ -392,6 +423,11 @@ export default function PatientHomePage() {
         onCreated={() => {
           // A timeline do profissional buscará eventos atualizados no próximo load
         }}
+      />
+      <ReportSymptomModal
+        open={showSymptomModal}
+        onClose={() => setShowSymptomModal(false)}
+        onCreated={() => {/* symptom appears on professional's timeline on next load */}}
       />
     </div>
   );
