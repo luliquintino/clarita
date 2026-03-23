@@ -88,7 +88,7 @@ function ScoreRing({ score }: { score: number }) {
   const color = score >= 70 ? '#22c55e' : score >= 40 ? '#f59e0b' : '#ef4444';
 
   return (
-    <svg width={90} height={90} viewBox="0 0 90 90" className="rotate-[-90deg]">
+    <svg width={90} height={90} viewBox="0 0 90 90" className="rotate-[-90deg]" aria-hidden="true">
       <circle cx={45} cy={45} r={radius} fill="none" stroke="#f3f4f6" strokeWidth={8} />
       <circle
         cx={45}
@@ -168,9 +168,9 @@ export default function DigitalTwinPanel({ twin, patientId, onRefreshed }: Digit
         ? 'Quadro em piora nos últimos 14 dias'
         : 'Quadro estável nos últimos 14 dias';
 
-  const makeSparkline = (state: { avg_30d: number; slope_14d: number }) =>
+  const makeSparkline = (state: { current: number; avg_30d: number; slope_14d: number }) =>
     Array.from({ length: 7 }, (_, i) => ({
-      v: Math.min(10, Math.max(1, state.avg_30d + state.slope_14d * (i - 3))),
+      v: Math.min(10, Math.max(1, state.current + state.slope_14d * (i - 6))),
     }));
 
   return (
@@ -194,6 +194,7 @@ export default function DigitalTwinPanel({ twin, patientId, onRefreshed }: Digit
             onClick={handleRefresh}
             disabled={refreshing}
             className="btn-ghost p-2 text-gray-500 hover:text-gray-700"
+            aria-label="Atualizar gêmeo digital"
             title="Atualizar"
           >
             {refreshing ? <Loader2 size={16} className="animate-spin" /> : <RefreshCw size={16} />}
@@ -204,7 +205,7 @@ export default function DigitalTwinPanel({ twin, patientId, onRefreshed }: Digit
           {score !== null ? (
             <div className="relative flex-shrink-0">
               <ScoreRing score={score} />
-              <div className="absolute inset-0 flex flex-col items-center justify-center">
+              <div className="absolute inset-0 flex flex-col items-center justify-center" aria-hidden="true">
                 <span className={`text-xl font-bold ${scoreColor}`}>{score}</span>
                 <span className="text-[9px] text-gray-400 mt-0.5">/ 100</span>
               </div>
@@ -327,8 +328,8 @@ export default function DigitalTwinPanel({ twin, patientId, onRefreshed }: Digit
                   Correlações detectadas
                 </p>
                 <div className="space-y-2">
-                  {twin.correlations.slice(0, 4).map((c, i) => (
-                    <div key={i} className="flex items-center gap-3">
+                  {twin.correlations.slice(0, 4).map((c) => (
+                    <div key={`${c.variable_a}-${c.variable_b}`} className="flex items-center gap-3">
                       <div
                         className={`w-10 text-center text-xs font-bold rounded-lg py-0.5 ${
                           c.direction === 'positive'
@@ -358,9 +359,9 @@ export default function DigitalTwinPanel({ twin, patientId, onRefreshed }: Digit
                   Tendência 7 dias
                 </p>
                 <div className="grid grid-cols-2 gap-2">
-                  {twin.predictions.slice(0, 4).map((p, i) => (
+                  {twin.predictions.slice(0, 4).map((p) => (
                     <div
-                      key={i}
+                      key={p.variable}
                       className={`rounded-xl p-2.5 text-center border ${
                         p.risk_level === 'high'
                           ? 'bg-red-50 border-red-200'
@@ -389,8 +390,8 @@ export default function DigitalTwinPanel({ twin, patientId, onRefreshed }: Digit
                   Testes recentes
                 </p>
                 <div className="space-y-1.5">
-                  {twin.test_results_summary.map((t, i) => (
-                    <div key={i} className="flex items-center justify-between text-xs">
+                  {twin.test_results_summary.map((t) => (
+                    <div key={`${t.instrument}-${t.completed_at}`} className="flex items-center justify-between text-xs">
                       <span className="font-medium text-gray-700">{t.instrument}</span>
                       <div className="flex items-center gap-2 text-gray-500">
                         <span className="font-mono font-bold">{t.total_score}</span>
@@ -405,6 +406,15 @@ export default function DigitalTwinPanel({ twin, patientId, onRefreshed }: Digit
                   ))}
                 </div>
               </div>
+            )}
+
+            {/* Fallback quando não há detalhes */}
+            {(!twin.correlations || twin.correlations.length === 0) &&
+             (!twin.predictions || twin.predictions.length === 0) &&
+             (!twin.test_results_summary || twin.test_results_summary.length === 0) && (
+              <p className="text-xs text-gray-400 text-center py-2">
+                Dados insuficientes para análise detalhada. São necessários ao menos 14 check-ins para correlações.
+              </p>
             )}
 
             {/* Confiança do modelo */}
