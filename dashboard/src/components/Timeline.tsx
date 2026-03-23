@@ -648,3 +648,141 @@ function SelectedEventCard({
     </div>
   );
 }
+
+// ---------------------------------------------------------------------------
+// Correlation card
+// ---------------------------------------------------------------------------
+
+function DeltaCell({ value, label }: { value: number; label: string }) {
+  const abs = Math.abs(value);
+  const sign = value > 0 ? '+' : '';
+  const isSignificant = abs >= 2.0;
+  const isModerate = abs >= 0.5 && abs < 2.0;
+  const isPositiveChange = (label === 'Humor' || label === 'Energia') ? value > 0 : value < 0;
+
+  let deltaClass = 'text-gray-400';
+  let arrow = '→';
+
+  if (isSignificant) {
+    deltaClass = isPositiveChange ? 'text-clarita-green-600 font-bold' : 'text-red-500 font-bold';
+    arrow = value > 0 ? '↑↑' : '↓↓';
+  } else if (isModerate) {
+    deltaClass = isPositiveChange ? 'text-clarita-green-500' : 'text-orange-500';
+    arrow = value > 0 ? '↑' : '↓';
+  }
+
+  const display = abs < 0.5 ? 'estável' : `${sign}${value.toFixed(1)}`;
+
+  return (
+    <span className={`text-xs tabular-nums ${deltaClass}`}>
+      {arrow} {display}
+    </span>
+  );
+}
+
+function CorrelationCard({ correlation }: { correlation: EventCorrelation }) {
+  const { event, before, after, delta } = correlation;
+  const config = categoryConfig[event.type] ?? { icon: null, label: 'Evento', color: '#9ca3af', badgeClass: 'badge-blue' };
+  const catMeta = (event.metadata as Record<string, unknown>)?.category as string | undefined;
+
+  const metrics: Array<{ label: string; beforeVal: number; afterVal: number; deltaVal: number }> = [
+    { label: 'Humor', beforeVal: before.mood, afterVal: after.mood, deltaVal: delta.mood },
+    { label: 'Ansiedade', beforeVal: before.anxiety, afterVal: after.anxiety, deltaVal: delta.anxiety },
+    { label: 'Energia', beforeVal: before.energy, afterVal: after.energy, deltaVal: delta.energy },
+  ];
+
+  return (
+    <div className="bg-white/80 backdrop-blur-sm rounded-2xl border border-gray-200/60 p-4">
+      {/* Event header */}
+      <div className="flex items-start justify-between mb-3">
+        <div className="flex items-center gap-2 flex-wrap">
+          <div
+            className="w-7 h-7 rounded-lg flex items-center justify-center text-white flex-shrink-0"
+            style={{ backgroundColor: config.color }}
+          >
+            {config.icon}
+          </div>
+          <span className="font-medium text-gray-800 text-sm">{event.title}</span>
+          {catMeta && (
+            <span className="badge-blue text-[10px]">{catMeta}</span>
+          )}
+        </div>
+        <span className="text-xs text-gray-400 flex-shrink-0 ml-2">
+          {format(new Date(event.timestamp), "d MMM yyyy", { locale: ptBR })}
+        </span>
+      </div>
+
+      {/* Metrics table */}
+      <div className="space-y-1.5">
+        <div className="grid grid-cols-4 gap-2 text-[10px] font-semibold text-gray-400 uppercase tracking-wider pb-1 border-b border-gray-100">
+          <span>Métrica</span>
+          <span className="text-right">Antes</span>
+          <span className="text-right">Depois</span>
+          <span className="text-right">Δ</span>
+        </div>
+        {metrics.map((m) => (
+          <div key={m.label} className="grid grid-cols-4 gap-2 items-center">
+            <span className="text-xs text-gray-600">{m.label}</span>
+            <span className="text-xs text-gray-500 text-right tabular-nums">{m.beforeVal.toFixed(1)}</span>
+            <span className="text-xs text-gray-700 font-medium text-right tabular-nums">{m.afterVal.toFixed(1)}</span>
+            <div className="text-right">
+              <DeltaCell value={m.deltaVal} label={m.label} />
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {/* Footer */}
+      <p className="text-[10px] text-gray-400 mt-3">
+        {before.count} registros antes · {after.count} registros depois
+      </p>
+    </div>
+  );
+}
+
+type CorrelationWindow = 7 | 14 | 30;
+
+function CorrelationsSection({ entries }: { entries: TimelineEntry[] }) {
+  const [corrWindow, setCorrWindow] = useState<CorrelationWindow>(14);
+
+  const correlations = computeCorrelations(entries, corrWindow);
+
+  return (
+    <div className="mt-4 pt-4 border-t border-gray-200/40">
+      {/* Header */}
+      <div className="flex items-center justify-between mb-3">
+        <h4 className="text-xs font-semibold text-gray-500 uppercase tracking-wider">
+          Correlações com Momentos de Vida
+        </h4>
+        <div className="flex items-center gap-1 bg-white/80 rounded-full p-0.5 border border-gray-200/40">
+          {([7, 14, 30] as CorrelationWindow[]).map((w) => (
+            <button
+              key={w}
+              onClick={() => setCorrWindow(w)}
+              className={`px-3 py-1 text-[10px] font-medium rounded-full transition-all duration-200
+                ${corrWindow === w
+                  ? 'bg-clarita-green-500 text-white shadow-sm'
+                  : 'text-gray-500 hover:text-gray-700'
+                }`}
+            >
+              {w}d
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* Cards or empty state */}
+      {correlations.length === 0 ? (
+        <p className="text-xs text-gray-400 text-center py-4">
+          Nenhuma correlação encontrada para esta janela. Adicione check-ins emocionais próximos aos eventos de vida.
+        </p>
+      ) : (
+        <div className="space-y-3">
+          {correlations.map((c) => (
+            <CorrelationCard key={c.event.id} correlation={c} />
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
