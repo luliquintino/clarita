@@ -50,15 +50,15 @@ describe('GET /api/digital-twin/:patientId', () => {
   it('returns 200 with twin after seeding emotional logs', async () => {
     for (let i = 0; i < 10; i++) {
       await query(
-        `INSERT INTO emotional_logs (patient_id, timestamp, mood, anxiety, energy, sleep_quality)
+        `INSERT INTO emotional_logs (patient_id, logged_at, mood_score, anxiety_score, energy_score, sleep_hours)
          VALUES ($1, $2, $3, $4, $5, $6)`,
         [
           patient.id,
           new Date(Date.now() - (10 - i) * 86400000).toISOString(),
-          5 + i * 0.2,
-          6 - i * 0.1,
+          Math.round(5 + i * 0.2),
+          Math.round(6 - i * 0.1),
           5,
-          6,
+          7.5,
         ]
       );
     }

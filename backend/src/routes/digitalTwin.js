@@ -18,10 +18,16 @@ const CACHE_TTL_MS = 6 * 60 * 60 * 1000; // 6 hours
 async function fetchTwinData(patientId) {
   const [logsResult, assessmentResult, psychResult, diagnosisResult] = await Promise.all([
     query(
-      `SELECT timestamp, mood, anxiety, energy, sleep_quality, sleep_hours, med_adherence
+      `SELECT logged_at                  AS timestamp,
+              mood_score::decimal(5,2)   AS mood,
+              anxiety_score::decimal(5,2) AS anxiety,
+              energy_score::decimal(5,2)  AS energy,
+              sleep_quality,
+              sleep_hours,
+              NULL::decimal(5,2)          AS med_adherence
        FROM emotional_logs
-       WHERE patient_id = $1 AND timestamp >= NOW() - INTERVAL '90 days'
-       ORDER BY timestamp ASC`,
+       WHERE patient_id = $1 AND logged_at >= NOW() - INTERVAL '90 days'
+       ORDER BY logged_at ASC`,
       [patientId]
     ),
     query(
