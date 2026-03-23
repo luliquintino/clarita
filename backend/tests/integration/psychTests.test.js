@@ -144,7 +144,7 @@ describe('GET /api/psych-tests/sessions/patient/:patientId', () => {
 
 describe('POST /api/psych-tests/assign', () => {
   it('should return 404 for non-existent test_id', async () => {
-    const nonExistentTestId = '00000000-0000-0000-0000-000000000000';
+    const nonExistentTestId = '00000000-0000-4000-8000-000000000000';
     const res = await request(app)
       .post('/api/psych-tests/assign')
       .set('Authorization', `Bearer ${professionalToken}`)
@@ -162,7 +162,7 @@ describe('POST /api/psych-tests/assign', () => {
     const anotherPatient = await createTestPatient({
       email: 'unlinked-patient-psych@test.com',
     });
-    const nonExistentTestId = '00000000-0000-0000-0000-000000000001';
+    const nonExistentTestId = '00000000-0000-4000-8000-000000000001';
 
     const res = await request(app)
       .post('/api/psych-tests/assign')
@@ -176,7 +176,7 @@ describe('POST /api/psych-tests/assign', () => {
   });
 
   it('should return 403 for patient role trying to assign', async () => {
-    const nonExistentTestId = '00000000-0000-0000-0000-000000000002';
+    const nonExistentTestId = '00000000-0000-4000-8000-000000000002';
 
     const res = await request(app)
       .post('/api/psych-tests/assign')
@@ -193,7 +193,7 @@ describe('POST /api/psych-tests/assign', () => {
     const res = await request(app)
       .post('/api/psych-tests/assign')
       .send({
-        test_id: '00000000-0000-0000-0000-000000000003',
+        test_id: '00000000-0000-4000-8000-000000000003',
         patient_id: patient.id,
       });
 

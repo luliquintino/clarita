@@ -31,8 +31,29 @@ module.exports = async () => {
     'migration_exams.sql',
     'migration_clinical_modules.sql',
     'migration_lgpd.sql',
+    // Feature migrations (must run after base schema + above)
+    'migration_conditions.sql',
+    'migration_professional_onboarding.sql',
+    'migration_push_subscriptions.sql',
+    'migration_direct_chat.sql',
+    'migration_icd11_satepsi.sql',
+    'migration_patient_diagnoses.sql',
   ];
   const migrationFiles = migrationOrder.filter((f) =>
+    fs.existsSync(path.join(migrationsDir, f))
+  );
+
+  // Seed files for reference/catalog data (order matters)
+  const seedOrder = [
+    'seed.sql',                  // symptoms, medications, assessments
+    'seed_icd11_disorders.sql',  // ICD-11 catalog (needed by icd11 routes + enrich migration)
+    'migration_enrich_icd11.sql', // UPDATEs icd11_disorders (depends on seed_icd11_disorders)
+    'seed_dsm_criteria.sql',
+    'seed_satepsi_tests.sql',
+    'seed_psych_tests.sql',
+    'seed_icd_test_mapping.sql',
+  ];
+  const seedFiles = seedOrder.filter((f) =>
     fs.existsSync(path.join(migrationsDir, f))
   );
 
@@ -66,6 +87,12 @@ module.exports = async () => {
     for (const file of migrationFiles) {
       const migrationSql = fs.readFileSync(path.join(migrationsDir, file), 'utf-8');
       await pool.query(migrationSql);
+    }
+
+    // Seed reference/catalog tables
+    for (const file of seedFiles) {
+      const seedSql = fs.readFileSync(path.join(migrationsDir, file), 'utf-8');
+      await pool.query(seedSql);
     }
   } catch (err) {
     console.error('Failed to set up test database:', err.message);

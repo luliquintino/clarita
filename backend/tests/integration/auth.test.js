@@ -32,6 +32,7 @@ describe('POST /api/auth/register', () => {
     first_name: 'Maria',
     last_name: 'Silva',
     role: 'patient',
+    consent: true,
   };
 
   const validProfessional = {
@@ -41,6 +42,7 @@ describe('POST /api/auth/register', () => {
     last_name: 'Santos',
     role: 'psychologist',
     license_number: 'CRP-06/12345',
+    consent: true,
   };
 
   it('should register a patient and return 201 with token', async () => {
