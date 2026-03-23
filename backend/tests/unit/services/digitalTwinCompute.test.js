@@ -116,19 +116,23 @@ describe('computeClinicalScore', () => {
   });
 
   it('uses most recent result when multiple for same instrument', () => {
-    const old = {
-      instrument: 'PHQ-9',
-      total_score: 25,
-      completed_at: new Date(Date.now() - 30 * 86400000).toISOString(),
-    };
-    const recent = {
-      instrument: 'PHQ-9',
-      total_score: 5,
-      completed_at: new Date().toISOString(),
-    };
-    const scoreWithOld = computeClinicalScore([old]);
-    const scoreWithRecent = computeClinicalScore([recent]);
-    expect(scoreWithRecent).toBeGreaterThan(scoreWithOld);
+    const results = [
+      {
+        instrument: 'PHQ-9',
+        total_score: 25,
+        completed_at: new Date(Date.now() - 30 * 86400000).toISOString(),
+      },
+      {
+        instrument: 'PHQ-9',
+        total_score: 5,
+        completed_at: new Date().toISOString(),
+      },
+    ];
+    const score = computeClinicalScore(results);
+    // Should use score=5 (recent), not score=25 (old)
+    // score=5 → (1 - 5/27)*100 ≈ 81
+    // score=25 → (1 - 25/27)*100 ≈ 7
+    expect(score).toBeGreaterThan(50); // proves the recent (low) score was used
   });
 });
 
@@ -139,7 +143,7 @@ describe('computePredictions', () => {
 
   it('returns prediction with correct structure', () => {
     const states = {
-      mood: { current: 7, avg_7d: 6.5, avg_30d: 5.5, trend: 'improving', slope_7d: 0.2 },
+      mood: { current: 7, avg_7d: 6.5, avg_30d: 5.5, trend: 'improving', slope_14d: 0.2 },
     };
     const preds = computePredictions(states, 65);
     expect(preds.length).toBeGreaterThan(0);
@@ -182,5 +186,8 @@ describe('buildTwinObject', () => {
     expect(twin.correlations).toBeDefined();
     expect(twin.predictions).toBeDefined();
     expect(twin.data_points_used).toBeGreaterThan(0);
+    expect(twin.overall_trend).toBeDefined();
+    expect(['improving', 'stable', 'worsening']).toContain(twin.overall_trend);
+    expect(twin.model_version).toBe('2.0-node');
   });
 });

@@ -1,5 +1,7 @@
 'use strict';
 
+const { classifySeverity } = require('./assessmentService');
+
 // ---------------------------------------------------------------------------
 // Helper utilities
 // ---------------------------------------------------------------------------
@@ -116,22 +118,22 @@ function computeVariableStates(logs) {
     const current = parseFloat(ewma(last7).toFixed(2));
     const avg_7d = parseFloat(mean(last7).toFixed(2));
     const avg_30d = parseFloat(mean(last30).toFixed(2));
-    const slope_7d = parseFloat(linearSlope(last14).toFixed(4));
+    const slope_14d = parseFloat(linearSlope(last14).toFixed(4));
 
     let trend;
     const THRESHOLD = 0.05;
     if (varName === 'anxiety') {
       // For anxiety: increasing is worsening
-      if (slope_7d > THRESHOLD) trend = 'worsening';
-      else if (slope_7d < -THRESHOLD) trend = 'improving';
+      if (slope_14d > THRESHOLD) trend = 'worsening';
+      else if (slope_14d < -THRESHOLD) trend = 'improving';
       else trend = 'stable';
     } else {
-      if (slope_7d > THRESHOLD) trend = 'improving';
-      else if (slope_7d < -THRESHOLD) trend = 'worsening';
+      if (slope_14d > THRESHOLD) trend = 'improving';
+      else if (slope_14d < -THRESHOLD) trend = 'worsening';
       else trend = 'stable';
     }
 
-    result[varName] = { current, avg_7d, avg_30d, trend, slope_7d };
+    result[varName] = { current, avg_7d, avg_30d, trend, slope_14d };
   }
 
   return result;
@@ -235,37 +237,10 @@ function computeClinicalScore(testResults) {
 
   const scores = instruments.map((r) => {
     const max = INSTRUMENT_MAX[r.instrument];
-    return Math.round((1 - r.total_score / max) * 100);
+    return Math.max(0, Math.min(100, Math.round((1 - r.total_score / max) * 100)));
   });
 
   return Math.round(mean(scores));
-}
-
-// ---------------------------------------------------------------------------
-// Severity level helper (reuses PHQ-9 / GAD-7 bands from assessmentService style)
-// ---------------------------------------------------------------------------
-function getSeverityLevel(instrument, score) {
-  const normalised = (instrument || '').toUpperCase().replace(/[-\s]/g, '');
-  if (normalised.includes('PHQ9') || normalised.includes('PHQ')) {
-    if (score <= 4) return 'minimal';
-    if (score <= 9) return 'mild';
-    if (score <= 14) return 'moderate';
-    if (score <= 19) return 'moderately_severe';
-    return 'severe';
-  }
-  if (normalised.includes('GAD7') || normalised.includes('GAD')) {
-    if (score <= 4) return 'minimal';
-    if (score <= 9) return 'mild';
-    if (score <= 14) return 'moderate';
-    return 'severe';
-  }
-  if (normalised.includes('BAI')) {
-    if (score <= 7) return 'minimal';
-    if (score <= 15) return 'mild';
-    if (score <= 25) return 'moderate';
-    return 'severe';
-  }
-  return 'unclassified';
 }
 
 /**
@@ -285,12 +260,12 @@ function computePredictions(states, clinicalScore) {
     const state = states[varName];
     if (!state) continue;
 
-    const { current, trend, slope_7d } = state;
+    const { current, trend, slope_14d } = state;
 
     // Prediction direction
     let prediction;
-    if (slope_7d > 0.05) prediction = 'increase';
-    else if (slope_7d < -0.05) prediction = 'decrease';
+    if (slope_14d > 0.05) prediction = 'increase';
+    else if (slope_14d < -0.05) prediction = 'decrease';
     else prediction = 'stable';
 
     // Risk level
@@ -304,7 +279,7 @@ function computePredictions(states, clinicalScore) {
     }
 
     // Confidence
-    const confidence = parseFloat(Math.min(0.85, 0.4 + Math.abs(slope_7d) * 2).toFixed(2));
+    const confidence = parseFloat(Math.min(0.85, 0.4 + Math.abs(slope_14d) * 2).toFixed(2));
 
     // Reasoning in Portuguese
     const varLabel = VAR_LABELS_PT[varName] || varName;
@@ -346,6 +321,9 @@ function buildTwinObject(patientId, logs, testResults, diagnoses) {
 
   const states = computeVariableStates(logs || []);
   const clinicalScore = computeClinicalScore(testResults || []);
+
+  if (!states && clinicalScore === null) return null;
+
   const correlations = computeCorrelations(logs || []);
   const predictions = computePredictions(states, clinicalScore);
 
@@ -373,7 +351,7 @@ function buildTwinObject(patientId, logs, testResults, diagnoses) {
     .map((r) => ({
       instrument: r.instrument,
       total_score: r.total_score,
-      severity_level: getSeverityLevel(r.instrument, r.total_score),
+      severity_level: classifySeverity(r.instrument, r.total_score),
       completed_at: r.completed_at,
     }));
 
