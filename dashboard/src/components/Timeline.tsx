@@ -526,6 +526,9 @@ export default function Timeline({ entries, loading = false }: TimelineProps) {
             </div>
           </div>
         )}
+
+        {/* Correlations */}
+        <CorrelationsSection entries={entries} />
       </div>
 
       {/* Selected event detail card */}
