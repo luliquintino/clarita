@@ -480,7 +480,6 @@ export default function PatientDetailPage() {
   const [goalsLoading, setGoalsLoading] = useState(true);
   const [summaries, setSummaries] = useState<PatientSummary[]>([]);
   const [summariesLoading, setSummariesLoading] = useState(true);
-  const [generating, setGenerating] = useState(false);
   const [diagnoses, setDiagnoses] = useState<PatientDiagnosis[]>([]);
 
   useEffect(() => {
@@ -911,13 +910,12 @@ export default function PatientDetailPage() {
     }
   };
 
-  const handleGenerateSummary = async () => {
-    setGenerating(true);
+  const handleGenerateSummary = async (days: 7 | 30) => {
     try {
-      await summariesApi.generate(patientId, 7);
+      await summariesApi.generate(patientId, days);
       await loadSummaries();
-    } finally {
-      setGenerating(false);
+    } catch {
+      // erro silencioso — AISummaryCard não tem callback de erro
     }
   };
 
@@ -1364,7 +1362,6 @@ export default function PatientDetailPage() {
                 <AISummaryCard
                   summaries={summaries}
                   loading={summariesLoading}
-                  generating={generating}
                   onGenerate={handleGenerateSummary}
                 />
 

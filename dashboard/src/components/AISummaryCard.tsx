@@ -19,8 +19,7 @@ import type { PatientSummary } from '@/lib/api';
 interface AISummaryCardProps {
   summaries: PatientSummary[];
   loading?: boolean;
-  generating?: boolean;
-  onGenerate?: () => void;
+  onGenerate?: (days: 7 | 30) => void;
 }
 
 function TrendIcon({ trend }: { trend: string }) {
@@ -32,11 +31,11 @@ function TrendIcon({ trend }: { trend: string }) {
 export default function AISummaryCard({
   summaries,
   loading = false,
-  generating = false,
   onGenerate,
 }: AISummaryCardProps) {
   const [expanded, setExpanded] = useState(true);
   const [showAll, setShowAll] = useState(false);
+  const [generatingPeriod, setGeneratingPeriod] = useState<7 | 30 | null>(null);
 
   const displaySummaries = showAll ? summaries : summaries.slice(0, 1);
 
@@ -68,18 +67,36 @@ export default function AISummaryCard({
         </div>
         <div className="flex items-center gap-2">
           {onGenerate && (
-            <button
-              onClick={onGenerate}
-              disabled={generating}
-              className="btn-primary text-xs py-2 px-4 flex items-center gap-1"
-            >
-              {generating ? (
-                <Loader2 size={12} className="animate-spin" />
-              ) : (
-                <RefreshCw size={12} />
-              )}
-              {generating ? 'Gerando...' : 'Gerar novo'}
-            </button>
+            <div className="flex items-center gap-2">
+              {([7, 30] as const).map((days) => {
+                const label = days === 7 ? 'Última semana' : 'Último mês';
+                const isGenerating = generatingPeriod === days;
+                const isDisabled = generatingPeriod !== null && generatingPeriod !== days;
+                return (
+                  <button
+                    key={days}
+                    onClick={async () => {
+                      setGeneratingPeriod(days);
+                      try {
+                        await onGenerate(days);
+                      } finally {
+                        setGeneratingPeriod(null);
+                      }
+                    }}
+                    disabled={isGenerating || isDisabled}
+                    className={`btn-primary text-xs py-2 px-3 flex items-center gap-1
+                      ${isDisabled ? 'opacity-50 cursor-not-allowed' : ''}`}
+                  >
+                    {isGenerating ? (
+                      <Loader2 size={12} className="animate-spin" />
+                    ) : (
+                      <RefreshCw size={12} />
+                    )}
+                    {isGenerating ? 'Gerando...' : label}
+                  </button>
+                );
+              })}
+            </div>
           )}
           <button
             onClick={() => setExpanded(!expanded)}
