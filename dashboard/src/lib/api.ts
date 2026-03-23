@@ -1127,6 +1127,40 @@ export interface ProfessionalBrief {
   generated_at: string;
 }
 
+// ---------------------------------------------------------------------------
+// Life Events
+// ---------------------------------------------------------------------------
+
+export interface LifeEvent {
+  id: string;
+  patient_id: string;
+  title: string;
+  description?: string;
+  category: 'relationship' | 'work' | 'health' | 'family' | 'financial' | 'loss' | 'achievement' | 'other';
+  impact_level: number; // 1-10
+  event_date: string; // ISO date
+  created_at: string;
+}
+
+export interface CreateLifeEventInput {
+  title: string;
+  description?: string;
+  category: LifeEvent['category'];
+  impact_level: number;
+  event_date: string;
+}
+
+export const lifeEventsApi = {
+  create: (data: CreateLifeEventInput) =>
+    request<{ life_event: LifeEvent }>('/life-events', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    }),
+
+  list: () =>
+    request<{ life_events: LifeEvent[]; pagination: { total: number } }>('/life-events'),
+};
+
 export const summariesApi = {
   generate: (patientId: string, periodDays?: number) =>
     request<{ summary: PatientSummary }>(`/summaries/${patientId}/generate`, {
