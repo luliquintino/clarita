@@ -119,6 +119,90 @@ const severityBorderColors: Record<string, string> = {
   low: 'border-l-clarita-blue-300',
 };
 
+// ---------------------------------------------------------------------------
+// Correlation computation
+// ---------------------------------------------------------------------------
+
+interface EmotionalWindow {
+  mood: number;
+  anxiety: number;
+  energy: number;
+  count: number;
+}
+
+export interface EventCorrelation {
+  event: TimelineEntry;
+  before: EmotionalWindow;
+  after: EmotionalWindow;
+  delta: { mood: number; anxiety: number; energy: number };
+}
+
+function computeCorrelations(entries: TimelineEntry[], windowDays: number): EventCorrelation[] {
+  const MS_PER_DAY = 86400000;
+  const windowMs = windowDays * MS_PER_DAY;
+
+  const lifeEvents = entries.filter((e) => e.type === 'life_event');
+  const emotionalLogs = entries.filter((e) => e.type === 'emotional_log');
+
+  const correlations: EventCorrelation[] = [];
+
+  for (const event of lifeEvents) {
+    const eventTime = new Date(event.timestamp).getTime();
+
+    const beforeLogs = emotionalLogs.filter((e) => {
+      const t = new Date(e.timestamp).getTime();
+      return t >= eventTime - windowMs && t < eventTime;
+    });
+
+    const afterLogs = emotionalLogs.filter((e) => {
+      const t = new Date(e.timestamp).getTime();
+      return t > eventTime && t <= eventTime + windowMs;
+    });
+
+    // Require at least 2 records on each side to avoid noise
+    if (beforeLogs.length < 2 || afterLogs.length < 2) continue;
+
+    const avg = (logs: TimelineEntry[], key: string): number => {
+      const vals = logs
+        .map((e) => Number((e.metadata as Record<string, unknown>)?.[key] ?? NaN))
+        .filter((v) => !isNaN(v));
+      return vals.length > 0 ? vals.reduce((s, v) => s + v, 0) / vals.length : 0;
+    };
+
+    const before: EmotionalWindow = {
+      mood: avg(beforeLogs, 'mood_score'),
+      anxiety: avg(beforeLogs, 'anxiety_score'),
+      energy: avg(beforeLogs, 'energy_score'),
+      count: beforeLogs.length,
+    };
+
+    const after: EmotionalWindow = {
+      mood: avg(afterLogs, 'mood_score'),
+      anxiety: avg(afterLogs, 'anxiety_score'),
+      energy: avg(afterLogs, 'energy_score'),
+      count: afterLogs.length,
+    };
+
+    correlations.push({
+      event,
+      before,
+      after,
+      delta: {
+        mood: after.mood - before.mood,
+        anxiety: after.anxiety - before.anxiety,
+        energy: after.energy - before.energy,
+      },
+    });
+  }
+
+  // Sort by absolute sum of deltas descending (most impactful first)
+  return correlations.sort(
+    (a, b) =>
+      Math.abs(b.delta.mood) + Math.abs(b.delta.anxiety) + Math.abs(b.delta.energy) -
+      (Math.abs(a.delta.mood) + Math.abs(a.delta.anxiety) + Math.abs(a.delta.energy))
+  );
+}
+
 interface ChartPoint {
   x: number;
   y: number;
