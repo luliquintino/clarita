@@ -94,7 +94,7 @@ export default function AddLifeEventModal({ open, onClose, onCreated }: AddLifeE
             </div>
             <h2 className="text-lg font-semibold text-gray-800">Registrar Momento</h2>
           </div>
-          <button onClick={handleClose} className="btn-ghost p-2 text-gray-400 hover:text-gray-600">
+          <button onClick={handleClose} aria-label="Fechar" className="btn-ghost p-2 text-gray-400 hover:text-gray-600">
             <X size={18} />
           </button>
         </div>
@@ -103,10 +103,11 @@ export default function AddLifeEventModal({ open, onClose, onCreated }: AddLifeE
         <form onSubmit={handleSubmit} className="p-6 space-y-4">
           {/* Título */}
           <div>
-            <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1.5">
+            <label htmlFor="life-event-title" className="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1.5">
               Título <span className="text-red-400">*</span>
             </label>
             <input
+              id="life-event-title"
               type="text"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
@@ -120,10 +121,11 @@ export default function AddLifeEventModal({ open, onClose, onCreated }: AddLifeE
           {/* Categoria e Data em linha */}
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1.5">
+              <label htmlFor="life-event-category" className="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1.5">
                 Categoria
               </label>
               <select
+                id="life-event-category"
                 value={category}
                 onChange={(e) => setCategory(e.target.value as CreateLifeEventInput['category'])}
                 className="input-field w-full"
@@ -135,10 +137,11 @@ export default function AddLifeEventModal({ open, onClose, onCreated }: AddLifeE
               </select>
             </div>
             <div>
-              <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1.5">
+              <label htmlFor="life-event-date" className="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1.5">
                 Data
               </label>
               <input
+                id="life-event-date"
                 type="date"
                 value={eventDate}
                 onChange={(e) => setEventDate(e.target.value)}
@@ -174,10 +177,11 @@ export default function AddLifeEventModal({ open, onClose, onCreated }: AddLifeE
 
           {/* Descrição */}
           <div>
-            <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1.5">
+            <label htmlFor="life-event-description" className="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1.5">
               Descrição <span className="text-gray-300 font-normal">(opcional)</span>
             </label>
             <textarea
+              id="life-event-description"
               value={description}
               onChange={(e) => setDescription(e.target.value)}
               placeholder="Descreva o momento com mais detalhes..."
