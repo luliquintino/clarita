@@ -1161,6 +1161,44 @@ export const lifeEventsApi = {
     request<{ life_events: LifeEvent[]; pagination: { total: number } }>('/life-events'),
 };
 
+// ---------------------------------------------------------------------------
+// Symptoms
+// ---------------------------------------------------------------------------
+
+export interface Symptom {
+  id: string;
+  name: string;
+  description?: string;
+  category?: string;
+}
+
+export interface PatientSymptom {
+  id: string;
+  patient_id: string;
+  symptom_id: string;
+  severity: number;
+  notes?: string;
+  reported_at: string;
+  created_at: string;
+}
+
+export interface CreatePatientSymptomInput {
+  symptom_id: string;
+  severity: number;
+  notes?: string;
+  reported_at?: string;
+}
+
+export const symptomsApi = {
+  list: () => request<{ symptoms: Symptom[] }>('/symptoms'),
+
+  report: (data: CreatePatientSymptomInput) =>
+    request<{ patient_symptom: PatientSymptom }>('/patient-symptoms', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    }),
+};
+
 export const summariesApi = {
   generate: (patientId: string, periodDays?: number) =>
     request<{ summary: PatientSummary }>(`/summaries/${patientId}/generate`, {
