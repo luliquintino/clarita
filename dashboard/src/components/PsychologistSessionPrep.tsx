@@ -89,7 +89,7 @@ export default function PsychologistSessionPrep({
     try {
       const res = await summariesApi.generate(patientId, daysSinceLastNote ?? 30);
       const raw = res as any;
-      setSummary(raw?.summary?.content ?? raw?.content ?? raw?.summary ?? '');
+      setSummary(raw?.summary?.summary_text ?? '');
     } catch {
       setSummary('Não foi possível gerar o briefing. Tente novamente.');
     } finally {
