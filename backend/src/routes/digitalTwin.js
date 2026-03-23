@@ -76,7 +76,8 @@ async function saveTwin(patientId, twin) {
     `INSERT INTO digital_twin_states
        (patient_id, current_state, correlations, baseline, predictions,
         treatment_responses, data_points_used, model_version, confidence_overall, computed_at)
-     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)`,
+     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+     ON CONFLICT DO NOTHING`,
     [
       patientId,
       JSON.stringify(twin.current_state),
@@ -114,7 +115,9 @@ router.get(
 
       // Check cache
       const cached = await query(
-        `SELECT * FROM digital_twin_states
+        `SELECT patient_id, current_state, correlations, baseline, predictions,
+                treatment_responses, data_points_used, model_version, confidence_overall, computed_at
+         FROM digital_twin_states
          WHERE patient_id = $1
          ORDER BY computed_at DESC LIMIT 1`,
         [patientId]
@@ -177,7 +180,7 @@ router.post(
       }
 
       await saveTwin(patientId, twin);
-      return res.json({ twin });
+      return res.json(twin);
     } catch (err) {
       next(err);
     }
@@ -196,7 +199,7 @@ router.get(
   requirePatientAccess('digital_twin'),
   async (req, res, next) => {
     try {
-      const days = parseInt(req.query.days, 10) || 90;
+      const days = Math.min(365, Math.max(1, parseInt(req.query.days, 10) || 90));
       const since = new Date(Date.now() - days * 24 * 60 * 60 * 1000);
       const result = await query(
         `SELECT * FROM digital_twin_states

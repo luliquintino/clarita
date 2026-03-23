@@ -81,7 +81,8 @@ describe('POST /api/digital-twin/:patientId/refresh', () => {
       .set('Authorization', `Bearer ${professionalToken}`);
 
     expect(res.status).toBe(200);
-    expect(res.body.twin).toBeDefined();
+    expect(res.body.current_state).toBeDefined();
+    expect(res.body.computed_at).toBeDefined();
   });
 
   it('returns 403 for patient', async () => {
@@ -89,6 +90,40 @@ describe('POST /api/digital-twin/:patientId/refresh', () => {
       .post(`/api/digital-twin/${patient.id}/refresh`)
       .set('Authorization', `Bearer ${patientToken}`);
 
+    expect(res.status).toBe(403);
+  });
+});
+
+describe('Cache behavior', () => {
+  it('serves cache on second request within TTL', async () => {
+    // First request (computes and caches)
+    const res1 = await request(app)
+      .get(`/api/digital-twin/${patient.id}`)
+      .set('Authorization', `Bearer ${professionalToken}`);
+    expect(res1.status).toBe(200);
+
+    // Second request (should hit cache - same computed_at)
+    const res2 = await request(app)
+      .get(`/api/digital-twin/${patient.id}`)
+      .set('Authorization', `Bearer ${professionalToken}`);
+    expect(res2.status).toBe(200);
+    expect(res2.body.computed_at).toBe(res1.body.computed_at);
+  });
+});
+
+describe('GET /api/digital-twin/:patientId/history', () => {
+  it('returns history array for professional', async () => {
+    const res = await request(app)
+      .get(`/api/digital-twin/${patient.id}/history`)
+      .set('Authorization', `Bearer ${professionalToken}`);
+    expect(res.status).toBe(200);
+    expect(Array.isArray(res.body.history)).toBe(true);
+  });
+
+  it('returns 403 for patient', async () => {
+    const res = await request(app)
+      .get(`/api/digital-twin/${patient.id}/history`)
+      .set('Authorization', `Bearer ${patientToken}`);
     expect(res.status).toBe(403);
   });
 });
