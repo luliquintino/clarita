@@ -41,6 +41,8 @@ import RecordSharingPanel from '@/components/RecordSharingPanel';
 import UnifiedAssessmentsPanel from '@/components/UnifiedAssessmentsPanel';
 import DiagnosticBrowserPanel from '@/components/DiagnosticBrowserPanel';
 import AddLifeEventModal from '@/components/AddLifeEventModal';
+import PsychiatristCockpit from '@/components/PsychiatristCockpit';
+import PsychologistSessionPrep from '@/components/PsychologistSessionPrep';
 import {
   patientsApi,
   notesApi,
@@ -462,6 +464,8 @@ export default function PatientDetailPage() {
   const [userRole] = useState(() => getUserRoleFromToken() || 'psychologist');
   const [currentUserId] = useState(() => getUserIdFromToken() || undefined);
   const caps = getRoleCapabilities(userRole);
+  const isPsychiatrist = userRole === 'psychiatrist';
+  const isPsychologist = userRole === 'psychologist';
 
   // Conditions states
   const [showLifeEventModal, setShowLifeEventModal] = useState(false);
@@ -1011,7 +1015,7 @@ export default function PatientDetailPage() {
   }
 
   const tabs: { key: Tab; label: string; icon: React.ReactNode }[] = [
-    { key: 'overview', label: 'Visão Geral', icon: <Activity size={16} /> },
+    { key: 'overview', label: isPsychiatrist ? 'Prontuário' : isPsychologist ? 'Prep de Sessão' : 'Visão Geral', icon: <Activity size={16} /> },
     { key: 'timeline', label: 'Linha do Tempo', icon: <Clock size={16} /> },
     {
       key: 'assessments',
@@ -1354,47 +1358,58 @@ export default function PatientDetailPage() {
           {/* Tab content */}
           <div key={activeTab} className="animate-fade-in">
             {activeTab === 'overview' && (
-              <div className="space-y-6">
-                {/* Active Alerts */}
-                {activeAlertCount > 0 && (
-                  <div>
-                    <h3 className="section-title flex items-center gap-2">
-                      <AlertCircle size={18} className="text-red-500" />
-                      Alertas Ativos ({activeAlertCount})
-                    </h3>
-                    <AlertsPanel
-                      alerts={alerts}
-                      onAcknowledge={handleAcknowledgeAlert}
-                      showPatientName={false}
+              <>
+                {isPsychiatrist ? (
+                  <PsychiatristCockpit patientId={patientId} />
+                ) : isPsychologist ? (
+                  <PsychologistSessionPrep
+                    patientId={patientId}
+                    onStartNote={() => setActiveTab('notes')}
+                  />
+                ) : (
+                  <div className="space-y-6">
+                    {/* Active Alerts */}
+                    {activeAlertCount > 0 && (
+                      <div>
+                        <h3 className="section-title flex items-center gap-2">
+                          <AlertCircle size={18} className="text-red-500" />
+                          Alertas Ativos ({activeAlertCount})
+                        </h3>
+                        <AlertsPanel
+                          alerts={alerts}
+                          onAcknowledge={handleAcknowledgeAlert}
+                          showPatientName={false}
+                        />
+                      </div>
+                    )}
+
+                    {/* AI Summary */}
+                    <AISummaryCard
+                      summaries={summaries}
+                      loading={summariesLoading}
+                      onGenerate={handleGenerateSummary}
                     />
+
+                    {/* Emotional chart */}
+                    <EmotionalChart data={emotionalLogs} />
+
+                    {/* Goals */}
+                    <GoalsPanel
+                      goals={goals}
+                      patientId={patientId}
+                      loading={goalsLoading}
+                      onCreateGoal={handleCreateGoal}
+                      onAchieveGoal={handleAchieveGoal}
+                      onUpdateGoal={handleUpdateGoal}
+                    />
+
+                    {/* High-impact insights */}
+                    {insights.filter((i) => i.impact === 'high').length > 0 && (
+                      <InsightsPanel insights={insights.filter((i) => i.impact === 'high').slice(0, 2)} />
+                    )}
                   </div>
                 )}
-
-                {/* AI Summary */}
-                <AISummaryCard
-                  summaries={summaries}
-                  loading={summariesLoading}
-                  onGenerate={handleGenerateSummary}
-                />
-
-                {/* Emotional chart */}
-                <EmotionalChart data={emotionalLogs} />
-
-                {/* Goals */}
-                <GoalsPanel
-                  goals={goals}
-                  patientId={patientId}
-                  loading={goalsLoading}
-                  onCreateGoal={handleCreateGoal}
-                  onAchieveGoal={handleAchieveGoal}
-                  onUpdateGoal={handleUpdateGoal}
-                />
-
-                {/* High-impact insights */}
-                {insights.filter((i) => i.impact === 'high').length > 0 && (
-                  <InsightsPanel insights={insights.filter((i) => i.impact === 'high').slice(0, 2)} />
-                )}
-              </div>
+              </>
             )}
 
             {activeTab === 'timeline' && <Timeline entries={timeline} />}
