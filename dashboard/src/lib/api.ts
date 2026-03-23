@@ -306,7 +306,7 @@ export interface DigitalTwinVariableState {
   avg_7d: number;
   avg_30d: number;
   trend: 'improving' | 'worsening' | 'stable';
-  slope_7d: number;
+  slope_14d: number;
 }
 
 export interface DigitalTwinCorrelation {
@@ -340,21 +340,36 @@ export interface TreatmentResponse {
   status: 'positive_response' | 'negative_response' | 'neutral' | 'pending';
 }
 
+export interface DigitalTwinDiagnosis {
+  icd_code: string;
+  icd_name: string;
+  certainty: 'confirmed' | 'suspected' | 'ruled_out';
+}
+
+export interface DigitalTwinTestResult {
+  instrument: string;
+  total_score: number;
+  severity: string | null;
+  completed_at: string;
+}
+
 export interface DigitalTwin {
   id: string;
   patient_id: string;
   current_state: Record<string, DigitalTwinVariableState>;
   correlations: DigitalTwinCorrelation[];
-  baseline: Record<
-    string,
-    { mean: number; std: number; established_at: string; data_points: number }
-  >;
+  baseline: Record<string, { mean: number; std: number; established_at: string; data_points: number }>;
   predictions: DigitalTwinPrediction[];
   treatment_responses: TreatmentResponse[];
   data_points_used: number;
   model_version: string;
   confidence_overall: number;
   computed_at: string;
+  // New fields from v2
+  clinical_score: number | null;
+  overall_trend: 'improving' | 'stable' | 'worsening';
+  diagnoses: DigitalTwinDiagnosis[];
+  test_results_summary: DigitalTwinTestResult[];
 }
 
 export interface PaginatedResponse<T> {
@@ -784,7 +799,7 @@ export const digitalTwinApi = {
     ),
 
   refresh: (patientId: string) =>
-    request<{ status: string; message: string }>(`/digital-twin/${patientId}/refresh`, {
+    request<DigitalTwin>(`/digital-twin/${patientId}/refresh`, {
       method: 'POST',
     }),
 };
