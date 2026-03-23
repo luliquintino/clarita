@@ -671,6 +671,35 @@ export const notesApi = {
 };
 
 // ---------------------------------------------------------------------------
+// Clinical Notes API (backend shape: { clinical_notes: [...] })
+// ---------------------------------------------------------------------------
+
+export interface BackendClinicalNote {
+  id: string;
+  patient_id: string;
+  professional_id: string;
+  session_date: string;
+  note_type: string;
+  content: string;
+  is_private: boolean;
+  created_at: string;
+  professional_first_name?: string;
+  professional_last_name?: string;
+  professional_role?: string;
+}
+
+export const clinicalNotesApi = {
+  list: (patientId: string, params?: { note_type?: string; page?: number; limit?: number }) => {
+    const qs = new URLSearchParams();
+    if (params?.note_type) qs.set('note_type', params.note_type);
+    if (params?.page) qs.set('page', String(params.page));
+    if (params?.limit) qs.set('limit', String(params.limit));
+    const query = qs.toString() ? `?${qs.toString()}` : '';
+    return request<{ clinical_notes: BackendClinicalNote[]; pagination: { total: number } }>(`/clinical-notes/${patientId}${query}`);
+  },
+};
+
+// ---------------------------------------------------------------------------
 // Medications API
 // ---------------------------------------------------------------------------
 
@@ -1165,6 +1194,9 @@ export const lifeEventsApi = {
 
   list: () =>
     request<{ life_events: LifeEvent[]; pagination: { total: number } }>('/life-events'),
+
+  listForPatient: (patientId: string) =>
+    request<{ life_events: LifeEvent[]; pagination: { total: number } }>(`/life-events/${patientId}`),
 };
 
 // ---------------------------------------------------------------------------
@@ -1203,6 +1235,9 @@ export const symptomsApi = {
       method: 'POST',
       body: JSON.stringify(data),
     }),
+
+  listForPatient: (patientId: string) =>
+    request<{ patient_symptoms: PatientSymptom[]; pagination: { total: number } }>(`/patient-symptoms/${patientId}`),
 };
 
 export const summariesApi = {
