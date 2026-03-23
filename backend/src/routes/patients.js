@@ -593,11 +593,9 @@ router.get(
         SELECT pd.*,
                u.first_name AS professional_first_name,
                u.last_name AS professional_last_name,
-               u.role AS professional_role,
-               cn.title AS clinical_note_title
+               u.role AS professional_role
         FROM patient_diagnoses pd
         JOIN users u ON u.id = pd.professional_id
-        LEFT JOIN clinical_notes cn ON cn.id = pd.clinical_note_id
         WHERE pd.patient_id = $1 AND pd.is_active = true
       `;
       const params = [patientId];

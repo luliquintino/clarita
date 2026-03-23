@@ -9,6 +9,7 @@
     "db:init": "psql \"$DATABASE_URL\" -f db/schema.sql",
     "db:seed": "psql \"$DATABASE_URL\" -f db/seed.sql",
     "db:demo": "node db/seed_demo.js",
+    "db:supplement": "node db/seed_supplement.js",
     "lint": "eslint src/",
     "lint:fix": "eslint src/ --fix",
     "format": "prettier --write \"src/**/*.js\"",
