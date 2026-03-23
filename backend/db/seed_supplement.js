@@ -319,13 +319,13 @@ async function seedPedroClinicalNotes(pedroToken) {
     // Maria — 3 notes
     {
       patientId: MARIA_ID,
-      note_type: 'consultation',
+      note_type: 'session',
       content: 'Paciente compareceu em bom estado geral. Relata melhora parcial do humor nas últimas 2 semanas após ajuste de dose. Sono ainda irregular — dificuldade para iniciar. Apetite retornando gradualmente. Nega ideação suicida. Mantida medicação atual com retorno em 15 dias.',
       session_date: dateOnly(45),
     },
     {
       patientId: MARIA_ID,
-      note_type: 'consultation',
+      note_type: 'session',
       content: 'Retorno de acompanhamento. PHQ-9 = 13 (moderado), com melhora em relação à avaliação anterior (18). Paciente referiu conseguir sair de casa com mais frequência. Ainda relata anedonia matinal. Introduzida psicoeducação sobre higiene do sono.',
       session_date: dateOnly(21),
     },
@@ -338,13 +338,13 @@ async function seedPedroClinicalNotes(pedroToken) {
     // João — 3 notes
     {
       patientId: JOAO_ID,
-      note_type: 'consultation',
+      note_type: 'session',
       content: 'Primeira consulta com Pedro. João encaminhado pela psicóloga Ana com quadro de ansiedade generalizada + episódios compatíveis com pânico. Avaliação psiquiátrica inicial realizada. GAD-7 = 15 (grave). Iniciada farmacoterapia ansiolítica com orientações.',
       session_date: dateOnly(55),
     },
     {
       patientId: JOAO_ID,
-      note_type: 'consultation',
+      note_type: 'session',
       content: 'Retorno 30 dias. Paciente refere tolerância adequada à medicação. GAD-7 = 14 — estabilização do quadro. Sem novos episódios de pânico documentados. Revisadas técnicas de respiração. Mantida dose atual.',
       session_date: dateOnly(25),
     },
