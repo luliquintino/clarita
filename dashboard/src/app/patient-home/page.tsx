@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
-import { LogOut, Loader2 } from 'lucide-react';
+import { LogOut, Loader2, Star } from 'lucide-react';
 import Image from 'next/image';
 import {
   authApi,
@@ -32,6 +32,7 @@ import PsychTestPanel from '@/components/PsychTestPanel';
 import BottomNav from '@/components/BottomNav';
 import SideNav from '@/components/SideNav';
 import { type PatientSection } from '@/components/nav-items';
+import AddLifeEventModal from '@/components/AddLifeEventModal';
 
 export default function PatientHomePage() {
   const router = useRouter();
@@ -54,6 +55,7 @@ export default function PatientHomePage() {
   const [sentInvitations, setSentInvitations] = useState<Invitation[]>([]);
 
   const [activeSection, setActiveSection] = useState<PatientSection>('home');
+  const [showLifeEventModal, setShowLifeEventModal] = useState(false);
 
   const { permission, subscribed, loading: pushLoading, subscribe } = usePushNotifications(getToken());
 
@@ -278,6 +280,13 @@ export default function PatientHomePage() {
                 <DisplayIdBadge displayId={user.display_id} size="sm" />
               )}
               <button
+                onClick={() => setShowLifeEventModal(true)}
+                className="btn-primary text-sm py-2 px-4 flex items-center gap-2"
+              >
+                <Star size={14} />
+                + Momento
+              </button>
+              <button
                 type="button"
                 onClick={handleLogout}
                 className="flex items-center gap-1.5 px-3 py-2 text-gray-400 hover:text-red-500 hover:bg-red-50/50 rounded-xl transition-all"
@@ -376,6 +385,14 @@ export default function PatientHomePage() {
           badges={navBadges}
         />
       </div>
+
+      <AddLifeEventModal
+        open={showLifeEventModal}
+        onClose={() => setShowLifeEventModal(false)}
+        onCreated={() => {
+          // A timeline do profissional buscará eventos atualizados no próximo load
+        }}
+      />
     </div>
   );
 }
