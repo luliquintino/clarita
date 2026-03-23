@@ -89,6 +89,37 @@ router.get('/', requireRole('patient'), async (req, res, next) => {
 });
 
 // ---------------------------------------------------------------------------
+// POST /api/life-events/:patientId
+// Professional creates a life event for a patient
+// ---------------------------------------------------------------------------
+
+router.post(
+  '/:patientId',
+  requireRole('psychologist', 'psychiatrist'),
+  isUUID('patientId'),
+  handleValidation,
+  requirePatientAccess('life_events'),
+  lifeEventValidator,
+  handleValidation,
+  async (req, res, next) => {
+    try {
+      const { title, description, category, impact_level, event_date } = req.body;
+
+      const result = await query(
+        `INSERT INTO life_events (patient_id, title, description, category, impact_level, event_date)
+         VALUES ($1, $2, $3, $4, $5, $6)
+         RETURNING *`,
+        [req.params.patientId, title, description || null, category, impact_level, event_date]
+      );
+
+      res.status(201).json({ life_event: result.rows[0] });
+    } catch (err) {
+      next(err);
+    }
+  }
+);
+
+// ---------------------------------------------------------------------------
 // GET /api/life-events/:patientId
 // Professional view of patient's life events
 // ---------------------------------------------------------------------------

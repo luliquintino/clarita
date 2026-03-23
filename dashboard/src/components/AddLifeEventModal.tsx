@@ -27,9 +27,10 @@ interface AddLifeEventModalProps {
   open: boolean;
   onClose: () => void;
   onCreated: () => void;
+  patientId?: string;
 }
 
-export default function AddLifeEventModal({ open, onClose, onCreated }: AddLifeEventModalProps) {
+export default function AddLifeEventModal({ open, onClose, onCreated, patientId }: AddLifeEventModalProps) {
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [category, setCategory] = useState<CreateLifeEventInput['category']>('other');
@@ -61,13 +62,23 @@ export default function AddLifeEventModal({ open, onClose, onCreated }: AddLifeE
     setSaving(true);
     setError('');
     try {
-      await lifeEventsApi.create({
-        title: title.trim(),
-        description: description.trim() || undefined,
-        category,
-        impact_level: impactLevel,
-        event_date: eventDate,
-      });
+      if (patientId) {
+        await lifeEventsApi.createForPatient(patientId, {
+          title: title.trim(),
+          description: description.trim() || undefined,
+          category,
+          impact_level: impactLevel,
+          event_date: eventDate,
+        });
+      } else {
+        await lifeEventsApi.create({
+          title: title.trim(),
+          description: description.trim() || undefined,
+          category,
+          impact_level: impactLevel,
+          event_date: eventDate,
+        });
+      }
       reset();
       onCreated();
       onClose();

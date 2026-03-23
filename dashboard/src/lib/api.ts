@@ -1157,6 +1157,12 @@ export const lifeEventsApi = {
       body: JSON.stringify(data),
     }),
 
+  createForPatient: (patientId: string, data: CreateLifeEventInput) =>
+    request<{ life_event: LifeEvent }>(`/life-events/${patientId}`, {
+      method: 'POST',
+      body: JSON.stringify(data),
+    }),
+
   list: () =>
     request<{ life_events: LifeEvent[]; pagination: { total: number } }>('/life-events'),
 };

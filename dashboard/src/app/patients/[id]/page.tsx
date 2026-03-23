@@ -21,6 +21,7 @@ import {
   Calendar,
   Plus,
   X,
+  Star,
 } from 'lucide-react';
 import { format, formatDistanceToNow } from 'date-fns';
 import Sidebar from '@/components/Sidebar';
@@ -39,6 +40,7 @@ import MedicalRecordsPanel from '@/components/MedicalRecordsPanel';
 import RecordSharingPanel from '@/components/RecordSharingPanel';
 import UnifiedAssessmentsPanel from '@/components/UnifiedAssessmentsPanel';
 import DiagnosticBrowserPanel from '@/components/DiagnosticBrowserPanel';
+import AddLifeEventModal from '@/components/AddLifeEventModal';
 import {
   patientsApi,
   notesApi,
@@ -462,6 +464,7 @@ export default function PatientDetailPage() {
   const caps = getRoleCapabilities(userRole);
 
   // Conditions states
+  const [showLifeEventModal, setShowLifeEventModal] = useState(false);
   const [editingConditions, setEditingConditions] = useState(false);
   const [newConditionText, setNewConditionText] = useState('');
   const [savingCondition, setSavingCondition] = useState(false);
@@ -1232,6 +1235,15 @@ export default function PatientDetailPage() {
               </div>
 
               <div className="text-right flex flex-col items-end gap-2">
+                {userRole !== 'patient' && (
+                  <button
+                    onClick={() => setShowLifeEventModal(true)}
+                    className="btn-primary text-xs py-1.5 px-3 flex items-center gap-1.5"
+                  >
+                    <Star size={12} />
+                    + Evento
+                  </button>
+                )}
                 {patient.mental_clarity_score !== null && (
                   <div>
                     <p className="text-xs text-gray-500 mb-1">Clareza Mental</p>
@@ -1452,6 +1464,15 @@ export default function PatientDetailPage() {
           </div>
         </div>
       </main>
+
+      <AddLifeEventModal
+        open={showLifeEventModal}
+        onClose={() => setShowLifeEventModal(false)}
+        patientId={patientId}
+        onCreated={() => {
+          setShowLifeEventModal(false);
+        }}
+      />
     </div>
   );
 }
