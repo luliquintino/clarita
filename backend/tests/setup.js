@@ -26,6 +26,7 @@ module.exports = async () => {
     'migration_phase4.sql',
     'migration_goal_acceptance.sql',
     'migration_digital_twin.sql',
+    'migration_emotional_logs_twin_columns.sql',
     'migration_onboarding_documents.sql',
     'migration_invitations.sql',
     'migration_exams.sql',
