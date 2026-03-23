@@ -421,6 +421,27 @@ export default function Timeline({ entries, loading = false }: TimelineProps) {
             );
           })}
         </div>
+
+        {/* Event list */}
+        {filtered.length > 0 && (
+          <div className="mt-4 pt-4 border-t border-gray-200/40">
+            <h4 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">
+              {filtered.length} evento{filtered.length !== 1 ? 's' : ''} no período
+            </h4>
+            <div className="space-y-1 max-h-80 overflow-y-auto pr-1">
+              {[...filtered]
+                .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())
+                .map((entry) => (
+                  <EventListItem
+                    key={entry.id}
+                    entry={entry}
+                    onSelect={setSelectedEvent}
+                    isSelected={selectedEvent?.id === entry.id}
+                  />
+                ))}
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Selected event detail card */}
@@ -432,6 +453,59 @@ export default function Timeline({ entries, loading = false }: TimelineProps) {
           />
         </div>
       )}
+    </div>
+  );
+}
+
+function EventListItem({
+  entry,
+  onSelect,
+  isSelected,
+}: {
+  entry: TimelineEntry;
+  onSelect: (e: TimelineEntry) => void;
+  isSelected: boolean;
+}) {
+  const [expanded, setExpanded] = useState(false);
+  const config = categoryConfig[entry.type] ?? {
+    icon: <ClipboardCheck size={14} />,
+    label: entry.type.replace(/_/g, ' '),
+    color: '#9ca3af',
+    badgeClass: 'badge-blue',
+  };
+
+  return (
+    <div
+      className={`flex gap-3 p-3 rounded-2xl transition-all duration-200 cursor-pointer
+        ${isSelected ? 'bg-gray-50 ring-1 ring-gray-200' : 'hover:bg-gray-50/60'}
+        ${entry.severity === 'critical' || entry.severity === 'high' ? 'border-l-2 border-red-400 pl-2' : ''}`}
+      onClick={() => { onSelect(entry); setExpanded(!expanded); }}
+    >
+      <div
+        className="w-8 h-8 rounded-xl flex-shrink-0 flex items-center justify-center text-white mt-0.5"
+        style={{ backgroundColor: config.color }}
+      >
+        {config.icon}
+      </div>
+      <div className="flex-1 min-w-0">
+        <div className="flex items-center gap-2 flex-wrap">
+          <span className={`${config.badgeClass} text-[10px]`}>{config.label}</span>
+          {entry.severity && (
+            <span className={`${getSeverityBadgeClass(entry.severity)} text-[10px]`}>
+              {entry.severity}
+            </span>
+          )}
+          <span className="text-xs text-gray-400 ml-auto flex-shrink-0">
+            {format(new Date(entry.timestamp), "d MMM · HH:mm", { locale: ptBR })}
+          </span>
+        </div>
+        <p className="font-medium text-gray-800 text-sm mt-0.5">{entry.title}</p>
+        {entry.description && (
+          <p className={`text-xs text-gray-500 mt-0.5 leading-relaxed ${expanded ? '' : 'line-clamp-2'}`}>
+            {entry.description}
+          </p>
+        )}
+      </div>
     </div>
   );
 }
