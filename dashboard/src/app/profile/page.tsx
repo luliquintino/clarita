@@ -276,10 +276,10 @@ export default function ProfilePage() {
                   {editingSection !== 'account' && (
                     <button
                       onClick={startEditAccount}
-                      className="p-1.5 rounded-lg hover:bg-clarita-beige-100 text-gray-400 hover:text-clarita-green-600 transition-colors"
-                      title="Editar"
+                      className="btn-ghost text-sm flex items-center gap-1.5 text-gray-500 hover:text-gray-700"
                     >
                       <Pencil size={14} />
+                      Editar
                     </button>
                   )}
                 </div>
@@ -365,10 +365,10 @@ export default function ProfilePage() {
                     {editingSection !== 'professional' && (
                       <button
                         onClick={startEditProfessional}
-                        className="p-1.5 rounded-lg hover:bg-clarita-beige-100 text-gray-400 hover:text-clarita-green-600 transition-colors"
-                        title="Editar"
+                        className="btn-ghost text-sm flex items-center gap-1.5 text-gray-500 hover:text-gray-700"
                       >
                         <Pencil size={14} />
+                        Editar
                       </button>
                     )}
                   </div>

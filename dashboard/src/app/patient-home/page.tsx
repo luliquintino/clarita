@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
-import { LogOut, Loader2, Star, AlertCircle } from 'lucide-react';
+import { LogOut, Loader2, Star, AlertCircle, Hash } from 'lucide-react';
 import Image from 'next/image';
 import {
   authApi,
@@ -300,6 +300,18 @@ export default function PatientHomePage() {
           {/* ── HOME ── */}
           {activeSection === 'home' && (
             <>
+            {/* Desktop-only greeting + Clarita ID */}
+            <div className="hidden md:flex items-center justify-between mb-6">
+              <h1 className="text-xl font-semibold text-gray-800">
+                Olá, {user?.first_name || 'Paciente'}!
+              </h1>
+              {user?.display_id && (
+                <div className="flex items-center gap-1.5 text-xs text-gray-400">
+                  <Hash size={12} />
+                  <span>ID: <span className="font-mono font-medium text-gray-600">{user.display_id}</span></span>
+                </div>
+              )}
+            </div>
             {permission === 'default' && !subscribed && (
               <div className="bg-green-50 border border-green-200 rounded-xl p-4 flex items-center justify-between gap-4 mb-6">
                 <div>
