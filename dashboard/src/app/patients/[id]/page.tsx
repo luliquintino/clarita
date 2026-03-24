@@ -22,6 +22,8 @@ import {
   Plus,
   X,
   Star,
+  CheckCircle,
+  HelpCircle,
 } from 'lucide-react';
 import { format, formatDistanceToNow } from 'date-fns';
 import Sidebar from '@/components/Sidebar';
@@ -1159,10 +1161,11 @@ export default function PatientDetailPage() {
                       .map(d => (
                         <span
                           key={d.id}
-                          className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-indigo-600 text-white"
-                          title={d.icd_name}
+                          className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-green-600 text-white"
+                          title={`${d.icd_name} · ${d.diagnosis_date ? new Date(d.diagnosis_date).toLocaleDateString('pt-BR') : ''}`}
                         >
-                          {d.icd_code}
+                          <CheckCircle size={11} />
+                          {d.icd_code} · {d.icd_name.length > 25 ? d.icd_name.slice(0, 25) + '…' : d.icd_name}
                         </span>
                       ))
                     }
@@ -1173,10 +1176,11 @@ export default function PatientDetailPage() {
                       .map(d => (
                         <span
                           key={d.id}
-                          className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium border-2 border-dashed border-indigo-400 text-indigo-700 bg-indigo-50"
-                          title={`Suspeita: ${d.icd_name}`}
+                          className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium border-2 border-dashed border-amber-400 text-amber-700 bg-amber-50"
+                          title={`Suspeita clínica: ${d.icd_name}`}
                         >
-                          ? {d.icd_code}
+                          <HelpCircle size={11} />
+                          {d.icd_code} · {d.icd_name.length > 25 ? d.icd_name.slice(0, 25) + '…' : d.icd_name}
                         </span>
                       ))
                     }
