@@ -284,13 +284,6 @@ export default function PatientHomePage() {
                 <DisplayIdBadge displayId={user.display_id} size="sm" />
               )}
               <button
-                onClick={() => setShowLifeEventModal(true)}
-                className="btn-primary text-sm py-2 px-4 flex items-center gap-2"
-              >
-                <Star size={14} />
-                + Momento
-              </button>
-              <button
                 type="button"
                 onClick={handleLogout}
                 className="flex items-center gap-1.5 px-3 py-2 text-gray-400 hover:text-red-500 hover:bg-red-50/50 rounded-xl transition-all"
@@ -326,20 +319,34 @@ export default function PatientHomePage() {
             <div className="grid grid-cols-1 md:grid-cols-5 gap-6 md:gap-8">
               {/* Left: check-in */}
               <div className="md:col-span-3 space-y-4">
+                {/* Ações Rápidas */}
+                <div className="grid grid-cols-2 gap-3">
+                  <button
+                    onClick={() => setShowSymptomModal(true)}
+                    className="flex flex-col items-center justify-center gap-2 p-4 bg-orange-50 hover:bg-orange-100 border border-orange-200/60 rounded-2xl transition-all duration-200 text-center"
+                  >
+                    <div className="w-9 h-9 rounded-xl bg-orange-100 flex items-center justify-center">
+                      <AlertCircle size={18} className="text-orange-500" />
+                    </div>
+                    <div>
+                      <p className="font-semibold text-gray-800 text-sm">Relatar Sintoma</p>
+                      <p className="text-[11px] text-gray-500 leading-tight">Como você está se sentindo?</p>
+                    </div>
+                  </button>
+                  <button
+                    onClick={() => setShowLifeEventModal(true)}
+                    className="flex flex-col items-center justify-center gap-2 p-4 bg-purple-50 hover:bg-purple-100 border border-purple-200/60 rounded-2xl transition-all duration-200 text-center"
+                  >
+                    <div className="w-9 h-9 rounded-xl bg-purple-100 flex items-center justify-center">
+                      <Star size={18} className="text-purple-500" />
+                    </div>
+                    <div>
+                      <p className="font-semibold text-gray-800 text-sm">+ Momento</p>
+                      <p className="text-[11px] text-gray-500 leading-tight">Registre algo importante</p>
+                    </div>
+                  </button>
+                </div>
                 <JournalEntry onSubmit={handleJournalSubmit} saving={saving} medications={medications} />
-                {/* Relatar sintoma */}
-                <button
-                  onClick={() => setShowSymptomModal(true)}
-                  className="w-full flex items-center gap-3 p-4 bg-orange-50 hover:bg-orange-100 border border-orange-200/60 rounded-2xl transition-all duration-200 text-left"
-                >
-                  <div className="w-9 h-9 rounded-xl bg-orange-100 flex items-center justify-center flex-shrink-0">
-                    <AlertCircle size={18} className="text-orange-500" />
-                  </div>
-                  <div>
-                    <p className="font-medium text-gray-800 text-sm">Relatar Sintoma</p>
-                    <p className="text-xs text-gray-500">Registre um sintoma que está sentindo</p>
-                  </div>
-                </button>
               </div>
 
               {/* Right: professionals */}
