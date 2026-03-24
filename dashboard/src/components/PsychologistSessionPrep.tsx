@@ -1,20 +1,20 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
-import { Loader2, CalendarDays, Sparkles, Target, Star, ChevronRight } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { Loader2, CalendarDays, Target, Star, ChevronRight } from 'lucide-react';
 import { format, parseISO, differenceInDays, isAfter } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import {
   clinicalNotesApi,
   lifeEventsApi,
   goalsApi,
-  summariesApi,
   patientsApi,
   type LifeEvent,
   type Goal,
   type EmotionalLog,
 } from '@/lib/api';
 import EmotionalChart from '@/components/EmotionalChart';
+import PatientAISummary from '@/components/PatientAISummary';
 
 interface PsychologistSessionPrepProps {
   patientId: string;
@@ -30,9 +30,6 @@ export default function PsychologistSessionPrep({
   const [lifeEvents, setLifeEvents] = useState<LifeEvent[]>([]);
   const [goals, setGoals] = useState<Goal[]>([]);
   const [emotionalLogs, setEmotionalLogs] = useState<EmotionalLog[]>([]);
-  const [summary, setSummary] = useState('');
-  const [generatingSummary, setGeneratingSummary] = useState(false);
-
   useEffect(() => {
     const load = async () => {
       setLoading(true);
@@ -83,19 +80,6 @@ export default function PsychologistSessionPrep({
     (g) => g.status === 'in_progress' && g.patient_status === 'accepted'
   );
   const achievedGoals = goals.filter((g) => g.status === 'achieved');
-
-  const handleGenerateBriefing = useCallback(async () => {
-    setGeneratingSummary(true);
-    try {
-      const res = await summariesApi.generate(patientId, { periodDays: daysSinceLastNote ?? 30 });
-      const raw = res as any;
-      setSummary(raw?.summary?.summary_text ?? '');
-    } catch {
-      setSummary('Não foi possível gerar o briefing. Tente novamente.');
-    } finally {
-      setGeneratingSummary(false);
-    }
-  }, [patientId, daysSinceLastNote]);
 
   if (loading) {
     return (
@@ -205,30 +189,7 @@ export default function PsychologistSessionPrep({
         )}
       </div>
 
-      {/* Card 5 — Briefing de IA */}
-      <div className="card p-5">
-        <div className="flex items-center justify-between mb-3">
-          <div className="flex items-center gap-2">
-            <Sparkles size={14} className="text-clarita-blue-500" />
-            <p className="text-sm font-semibold text-gray-500">Briefing de IA</p>
-          </div>
-          <button
-            onClick={handleGenerateBriefing}
-            disabled={generatingSummary}
-            className="btn-ghost text-xs py-1 px-2.5 flex items-center gap-1.5"
-          >
-            {generatingSummary ? <Loader2 size={12} className="animate-spin" /> : null}
-            {generatingSummary ? 'Gerando...' : summary ? 'Regenerar' : 'Gerar briefing'}
-          </button>
-        </div>
-        {summary ? (
-          <p className="text-sm text-gray-700 italic leading-relaxed">{summary}</p>
-        ) : (
-          <p className="text-sm text-gray-400">
-            Clique em &quot;Gerar briefing&quot; para um resumo do período gerado pela IA.
-          </p>
-        )}
-      </div>
+      <PatientAISummary patientId={patientId} />
     </div>
   );
 }
