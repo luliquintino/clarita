@@ -44,10 +44,11 @@ router.post('/', requireRole('patient'), (req, res, next) => {
       }
 
       // Insert exam record
+      const isProfessionalOnly = exam_type === 'laudo';
       const examResult = await query(
         `INSERT INTO patient_exams
-           (patient_id, exam_type, exam_date, file_name, original_name, mime_type, file_size, notes)
-         VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+           (patient_id, exam_type, exam_date, file_name, original_name, mime_type, file_size, notes, is_professional_only)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
          RETURNING *`,
         [
           req.user.id,
@@ -58,6 +59,7 @@ router.post('/', requireRole('patient'), (req, res, next) => {
           req.file.mimetype,
           req.file.size,
           notes || null,
+          isProfessionalOnly,
         ]
       );
 
@@ -119,7 +121,7 @@ router.get('/my-exams', requireRole('patient'), async (req, res, next) => {
   try {
     const examsResult = await query(
       `SELECT * FROM patient_exams
-       WHERE patient_id = $1
+       WHERE patient_id = $1 AND is_professional_only = false
        ORDER BY exam_date DESC, created_at DESC`,
       [req.user.id]
     );
@@ -170,8 +172,14 @@ router.get(
       // Fetch only exams with permission
       const result = await query(
         `SELECT pe.* FROM patient_exams pe
-         INNER JOIN exam_permissions ep ON ep.exam_id = pe.id
-         WHERE pe.patient_id = $1 AND ep.professional_id = $2
+         WHERE pe.patient_id = $1
+         AND (
+           pe.is_professional_only = true
+           OR EXISTS (
+             SELECT 1 FROM exam_permissions ep
+             WHERE ep.exam_id = pe.id AND ep.professional_id = $2
+           )
+         )
          ORDER BY pe.exam_date DESC, pe.created_at DESC`,
         [patientId, req.user.id]
       );
@@ -203,6 +211,9 @@ router.get('/download/:examId', isUUID('examId'), handleValidation, async (req, 
     if (req.user.role === 'patient') {
       if (exam.patient_id !== req.user.id) {
         return res.status(403).json({ error: 'Acesso negado.' });
+      }
+      if (exam.is_professional_only) {
+        return res.status(403).json({ error: 'Este documento é acessível apenas por profissionais de saúde.' });
       }
     } else {
       // Professional: check exam_permissions
