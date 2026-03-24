@@ -511,6 +511,7 @@ export interface Exam {
   notes?: string;
   created_at: string;
   updated_at: string;
+  is_professional_only: boolean;
   permissions?: ExamPermission[];
 }
 

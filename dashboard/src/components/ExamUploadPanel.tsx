@@ -26,6 +26,7 @@ const EXAM_TYPES = [
   'Vitaminas',
   'Imagem / Raio-X',
   'Ressonância',
+  'Laudo',
   'Outro',
 ];
 
@@ -298,6 +299,12 @@ export default function ExamUploadPanel() {
                 </option>
               ))}
             </select>
+            {examType === 'Laudo' && (
+              <p className="text-xs text-amber-600 bg-amber-50 rounded-lg px-3 py-2 flex items-center gap-1.5">
+                <span>🔒</span>
+                Laudos são visíveis apenas para seus profissionais de saúde, não para você.
+              </p>
+            )}
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Data do Exame *</label>
