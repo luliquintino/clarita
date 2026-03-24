@@ -217,7 +217,7 @@ export default function PatientAISummary({ patientId }: PatientAISummaryProps) {
       )}
       {!generating && summaryText && (
         <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-4 border border-gray-200/60">
-          <p className="text-sm text-gray-700 leading-relaxed whitespace-pre-line">{summaryText}</p>
+          <p className="text-sm text-gray-700 leading-relaxed">{summaryText}</p>
         </div>
       )}
       {!generating && !summaryText && (

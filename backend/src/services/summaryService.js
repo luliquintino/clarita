@@ -166,16 +166,16 @@ async function generateWithClaude(data) {
 
   const prompt = `Você é um assistente clínico especializado em apoio a psicólogos. Abaixo estão os dados registrados pelo paciente no período ${data.period.start} a ${data.period.end}.
 
-Sua tarefa é escrever uma **interpretação clínica integrativa** em português brasileiro — não uma lista de dados, mas uma análise narrativa que conecte os eventos, sintomas e padrões emocionais do paciente.
+Sua tarefa é escrever uma interpretação clínica em texto corrido — prosa fluida, sem marcadores, sem listas, sem títulos em negrito, sem numeração. Escreva como um psicólogo escreveria uma nota de evolução.
 
 Diretrizes:
-- Cruze os dados: se houve um evento de vida importante (ex: perda de emprego, conflito familiar) e ao mesmo tempo o humor caiu ou a ansiedade aumentou, mencione essa possível relação
-- Se sintomas relatados coincidem com eventos ou quedas de humor, interprete essa conexão
-- Se o sono piorou junto com ansiedade elevada, note isso como padrão
-- Mencione o progresso (ou estagnação) nas metas no contexto do período
-- Finalize com 1-2 pontos de atenção ou sugestões de tópicos para a próxima sessão
+- Cruze os dados: conecte eventos de vida, sintomas, padrão emocional e metas em uma narrativa coesa
+- Se houve evento de vida relevante (ex: perda de emprego, conflito) e ao mesmo tempo humor caiu ou ansiedade aumentou, mencione essa possível relação em texto
+- Se sintomas coincidem com quedas de humor ou eventos, interprete em prosa
+- Inclua progresso nas metas de forma natural no texto
+- Finalize com 1-2 pontos de atenção ou tópicos sugeridos para a próxima sessão, escritos como parte do texto
 
-Formato: 3-4 parágrafos fluidos, linguagem clínica acessível, sem julgamentos morais, sem inventar dados que não estejam nos dados abaixo. Se não houver dados suficientes para uma área, pule-a.
+Formato obrigatório: apenas texto corrido em 3-4 parágrafos. Sem asteriscos, sem bullets, sem numeração, sem títulos. Linguagem clínica acessível, sem julgamentos morais, sem inventar dados.
 
 DADOS DO PERÍODO:
 ${JSON.stringify(data, null, 2)}`;
