@@ -1246,10 +1246,17 @@ export const symptomsApi = {
 };
 
 export const summariesApi = {
-  generate: (patientId: string, periodDays?: number) =>
+  generate: (
+    patientId: string,
+    period: { periodDays: number } | { startDate: string; endDate: string }
+  ) =>
     request<{ summary: PatientSummary }>(`/summaries/${patientId}/generate`, {
       method: 'POST',
-      body: JSON.stringify({ period_days: periodDays || 7 }),
+      body: JSON.stringify(
+        'periodDays' in period
+          ? { period_days: period.periodDays }
+          : { start_date: period.startDate, end_date: period.endDate }
+      ),
     }),
 
   list: (patientId: string) => request<{ summaries: PatientSummary[] }>(`/summaries/${patientId}`),

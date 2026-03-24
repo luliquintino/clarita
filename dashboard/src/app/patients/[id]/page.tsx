@@ -919,7 +919,7 @@ export default function PatientDetailPage() {
 
   const handleGenerateSummary = async (days: 7 | 30) => {
     try {
-      await summariesApi.generate(patientId, days);
+      await summariesApi.generate(patientId, { periodDays: days });
       await loadSummaries();
     } catch {
       // erro silencioso — AISummaryCard não tem callback de erro

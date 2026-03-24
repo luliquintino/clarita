@@ -87,7 +87,7 @@ export default function PsychologistSessionPrep({
   const handleGenerateBriefing = useCallback(async () => {
     setGeneratingSummary(true);
     try {
-      const res = await summariesApi.generate(patientId, daysSinceLastNote ?? 30);
+      const res = await summariesApi.generate(patientId, { periodDays: daysSinceLastNote ?? 30 });
       const raw = res as any;
       setSummary(raw?.summary?.summary_text ?? '');
     } catch {
