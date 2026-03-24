@@ -24,9 +24,19 @@ router.post(
   async (req, res, next) => {
     try {
       const { patientId } = req.params;
-      const { period_days = 7 } = req.body;
+      const { period_days = 7, start_date, end_date } = req.body;
 
-      const summary = await generatePatientSummary(patientId, parseInt(period_days, 10));
+      let startDate, endDate;
+      if (start_date && end_date) {
+        startDate = new Date(start_date);
+        endDate = new Date(end_date);
+        endDate.setHours(23, 59, 59, 999);
+      } else {
+        endDate = new Date();
+        startDate = new Date(endDate.getTime() - parseInt(period_days, 10) * 24 * 60 * 60 * 1000);
+      }
+
+      const summary = await generatePatientSummary(patientId, startDate, endDate);
 
       res.status(201).json({ summary });
     } catch (err) {
