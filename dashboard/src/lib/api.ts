@@ -1218,6 +1218,8 @@ export interface PatientSymptom {
   notes?: string;
   reported_at: string;
   created_at: string;
+  symptom_name?: string;
+  symptom_category?: string;
 }
 
 export interface CreatePatientSymptomInput {
@@ -1235,6 +1237,9 @@ export const symptomsApi = {
       method: 'POST',
       body: JSON.stringify(data),
     }),
+
+  listOwn: () =>
+    request<{ patient_symptoms: PatientSymptom[]; pagination: { total: number } }>('/patient-symptoms'),
 
   listForPatient: (patientId: string) =>
     request<{ patient_symptoms: PatientSymptom[]; pagination: { total: number } }>(`/patient-symptoms/${patientId}`),

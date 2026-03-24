@@ -17,9 +17,11 @@ import {
   onboardingApi,
   patientMedicationsApi,
   medicationLogsApi,
+  lifeEventsApi,
+  symptomsApi,
 } from '@/lib/api';
 import { usePushNotifications } from '@/hooks/usePushNotifications';
-import type { AuthUser, JournalEntryData, ProfessionalInfo, Goal, Invitation, PatientMedication } from '@/lib/api';
+import type { AuthUser, JournalEntryData, ProfessionalInfo, Goal, Invitation, PatientMedication, LifeEvent, PatientSymptom } from '@/lib/api';
 import JournalEntry from '@/components/JournalEntry';
 import JournalHistory from '@/components/JournalHistory';
 import HistoryChart from '@/components/HistoryChart';
@@ -57,6 +59,9 @@ export default function PatientHomePage() {
   const [pendingInvitations, setPendingInvitations] = useState<Invitation[]>([]);
   const [sentInvitations, setSentInvitations] = useState<Invitation[]>([]);
 
+  const [lifeEvents, setLifeEvents] = useState<LifeEvent[]>([]);
+  const [patientSymptoms, setPatientSymptoms] = useState<PatientSymptom[]>([]);
+
   const [activeSection, setActiveSection] = useState<PatientSection>('home');
   const [showLifeEventModal, setShowLifeEventModal] = useState(false);
   const [showSymptomModal, setShowSymptomModal] = useState(false);
@@ -89,6 +94,26 @@ export default function PatientHomePage() {
       setJournals([]);
     } finally {
       setJournalsLoading(false);
+    }
+  };
+
+  const loadLifeEvents = async () => {
+    try {
+      const res = await lifeEventsApi.list();
+      const raw = res as any;
+      setLifeEvents(raw?.life_events ?? []);
+    } catch {
+      setLifeEvents([]);
+    }
+  };
+
+  const loadPatientSymptoms = async () => {
+    try {
+      const res = await symptomsApi.listOwn();
+      const raw = res as any;
+      setPatientSymptoms(raw?.patient_symptoms ?? []);
+    } catch {
+      setPatientSymptoms([]);
     }
   };
 
@@ -165,6 +190,8 @@ export default function PatientHomePage() {
       loadJournals();
       loadProfessionals();
       loadGoals(response.user.id);
+      loadLifeEvents();
+      loadPatientSymptoms();
       loadInvitations();
       loadMedications();
     } catch {
@@ -420,6 +447,78 @@ export default function PatientHomePage() {
             <div className="space-y-6">
               <HistoryChart entries={journals} />
               <JournalHistory entries={journals} loading={journalsLoading} />
+
+              {/* Momentos de Vida */}
+              {lifeEvents.length > 0 && (
+                <div className="card">
+                  <h3 className="text-sm font-semibold text-gray-700 mb-3 flex items-center gap-2">
+                    <span className="w-6 h-6 rounded-lg bg-purple-50 flex items-center justify-center">
+                      <Star size={13} className="text-purple-500" />
+                    </span>
+                    Momentos de Vida
+                  </h3>
+                  <div className="space-y-2">
+                    {lifeEvents.slice(0, 20).map((ev) => (
+                      <div key={ev.id} className="flex items-start gap-3 py-2 border-b border-gray-50 last:border-0">
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-medium text-gray-800 truncate">{ev.title}</p>
+                          {ev.description && (
+                            <p className="text-xs text-gray-500 truncate">{ev.description}</p>
+                          )}
+                        </div>
+                        <div className="flex-shrink-0 text-right">
+                          <span className={`inline-block text-[10px] font-semibold px-2 py-0.5 rounded-full ${
+                            ev.impact_level >= 8 ? 'bg-red-100 text-red-600' :
+                            ev.impact_level >= 5 ? 'bg-orange-100 text-orange-600' :
+                            'bg-green-100 text-green-600'
+                          }`}>
+                            Impacto {ev.impact_level}/10
+                          </span>
+                          <p className="text-[10px] text-gray-400 mt-0.5">
+                            {new Date(ev.event_date).toLocaleDateString('pt-BR')}
+                          </p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Sintomas Relatados */}
+              {patientSymptoms.length > 0 && (
+                <div className="card">
+                  <h3 className="text-sm font-semibold text-gray-700 mb-3 flex items-center gap-2">
+                    <span className="w-6 h-6 rounded-lg bg-orange-50 flex items-center justify-center">
+                      <AlertCircle size={13} className="text-orange-500" />
+                    </span>
+                    Sintomas Relatados
+                  </h3>
+                  <div className="space-y-2">
+                    {patientSymptoms.slice(0, 20).map((ps) => (
+                      <div key={ps.id} className="flex items-center gap-3 py-2 border-b border-gray-50 last:border-0">
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-medium text-gray-800">{ps.symptom_name ?? 'Sintoma'}</p>
+                          {ps.notes && (
+                            <p className="text-xs text-gray-500 truncate">{ps.notes}</p>
+                          )}
+                        </div>
+                        <div className="flex-shrink-0 text-right">
+                          <span className={`inline-block text-[10px] font-semibold px-2 py-0.5 rounded-full ${
+                            ps.severity >= 8 ? 'bg-red-100 text-red-600' :
+                            ps.severity >= 5 ? 'bg-orange-100 text-orange-600' :
+                            'bg-yellow-100 text-yellow-600'
+                          }`}>
+                            {ps.severity}/10
+                          </span>
+                          <p className="text-[10px] text-gray-400 mt-0.5">
+                            {new Date(ps.reported_at).toLocaleDateString('pt-BR')}
+                          </p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
           )}
 
@@ -439,14 +538,12 @@ export default function PatientHomePage() {
       <AddLifeEventModal
         open={showLifeEventModal}
         onClose={() => setShowLifeEventModal(false)}
-        onCreated={() => {
-          // A timeline do profissional buscará eventos atualizados no próximo load
-        }}
+        onCreated={() => loadLifeEvents()}
       />
       <ReportSymptomModal
         open={showSymptomModal}
         onClose={() => setShowSymptomModal(false)}
-        onCreated={() => {/* symptom appears on professional's timeline on next load */}}
+        onCreated={() => loadPatientSymptoms()}
       />
     </div>
   );
