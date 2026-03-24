@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import { FileText, Image as ImageIcon, Download, Loader2, ClipboardList, Info } from 'lucide-react';
+import { FileText, Image as ImageIcon, Download, Loader2, ClipboardList, Info, Lock } from 'lucide-react';
 import { examsApi } from '@/lib/api';
 import type { Exam } from '@/lib/api';
 
@@ -114,6 +114,12 @@ export default function PatientExamsPanel({ patientId, readOnly = false }: Patie
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2">
                   <span className="badge badge-teal text-xs">{exam.exam_type}</span>
+                  {exam.is_professional_only && (
+                    <span className="inline-flex items-center gap-1 text-xs px-2 py-0.5 rounded-full bg-amber-50 border border-amber-200 text-amber-700 font-medium">
+                      <Lock size={10} />
+                      Laudo
+                    </span>
+                  )}
                   <span className="text-xs text-gray-500">{formatDate(exam.exam_date)}</span>
                 </div>
                 <p className="text-sm text-gray-700 truncate mt-0.5">{exam.original_name}</p>
