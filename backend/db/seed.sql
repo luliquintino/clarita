@@ -12,47 +12,47 @@ BEGIN;
 
 INSERT INTO symptoms (name, category, description, severity_scale) VALUES
 
--- Mood Symptoms
-('Depressed mood',          'mood',       'Persistent feelings of sadness, emptiness, or hopelessness.',                              '1-10: 1=minimal, 5=moderate, 10=severe'),
-('Irritability',            'mood',       'Increased frustration, short temper, or agitation disproportionate to circumstances.',      '1-10: 1=minimal, 5=moderate, 10=severe'),
-('Mood swings',             'mood',       'Rapid or extreme fluctuations in emotional state.',                                        '1-10: 1=minimal, 5=moderate, 10=severe'),
-('Emotional numbness',      'mood',       'Diminished ability to feel emotions or emotional detachment.',                             '1-10: 1=minimal, 5=moderate, 10=severe'),
-('Anhedonia',               'mood',       'Markedly diminished interest or pleasure in all or almost all activities.',                '1-10: 1=minimal, 5=moderate, 10=severe'),
+-- Sintomas de Humor
+('Humor deprimido',              'mood',       'Persistent feelings of sadness, emptiness, or hopelessness.',                              '1-10: 1=minimal, 5=moderate, 10=severe'),
+('Irritabilidade',               'mood',       'Increased frustration, short temper, or agitation disproportionate to circumstances.',      '1-10: 1=minimal, 5=moderate, 10=severe'),
+('Labilidade emocional',         'mood',       'Rapid or extreme fluctuations in emotional state.',                                        '1-10: 1=minimal, 5=moderate, 10=severe'),
+('Entorpecimento emocional',     'mood',       'Diminished ability to feel emotions or emotional detachment.',                             '1-10: 1=minimal, 5=moderate, 10=severe'),
+('Anedonia',                     'mood',       'Markedly diminished interest or pleasure in all or almost all activities.',                '1-10: 1=minimal, 5=moderate, 10=severe'),
 
--- Anxiety Symptoms
-('Generalized anxiety',     'anxiety',    'Excessive, hard-to-control worry about multiple areas of life.',                           '1-10: 1=minimal, 5=moderate, 10=severe'),
-('Panic attacks',           'anxiety',    'Sudden episodes of intense fear with physical symptoms such as chest pain and shortness of breath.', '1-10: 1=minimal, 5=moderate, 10=severe'),
-('Social anxiety',          'anxiety',    'Intense fear or anxiety about social situations involving potential scrutiny by others.',   '1-10: 1=minimal, 5=moderate, 10=severe'),
-('Phobic avoidance',        'anxiety',    'Active avoidance of specific feared objects, situations, or activities.',                  '1-10: 1=minimal, 5=moderate, 10=severe'),
-('Restlessness',            'anxiety',    'Feeling keyed up, on edge, or unable to relax.',                                          '1-10: 1=minimal, 5=moderate, 10=severe'),
+-- Sintomas de Ansiedade
+('Ansiedade generalizada',       'anxiety',    'Excessive, hard-to-control worry about multiple areas of life.',                           '1-10: 1=minimal, 5=moderate, 10=severe'),
+('Ataques de pânico',            'anxiety',    'Sudden episodes of intense fear with physical symptoms such as chest pain and shortness of breath.', '1-10: 1=minimal, 5=moderate, 10=severe'),
+('Ansiedade social',             'anxiety',    'Intense fear or anxiety about social situations involving potential scrutiny by others.',   '1-10: 1=minimal, 5=moderate, 10=severe'),
+('Evitação fóbica',              'anxiety',    'Active avoidance of specific feared objects, situations, or activities.',                  '1-10: 1=minimal, 5=moderate, 10=severe'),
+('Inquietação',                  'anxiety',    'Feeling keyed up, on edge, or unable to relax.',                                          '1-10: 1=minimal, 5=moderate, 10=severe'),
 
--- Sleep Symptoms
-('Insomnia',                'sleep',      'Difficulty falling asleep, staying asleep, or waking too early.',                          '1-10: 1=minimal, 5=moderate, 10=severe'),
-('Hypersomnia',             'sleep',      'Excessive daytime sleepiness or prolonged nighttime sleep despite adequate hours.',         '1-10: 1=minimal, 5=moderate, 10=severe'),
-('Nightmares',              'sleep',      'Recurrent disturbing dreams that cause awakening and distress.',                           '1-10: 1=minimal, 5=moderate, 10=severe'),
-('Sleep fragmentation',     'sleep',      'Frequent awakenings throughout the night disrupting restorative sleep.',                   '1-10: 1=minimal, 5=moderate, 10=severe'),
+-- Sintomas de Sono
+('Insônia',                      'sleep',      'Difficulty falling asleep, staying asleep, or waking too early.',                          '1-10: 1=minimal, 5=moderate, 10=severe'),
+('Hipersonia',                   'sleep',      'Excessive daytime sleepiness or prolonged nighttime sleep despite adequate hours.',         '1-10: 1=minimal, 5=moderate, 10=severe'),
+('Pesadelos',                    'sleep',      'Recurrent disturbing dreams that cause awakening and distress.',                           '1-10: 1=minimal, 5=moderate, 10=severe'),
+('Fragmentação do sono',         'sleep',      'Frequent awakenings throughout the night disrupting restorative sleep.',                   '1-10: 1=minimal, 5=moderate, 10=severe'),
 
--- Cognitive Symptoms
-('Difficulty concentrating','cognitive',  'Trouble sustaining attention, following conversations, or completing tasks.',               '1-10: 1=minimal, 5=moderate, 10=severe'),
-('Memory problems',         'cognitive',  'Difficulty recalling recent events, information, or instructions.',                        '1-10: 1=minimal, 5=moderate, 10=severe'),
-('Indecisiveness',          'cognitive',  'Persistent difficulty making decisions, even minor ones.',                                 '1-10: 1=minimal, 5=moderate, 10=severe'),
-('Racing thoughts',         'cognitive',  'Rapid, uncontrollable flow of thoughts that may jump between topics.',                     '1-10: 1=minimal, 5=moderate, 10=severe'),
-('Intrusive thoughts',      'cognitive',  'Unwanted, recurring thoughts, images, or urges that cause distress.',                      '1-10: 1=minimal, 5=moderate, 10=severe'),
+-- Sintomas Cognitivos
+('Dificuldade de concentração',  'cognitive',  'Trouble sustaining attention, following conversations, or completing tasks.',               '1-10: 1=minimal, 5=moderate, 10=severe'),
+('Problemas de memória',         'cognitive',  'Difficulty recalling recent events, information, or instructions.',                        '1-10: 1=minimal, 5=moderate, 10=severe'),
+('Indecisão',                    'cognitive',  'Persistent difficulty making decisions, even minor ones.',                                 '1-10: 1=minimal, 5=moderate, 10=severe'),
+('Pensamentos acelerados',       'cognitive',  'Rapid, uncontrollable flow of thoughts that may jump between topics.',                     '1-10: 1=minimal, 5=moderate, 10=severe'),
+('Pensamentos intrusivos',       'cognitive',  'Unwanted, recurring thoughts, images, or urges that cause distress.',                      '1-10: 1=minimal, 5=moderate, 10=severe'),
 
--- Physical Symptoms
-('Fatigue',                 'physical',   'Persistent tiredness or exhaustion not relieved by rest.',                                 '1-10: 1=minimal, 5=moderate, 10=severe'),
-('Appetite changes',        'physical',   'Significant increase or decrease in appetite or eating patterns.',                         '1-10: 1=minimal, 5=moderate, 10=severe'),
-('Psychomotor agitation',   'physical',   'Observable restlessness such as pacing, hand-wringing, or inability to sit still.',        '1-10: 1=minimal, 5=moderate, 10=severe'),
-('Psychomotor retardation', 'physical',   'Observable slowing of physical movement, speech, or reaction time.',                       '1-10: 1=minimal, 5=moderate, 10=severe'),
-('Somatic complaints',      'physical',   'Recurring physical symptoms such as headaches, stomach problems, or muscle tension without clear medical cause.', '1-10: 1=minimal, 5=moderate, 10=severe'),
-('Low libido',              'physical',   'Decreased sexual desire or interest in sexual activity.',                                  '1-10: 1=minimal, 5=moderate, 10=severe'),
+-- Sintomas Físicos
+('Fadiga',                       'physical',   'Persistent tiredness or exhaustion not relieved by rest.',                                 '1-10: 1=minimal, 5=moderate, 10=severe'),
+('Alterações de apetite',        'physical',   'Significant increase or decrease in appetite or eating patterns.',                         '1-10: 1=minimal, 5=moderate, 10=severe'),
+('Agitação psicomotora',         'physical',   'Observable restlessness such as pacing, hand-wringing, or inability to sit still.',        '1-10: 1=minimal, 5=moderate, 10=severe'),
+('Retardo psicomotor',           'physical',   'Observable slowing of physical movement, speech, or reaction time.',                       '1-10: 1=minimal, 5=moderate, 10=severe'),
+('Queixas somáticas',            'physical',   'Recurring physical symptoms such as headaches, stomach problems, or muscle tension without clear medical cause.', '1-10: 1=minimal, 5=moderate, 10=severe'),
+('Diminuição da libido',         'physical',   'Decreased sexual desire or interest in sexual activity.',                                  '1-10: 1=minimal, 5=moderate, 10=severe'),
 
--- Behavioral Symptoms
-('Social withdrawal',       'behavioral', 'Avoidance of social interactions, activities, or relationships.',                          '1-10: 1=minimal, 5=moderate, 10=severe'),
-('Substance use',           'behavioral', 'Increased or problematic use of alcohol, drugs, or other substances.',                     '1-10: 1=minimal, 5=moderate, 10=severe'),
-('Self-harm urges',         'behavioral', 'Thoughts or urges to intentionally harm oneself.',                                        '1-10: 1=minimal, 5=moderate, 10=severe'),
-('Compulsive behaviors',    'behavioral', 'Repetitive behaviors performed to reduce anxiety or according to rigid rules.',            '1-10: 1=minimal, 5=moderate, 10=severe'),
-('Procrastination',         'behavioral', 'Persistent avoidance or delay of tasks despite negative consequences.',                    '1-10: 1=minimal, 5=moderate, 10=severe');
+-- Sintomas Comportamentais
+('Isolamento social',            'behavioral', 'Avoidance of social interactions, activities, or relationships.',                          '1-10: 1=minimal, 5=moderate, 10=severe'),
+('Uso de substâncias',           'behavioral', 'Increased or problematic use of alcohol, drugs, or other substances.',                     '1-10: 1=minimal, 5=moderate, 10=severe'),
+('Pensamentos de autolesão',     'behavioral', 'Thoughts or urges to intentionally harm oneself.',                                        '1-10: 1=minimal, 5=moderate, 10=severe'),
+('Comportamentos compulsivos',   'behavioral', 'Repetitive behaviors performed to reduce anxiety or according to rigid rules.',            '1-10: 1=minimal, 5=moderate, 10=severe'),
+('Procrastinação',               'behavioral', 'Persistent avoidance or delay of tasks despite negative consequences.',                    '1-10: 1=minimal, 5=moderate, 10=severe');
 
 
 -- ============================================================================
