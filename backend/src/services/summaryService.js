@@ -3,117 +3,258 @@
 const { query } = require('../config/database');
 
 /**
- * Generate a structured summary for a patient based on recent data.
- * In production, this would call an AI API (OpenAI, Anthropic, etc.).
- * For now, it compiles data into a structured summary.
+ * Generate a patient summary using all available data sources.
+ * Uses Claude API if ANTHROPIC_API_KEY is set, otherwise falls back to manual logic.
  */
-async function generatePatientSummary(patientId, periodDays = 7) {
-  const endDate = new Date();
-  const startDate = new Date(endDate.getTime() - periodDays * 24 * 60 * 60 * 1000);
+async function generatePatientSummary(patientId, periodDaysOrStartDate = 7, endDateArg = null) {
+  let startDate, endDate;
 
-  // Gather emotional logs for the period
-  const logsResult = await query(
-    `SELECT mood_score, anxiety_score, energy_score, sleep_hours, journal_entry, logged_at
-     FROM emotional_logs
-     WHERE patient_id = $1 AND logged_at >= $2 AND logged_at <= $3
-     ORDER BY logged_at DESC`,
-    [patientId, startDate.toISOString(), endDate.toISOString()]
-  );
-
-  const logs = logsResult.rows;
-
-  if (logs.length === 0) {
-    return {
-      summary_text: 'Sem dados suficientes para gerar resumo neste período.',
-      period_start: startDate.toISOString().split('T')[0],
-      period_end: endDate.toISOString().split('T')[0],
-      data: { log_count: 0 },
-    };
+  if (endDateArg instanceof Date) {
+    startDate = periodDaysOrStartDate;
+    endDate = endDateArg;
+  } else {
+    endDate = new Date();
+    startDate = new Date(endDate.getTime() - periodDaysOrStartDate * 24 * 60 * 60 * 1000);
   }
 
-  // Calculate averages
-  const avgMood = (logs.reduce((s, l) => s + l.mood_score, 0) / logs.length).toFixed(1);
-  const avgAnxiety = (logs.reduce((s, l) => s + l.anxiety_score, 0) / logs.length).toFixed(1);
-  const avgEnergy = (logs.reduce((s, l) => s + l.energy_score, 0) / logs.length).toFixed(1);
-  const avgSleep =
-    logs.filter((l) => l.sleep_hours).length > 0
-      ? (
-          logs.filter((l) => l.sleep_hours).reduce((s, l) => s + parseFloat(l.sleep_hours), 0) /
-          logs.filter((l) => l.sleep_hours).length
-        ).toFixed(1)
-      : null;
+  const startISO = startDate.toISOString();
+  const endISO = endDate.toISOString();
+  const startDate_ = startDate.toISOString().split('T')[0];
+  const endDate_ = endDate.toISOString().split('T')[0];
+
+  // Aggregate all data in parallel
+  const [logsResult, symptomsResult, eventsResult, goalsResult, assessmentsResult] =
+    await Promise.allSettled([
+      query(
+        `SELECT mood_score, anxiety_score, energy_score, sleep_hours, journal_entry, logged_at
+         FROM emotional_logs
+         WHERE patient_id = $1 AND logged_at >= $2 AND logged_at <= $3
+         ORDER BY logged_at DESC`,
+        [patientId, startISO, endISO]
+      ),
+      query(
+        `SELECT ps.severity, ps.reported_at, s.name AS symptom_name, s.category
+         FROM patient_symptoms ps
+         JOIN symptoms s ON s.id = ps.symptom_id
+         WHERE ps.patient_id = $1 AND ps.reported_at >= $2 AND ps.reported_at <= $3
+         ORDER BY ps.reported_at DESC`,
+        [patientId, startISO, endISO]
+      ),
+      query(
+        `SELECT title, category, impact_level, event_date
+         FROM life_events
+         WHERE patient_id = $1 AND event_date >= $2 AND event_date <= $3
+         ORDER BY event_date DESC`,
+        [patientId, startDate_, endDate_]
+      ),
+      query(
+        `SELECT title, status FROM goals
+         WHERE patient_id = $1
+         ORDER BY created_at DESC
+         LIMIT 10`,
+        [patientId]
+      ),
+      query(
+        `SELECT type, score, severity, timestamp
+         FROM assessment_results
+         WHERE patient_id = $1 AND timestamp >= $2 AND timestamp <= $3
+         ORDER BY timestamp DESC`,
+        [patientId, startISO, endISO]
+      ),
+    ]);
+
+  const logs = logsResult.status === 'fulfilled' ? logsResult.value.rows : [];
+  const symptoms = symptomsResult.status === 'fulfilled' ? symptomsResult.value.rows : [];
+  const events = eventsResult.status === 'fulfilled' ? eventsResult.value.rows : [];
+  const goals = goalsResult.status === 'fulfilled' ? goalsResult.value.rows : [];
+  const assessments = assessmentsResult.status === 'fulfilled' ? assessmentsResult.value.rows : [];
+
+  // Calculate emotional averages
+  const avgMood = logs.length
+    ? parseFloat((logs.reduce((s, l) => s + l.mood_score, 0) / logs.length).toFixed(1))
+    : null;
+  const avgAnxiety = logs.length
+    ? parseFloat((logs.reduce((s, l) => s + l.anxiety_score, 0) / logs.length).toFixed(1))
+    : null;
+  const avgEnergy = logs.length
+    ? parseFloat((logs.reduce((s, l) => s + l.energy_score, 0) / logs.length).toFixed(1))
+    : null;
+  const sleepLogs = logs.filter((l) => l.sleep_hours);
+  const avgSleep = sleepLogs.length
+    ? parseFloat(
+        (sleepLogs.reduce((s, l) => s + parseFloat(l.sleep_hours), 0) / sleepLogs.length).toFixed(1)
+      )
+    : null;
 
   // Mood trend
-  const firstHalf = logs.slice(Math.floor(logs.length / 2));
-  const secondHalf = logs.slice(0, Math.floor(logs.length / 2));
-  const firstAvg = firstHalf.reduce((s, l) => s + l.mood_score, 0) / (firstHalf.length || 1);
-  const secondAvg = secondHalf.reduce((s, l) => s + l.mood_score, 0) / (secondHalf.length || 1);
-  const moodTrend =
-    secondAvg > firstAvg + 0.5 ? 'melhora' : secondAvg < firstAvg - 0.5 ? 'declínio' : 'estável';
+  let moodTrend = 'estável';
+  if (logs.length >= 2) {
+    const firstHalf = logs.slice(Math.floor(logs.length / 2));
+    const secondHalf = logs.slice(0, Math.floor(logs.length / 2));
+    const firstAvg = firstHalf.reduce((s, l) => s + l.mood_score, 0) / firstHalf.length;
+    const secondAvg = secondHalf.reduce((s, l) => s + l.mood_score, 0) / secondHalf.length;
+    moodTrend = secondAvg > firstAvg + 0.5 ? 'melhora' : secondAvg < firstAvg - 0.5 ? 'declínio' : 'estável';
+  }
 
-  // Journal entries
   const journalEntries = logs.filter((l) => l.journal_entry).map((l) => l.journal_entry);
 
-  // Build summary text
-  const lines = [];
-  lines.push(`Resumo dos últimos ${periodDays} dias (${logs.length} registros):`);
-  lines.push('');
-  lines.push(`**Humor médio:** ${avgMood}/10 (tendência: ${moodTrend})`);
-  lines.push(`**Ansiedade média:** ${avgAnxiety}/10`);
-  lines.push(`**Energia média:** ${avgEnergy}/10`);
-  if (avgSleep) lines.push(`**Sono médio:** ${avgSleep} horas`);
-  lines.push('');
+  // Build summary data object
+  const summaryData = {
+    period: { start: startDate_, end: endDate_ },
+    emotional: {
+      log_count: logs.length,
+      avg_mood: avgMood,
+      avg_anxiety: avgAnxiety,
+      avg_energy: avgEnergy,
+      avg_sleep: avgSleep,
+      mood_trend: moodTrend,
+      journal_count: journalEntries.length,
+    },
+    symptoms: symptoms.map((s) => ({
+      name: s.symptom_name,
+      category: s.category,
+      severity: s.severity,
+      date: s.reported_at,
+    })),
+    life_events: events.map((e) => ({
+      title: e.title,
+      category: e.category,
+      impact: e.impact_level,
+      date: e.event_date,
+    })),
+    goals: {
+      in_progress: goals.filter((g) => g.status === 'in_progress').map((g) => g.title),
+      achieved: goals.filter((g) => g.status === 'achieved').map((g) => g.title),
+    },
+    assessments: assessments.map((a) => ({
+      type: a.type,
+      score: a.score,
+      severity: a.severity,
+      date: a.timestamp,
+    })),
+  };
 
-  if (parseFloat(avgAnxiety) >= 7) {
-    lines.push('⚠️ **Atenção:** Níveis de ansiedade elevados no período.');
-  }
-  if (parseFloat(avgMood) <= 4) {
-    lines.push('⚠️ **Atenção:** Humor consistentemente baixo no período.');
-  }
-  if (avgSleep && parseFloat(avgSleep) < 6) {
-    lines.push('⚠️ **Atenção:** Sono insuficiente (menos de 6h em média).');
-  }
-
-  if (journalEntries.length > 0) {
-    lines.push('');
-    lines.push(`**Entradas no diário:** ${journalEntries.length} registros textuais no período.`);
-  }
+  const summaryText = process.env.ANTHROPIC_API_KEY
+    ? await generateWithClaude(summaryData)
+    : generateManualSummary(summaryData);
 
   // Save to journal_summaries
-  const summaryText = lines.join('\n');
-  const savedResult = await query(
+  const saved = await query(
     `INSERT INTO journal_summaries (patient_id, summary_text, period_start, period_end)
      VALUES ($1, $2, $3, $4)
      RETURNING *`,
-    [
-      patientId,
-      summaryText,
-      startDate.toISOString().split('T')[0],
-      endDate.toISOString().split('T')[0],
-    ]
+    [patientId, summaryText, startDate_, endDate_]
   );
 
   return {
-    ...savedResult.rows[0],
+    ...saved.rows[0],
     data: {
       log_count: logs.length,
-      avg_mood: parseFloat(avgMood),
-      avg_anxiety: parseFloat(avgAnxiety),
-      avg_energy: parseFloat(avgEnergy),
-      avg_sleep: avgSleep ? parseFloat(avgSleep) : null,
+      avg_mood: avgMood,
+      avg_anxiety: avgAnxiety,
+      avg_energy: avgEnergy,
+      avg_sleep: avgSleep,
       mood_trend: moodTrend,
       journal_count: journalEntries.length,
     },
   };
 }
 
+async function generateWithClaude(data) {
+  const Anthropic = require('@anthropic-ai/sdk');
+  const client = new Anthropic.default({ apiKey: process.env.ANTHROPIC_API_KEY });
+
+  const prompt = `Você é um assistente clínico de apoio a psicólogos. Abaixo estão os dados registrados pelo paciente no período ${data.period.start} a ${data.period.end}.
+
+Escreva um resumo clínico em português brasileiro para o psicólogo responsável, em 3-4 parágrafos curtos:
+1. Padrão emocional geral (humor, ansiedade, energia, sono)
+2. Sintomas relatados e eventos de vida relevantes no período
+3. Progresso nas metas terapêuticas
+4. Alertas ou pontos de atenção clínica (se houver)
+
+Se não houver dados em alguma área, mencione brevemente e passe para a próxima. Seja objetivo, factual e clínico. Use linguagem acessível, sem julgamentos.
+
+DADOS DO PERÍODO:
+${JSON.stringify(data, null, 2)}`;
+
+  try {
+    const message = await client.messages.create({
+      model: 'claude-haiku-4-5-20251001',
+      max_tokens: 1024,
+      messages: [{ role: 'user', content: prompt }],
+    });
+    return message.content[0].text;
+  } catch (err) {
+    console.error('[SummaryService] Claude API error:', err.message);
+    return generateManualSummary(data);
+  }
+}
+
+function generateManualSummary(data) {
+  const lines = [];
+  const { emotional, symptoms, life_events, goals, assessments, period } = data;
+
+  lines.push(`Resumo do período ${period.start} a ${period.end}:`);
+  lines.push('');
+
+  if (emotional.log_count > 0) {
+    lines.push(`**Padrão emocional (${emotional.log_count} registros):**`);
+    if (emotional.avg_mood !== null)
+      lines.push(`Humor médio: ${emotional.avg_mood}/10 (${emotional.mood_trend})`);
+    if (emotional.avg_anxiety !== null)
+      lines.push(`Ansiedade média: ${emotional.avg_anxiety}/10`);
+    if (emotional.avg_energy !== null)
+      lines.push(`Energia média: ${emotional.avg_energy}/10`);
+    if (emotional.avg_sleep !== null)
+      lines.push(`Sono médio: ${emotional.avg_sleep}h`);
+    if (emotional.avg_anxiety >= 7)
+      lines.push('⚠️ Ansiedade elevada no período.');
+    if (emotional.avg_mood <= 4)
+      lines.push('⚠️ Humor consistentemente baixo.');
+    if (emotional.avg_sleep !== null && emotional.avg_sleep < 6)
+      lines.push('⚠️ Sono insuficiente (menos de 6h em média).');
+    lines.push('');
+  } else {
+    lines.push('Nenhum check-in emocional registrado neste período.');
+    lines.push('');
+  }
+
+  if (symptoms.length > 0) {
+    lines.push(`**Sintomas relatados (${symptoms.length}):**`);
+    symptoms.slice(0, 5).forEach((s) => {
+      lines.push(`• ${s.name} — intensidade ${s.severity}/10`);
+    });
+    lines.push('');
+  }
+
+  if (life_events.length > 0) {
+    lines.push(`**Eventos de vida (${life_events.length}):**`);
+    life_events.slice(0, 3).forEach((e) => {
+      lines.push(`• ${e.title} (impacto ${e.impact}/10)`);
+    });
+    lines.push('');
+  }
+
+  if (goals.in_progress.length > 0 || goals.achieved.length > 0) {
+    lines.push(`**Metas:** ${goals.in_progress.length} em andamento · ${goals.achieved.length} concluídas`);
+    lines.push('');
+  }
+
+  if (assessments.length > 0) {
+    lines.push('**Avaliações no período:**');
+    assessments.forEach((a) => {
+      lines.push(`• ${a.type}: ${a.score} pontos (${a.severity})`);
+    });
+  }
+
+  return lines.join('\n');
+}
+
 /**
  * Compile a professional brief for a patient.
- * Combines emotional data, medications, alerts into a single view.
  */
 async function compileProfessionalBrief(patientId) {
   const [emotionalResult, medsResult, alertsResult, goalsResult] = await Promise.allSettled([
-    // Last 7 days emotional data
     query(
       `SELECT
         ROUND(AVG(mood_score), 1) AS avg_mood,
@@ -127,7 +268,6 @@ async function compileProfessionalBrief(patientId) {
       WHERE patient_id = $1 AND logged_at >= NOW() - INTERVAL '7 days'`,
       [patientId]
     ),
-    // Active medications
     query(
       `SELECT pm.id, m.name AS medication_name, pm.dosage, pm.frequency, pm.status
        FROM patient_medications pm
@@ -135,7 +275,6 @@ async function compileProfessionalBrief(patientId) {
        WHERE pm.patient_id = $1 AND pm.status = 'active'`,
       [patientId]
     ),
-    // Active alerts
     query(
       `SELECT id, alert_type, title, severity, created_at
        FROM alerts
@@ -143,7 +282,6 @@ async function compileProfessionalBrief(patientId) {
        ORDER BY CASE severity WHEN 'critical' THEN 0 WHEN 'high' THEN 1 WHEN 'medium' THEN 2 ELSE 3 END`,
       [patientId]
     ),
-    // Active goals
     query(
       `SELECT id, title, status, target_date FROM goals
        WHERE patient_id = $1 AND status = 'in_progress'
@@ -174,7 +312,4 @@ async function compileProfessionalBrief(patientId) {
   };
 }
 
-module.exports = {
-  generatePatientSummary,
-  compileProfessionalBrief,
-};
+module.exports = { generatePatientSummary, compileProfessionalBrief };
