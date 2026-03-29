@@ -3,7 +3,7 @@ import { useState, useEffect } from 'react';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3005/api';
 
-export function usePushNotifications(token: string | null) {
+export function usePushNotifications() {
   const [permission, setPermission] = useState<NotificationPermission>('default');
   const [subscribed, setSubscribed] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -18,10 +18,10 @@ export function usePushNotifications(token: string | null) {
         .then(sub => { if (sub) setSubscribed(true); })
         .catch(() => {});
     }
-  }, [token]);
+  }, []);
 
   async function subscribe() {
-    if (!('serviceWorker' in navigator) || !token) return;
+    if (!('serviceWorker' in navigator)) return;
     setLoading(true);
 
     try {
@@ -51,7 +51,8 @@ export function usePushNotifications(token: string | null) {
         // Already subscribed — just save to backend in case it wasn't saved
         await fetch(`${API_URL}/push/subscribe`, {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+          headers: { 'Content-Type': 'application/json' },
+          credentials: 'include',
           body: JSON.stringify({ subscription: existing }),
         });
         setSubscribed(true);
@@ -66,7 +67,8 @@ export function usePushNotifications(token: string | null) {
 
       await fetch(`${API_URL}/push/subscribe`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
         body: JSON.stringify({ subscription }),
       });
 
@@ -79,11 +81,10 @@ export function usePushNotifications(token: string | null) {
   }
 
   async function unsubscribe() {
-    if (!token) return;
     try {
       await fetch(`${API_URL}/push/unsubscribe`, {
         method: 'DELETE',
-        headers: { Authorization: `Bearer ${token}` },
+        credentials: 'include',
       });
       setSubscribed(false);
     } catch (err) {

@@ -16,7 +16,6 @@ import {
   invitationsApi,
   isAuthenticated,
   getUserRoleFromToken,
-  getToken,
 } from '@/lib/api';
 import type { Patient, PatientListItem, AuthUser, Invitation } from '@/lib/api';
 
@@ -317,7 +316,6 @@ export default function PatientsPage() {
         <OnboardingWizard
           userName={user.first_name}
           onComplete={() => setShowOnboarding(false)}
-          token={getToken() || ''}
           apiUrl={process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3005/api'}
         />
       )}

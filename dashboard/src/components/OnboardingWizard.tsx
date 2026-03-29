@@ -5,11 +5,10 @@ import { ChevronRight, User, UserPlus, CheckCircle } from 'lucide-react';
 interface OnboardingWizardProps {
   userName: string;
   onComplete: () => void;
-  token: string;
   apiUrl: string;
 }
 
-export default function OnboardingWizard({ userName, onComplete, token, apiUrl }: OnboardingWizardProps) {
+export default function OnboardingWizard({ userName, onComplete, apiUrl }: OnboardingWizardProps) {
   const [step, setStep] = useState(1);
   const [inviteDisplayId, setInviteDisplayId] = useState('');
   const [inviteSent, setInviteSent] = useState(false);
@@ -22,7 +21,8 @@ export default function OnboardingWizard({ userName, onComplete, token, apiUrl }
     try {
       await fetch(`${apiUrl}/invitations`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
         body: JSON.stringify({ display_id: inviteDisplayId }),
       });
     } catch {
@@ -36,7 +36,7 @@ export default function OnboardingWizard({ userName, onComplete, token, apiUrl }
     try {
       await fetch(`${apiUrl}/auth/onboarding/complete`, {
         method: 'POST',
-        headers: { Authorization: `Bearer ${token}` },
+        credentials: 'include',
       });
       onComplete();
     } catch {
