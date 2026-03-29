@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { formatDistanceToNow } from 'date-fns';
+import { useTranslations } from 'next-intl';
 import {
   AlertTriangle,
   AlertCircle,
@@ -22,86 +23,6 @@ interface AlertsPanelProps {
   showPatientName?: boolean;
 }
 
-const severityConfig: Record<
-  string,
-  {
-    icon: React.ReactNode;
-    iconSmall: React.ReactNode;
-    badgeClass: string;
-    borderColor: string;
-    glowShadow: string;
-    cardGradient: string;
-    summaryGradient: string;
-    summaryBorder: string;
-    summaryIconBg: string;
-    counterColor: string;
-    pillActive: string;
-    pillText: string;
-    label: string;
-  }
-> = {
-  critical: {
-    icon: <AlertTriangle size={20} />,
-    iconSmall: <AlertTriangle size={14} />,
-    badgeClass: 'badge-red',
-    borderColor: 'border-l-red-500',
-    glowShadow: 'shadow-glow-red',
-    cardGradient: 'bg-gradient-to-r from-red-50/40 to-transparent',
-    summaryGradient: 'bg-gradient-to-br from-red-50 via-red-100/60 to-white/50',
-    summaryBorder: 'border-red-200/50 hover:border-red-300/60',
-    summaryIconBg: 'bg-red-100/80 text-red-500',
-    counterColor: 'text-red-600',
-    pillActive: 'bg-gradient-to-r from-red-500 to-red-400 text-white shadow-md',
-    pillText: 'text-red-600',
-    label: 'Critico',
-  },
-  high: {
-    icon: <AlertCircle size={20} />,
-    iconSmall: <AlertCircle size={14} />,
-    badgeClass: 'badge-orange',
-    borderColor: 'border-l-orange-500',
-    glowShadow: 'shadow-glow-orange',
-    cardGradient: 'bg-gradient-to-r from-orange-50/30 to-transparent',
-    summaryGradient: 'bg-gradient-to-br from-orange-50 via-orange-100/60 to-white/50',
-    summaryBorder: 'border-orange-200/50 hover:border-orange-300/60',
-    summaryIconBg: 'bg-orange-100/80 text-orange-500',
-    counterColor: 'text-orange-600',
-    pillActive: 'bg-gradient-to-r from-orange-500 to-orange-400 text-white shadow-md',
-    pillText: 'text-orange-600',
-    label: 'Alto',
-  },
-  medium: {
-    icon: <Bell size={20} />,
-    iconSmall: <Bell size={14} />,
-    badgeClass: 'badge-yellow',
-    borderColor: 'border-l-yellow-500',
-    glowShadow: 'shadow-glow-yellow',
-    cardGradient: 'bg-gradient-to-r from-yellow-50/30 to-transparent',
-    summaryGradient: 'bg-gradient-to-br from-yellow-50 via-yellow-100/60 to-white/50',
-    summaryBorder: 'border-yellow-200/50 hover:border-yellow-300/60',
-    summaryIconBg: 'bg-yellow-100/80 text-yellow-600',
-    counterColor: 'text-yellow-600',
-    pillActive: 'bg-gradient-to-r from-yellow-500 to-yellow-400 text-white shadow-md',
-    pillText: 'text-yellow-600',
-    label: 'Medio',
-  },
-  low: {
-    icon: <Info size={20} />,
-    iconSmall: <Info size={14} />,
-    badgeClass: 'badge-blue',
-    borderColor: 'border-l-clarita-blue-400',
-    glowShadow: 'shadow-glow-blue',
-    cardGradient: 'bg-gradient-to-r from-clarita-blue-50/30 to-transparent',
-    summaryGradient: 'bg-gradient-to-br from-clarita-blue-50 via-clarita-blue-100/60 to-white/50',
-    summaryBorder: 'border-clarita-blue-200/50 hover:border-clarita-blue-300/60',
-    summaryIconBg: 'bg-clarita-blue-100/80 text-clarita-blue-500',
-    counterColor: 'text-clarita-blue-500',
-    pillActive: 'bg-gradient-to-r from-clarita-blue-500 to-clarita-blue-400 text-white shadow-md',
-    pillText: 'text-clarita-blue-500',
-    label: 'Baixo',
-  },
-};
-
 type SeverityKey = 'critical' | 'high' | 'medium' | 'low';
 type FilterKey = 'all' | SeverityKey;
 
@@ -111,8 +32,79 @@ export default function AlertsPanel({
   onResolve,
   showPatientName = true,
 }: AlertsPanelProps) {
+  const t = useTranslations('alerts');
   const [acknowledging, setAcknowledging] = useState<string | null>(null);
   const [activeFilter, setActiveFilter] = useState<FilterKey>('all');
+
+  const severityConfig: Record<
+    string,
+    {
+      icon: React.ReactNode;
+      iconSmall: React.ReactNode;
+      badgeClass: string;
+      borderColor: string;
+      glowShadow: string;
+      cardGradient: string;
+      summaryGradient: string;
+      summaryBorder: string;
+      summaryIconBg: string;
+      counterColor: string;
+      label: string;
+    }
+  > = {
+    critical: {
+      icon: <AlertTriangle size={20} />,
+      iconSmall: <AlertTriangle size={14} />,
+      badgeClass: 'badge-red',
+      borderColor: 'border-l-red-500',
+      glowShadow: 'shadow-glow-red',
+      cardGradient: 'bg-gradient-to-r from-red-50/40 to-transparent',
+      summaryGradient: 'bg-gradient-to-br from-red-50 via-red-100/60 to-white/50',
+      summaryBorder: 'border-red-200/50 hover:border-red-300/60',
+      summaryIconBg: 'bg-red-100/80 text-red-500',
+      counterColor: 'text-red-600',
+      label: t('severity_critical'),
+    },
+    high: {
+      icon: <AlertCircle size={20} />,
+      iconSmall: <AlertCircle size={14} />,
+      badgeClass: 'badge-orange',
+      borderColor: 'border-l-orange-500',
+      glowShadow: 'shadow-glow-orange',
+      cardGradient: 'bg-gradient-to-r from-orange-50/30 to-transparent',
+      summaryGradient: 'bg-gradient-to-br from-orange-50 via-orange-100/60 to-white/50',
+      summaryBorder: 'border-orange-200/50 hover:border-orange-300/60',
+      summaryIconBg: 'bg-orange-100/80 text-orange-500',
+      counterColor: 'text-orange-600',
+      label: t('severity_high'),
+    },
+    medium: {
+      icon: <Bell size={20} />,
+      iconSmall: <Bell size={14} />,
+      badgeClass: 'badge-yellow',
+      borderColor: 'border-l-yellow-500',
+      glowShadow: 'shadow-glow-yellow',
+      cardGradient: 'bg-gradient-to-r from-yellow-50/30 to-transparent',
+      summaryGradient: 'bg-gradient-to-br from-yellow-50 via-yellow-100/60 to-white/50',
+      summaryBorder: 'border-yellow-200/50 hover:border-yellow-300/60',
+      summaryIconBg: 'bg-yellow-100/80 text-yellow-600',
+      counterColor: 'text-yellow-600',
+      label: t('severity_medium'),
+    },
+    low: {
+      icon: <Info size={20} />,
+      iconSmall: <Info size={14} />,
+      badgeClass: 'badge-blue',
+      borderColor: 'border-l-clarita-blue-400',
+      glowShadow: 'shadow-glow-blue',
+      cardGradient: 'bg-gradient-to-r from-clarita-blue-50/30 to-transparent',
+      summaryGradient: 'bg-gradient-to-br from-clarita-blue-50 via-clarita-blue-100/60 to-white/50',
+      summaryBorder: 'border-clarita-blue-200/50 hover:border-clarita-blue-300/60',
+      summaryIconBg: 'bg-clarita-blue-100/80 text-clarita-blue-500',
+      counterColor: 'text-clarita-blue-500',
+      label: t('severity_low'),
+    },
+  };
 
   const handleAcknowledge = async (alertId: string) => {
     setAcknowledging(alertId);
@@ -144,11 +136,11 @@ export default function AlertsPanel({
         : [];
 
   const filterOptions: { key: FilterKey; label: string }[] = [
-    { key: 'all', label: 'Todos' },
-    { key: 'critical', label: 'Critico' },
-    { key: 'high', label: 'Alto' },
-    { key: 'medium', label: 'Medio' },
-    { key: 'low', label: 'Baixo' },
+    { key: 'all', label: t('filter_all') },
+    { key: 'critical', label: t('severity_critical') },
+    { key: 'high', label: t('severity_high') },
+    { key: 'medium', label: t('severity_medium') },
+    { key: 'low', label: t('severity_low') },
   ];
 
   return (
@@ -164,7 +156,7 @@ export default function AlertsPanel({
             }`}
         >
           <Filter size={11} />
-          Todos
+          {t('filter_all')}
         </button>
         {(['critical', 'high', 'medium', 'low'] as const).map((severity) => {
           const config = severityConfig[severity];
@@ -251,14 +243,14 @@ export default function AlertsPanel({
                       </div>
                     </div>
 
-                    {/* Acknowledge button — gradient with check icon */}
+                    {/* Acknowledge button */}
                     <button
                       onClick={() => handleAcknowledge(alert.id)}
                       disabled={acknowledging === alert.id}
                       className="btn-primary text-xs flex-shrink-0 flex items-center gap-1.5 py-2.5 px-5 rounded-2xl"
                     >
                       <CheckCircle size={14} />
-                      {acknowledging === alert.id ? '...' : 'Reconhecer'}
+                      {acknowledging === alert.id ? '...' : t('acknowledge')}
                     </button>
                   </div>
                 </div>
@@ -274,9 +266,9 @@ export default function AlertsPanel({
           <div className="inline-flex items-center justify-center w-16 h-16 rounded-3xl bg-clarita-green-100/60 mb-4">
             <CheckCircle size={32} className="text-clarita-green-400" />
           </div>
-          <p className="text-sm font-medium text-gray-600">Nenhum alerta ativo</p>
+          <p className="text-sm font-medium text-gray-600">{t('no_alerts_active')}</p>
           <p className="text-xs text-gray-500 mt-1">
-            Todos os pacientes estao dentro dos parametros normais
+            {t('all_params_normal')}
           </p>
         </div>
       )}
@@ -287,14 +279,13 @@ export default function AlertsPanel({
             <Filter size={20} className="text-gray-400" />
           </div>
           <p className="text-sm text-gray-500">
-            Nenhum alerta com severidade &ldquo;
-            {filterOptions.find((f) => f.key === activeFilter)?.label}&rdquo;
+            {t('filter_no_match', { label: filterOptions.find((f) => f.key === activeFilter)?.label ?? '' })}
           </p>
           <button
             onClick={() => setActiveFilter('all')}
             className="mt-3 text-xs font-medium text-clarita-purple-500 hover:text-clarita-purple-600 transition-colors"
           >
-            Mostrar todos os alertas
+            {t('show_all')}
           </button>
         </div>
       )}
@@ -304,7 +295,7 @@ export default function AlertsPanel({
         <div className="animate-fade-in">
           <h4 className="text-sm font-medium text-gray-500 mb-3 flex items-center gap-2">
             <ShieldCheck size={16} className="text-clarita-green-400" />
-            Reconhecidos Recentemente ({acknowledgedAlerts.length})
+            {t('acknowledged_recently', { count: acknowledgedAlerts.length })}
           </h4>
           <div className="space-y-2">
             {acknowledgedAlerts.slice(0, 5).map((alert) => (
@@ -323,7 +314,7 @@ export default function AlertsPanel({
                     )}
                   </div>
                   <span className="text-xs text-gray-500">
-                    {alert.acknowledged_by && `por ${alert.acknowledged_by}`}
+                    {alert.acknowledged_by && t('acknowledged_by', { name: alert.acknowledged_by })}
                   </span>
                 </div>
               </div>

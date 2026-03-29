@@ -1,9 +1,10 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
 import { Loader2, RefreshCw, Bell, ShieldAlert } from 'lucide-react';
+import { useTranslations } from 'next-intl';
 import Sidebar from '@/components/Sidebar';
+
 import AlertsPanel from '@/components/AlertsPanel';
 import { alertsApi, isAuthenticated } from '@/lib/api';
 import type { Alert } from '@/lib/api';
@@ -110,7 +111,8 @@ const mockAlerts: Alert[] = [
 ];
 
 export default function AlertsPage() {
-  const router = useRouter();
+  const t = useTranslations('alerts');
+  const tPatients = useTranslations('patients');
   const [alerts, setAlerts] = useState<Alert[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -190,9 +192,9 @@ export default function AlertsPage() {
                   <ShieldAlert size={24} className="text-red-500" />
                 </div>
                 <div>
-                  <h1 className="text-2xl font-bold text-gray-800">Alertas</h1>
+                  <h1 className="text-2xl font-bold text-gray-800">{t('title')}</h1>
                   <p className="text-sm text-gray-500 mt-0.5">
-                    Monitore e responda aos alertas de pacientes
+                    {t('monitor_respond')}
                   </p>
                 </div>
               </div>
@@ -201,7 +203,7 @@ export default function AlertsPage() {
                   <div className="flex items-center gap-2 px-4 py-2 rounded-2xl bg-red-50/60 border border-red-200/40">
                     <Bell size={14} className="text-red-500" />
                     <span className="text-sm font-semibold text-red-600">
-                      {activeCount} {activeCount === 1 ? 'ativo' : 'ativos'}
+                      {activeCount} {activeCount === 1 ? t('active_one') : t('active_many')}
                     </span>
                   </div>
                 )}
@@ -211,7 +213,7 @@ export default function AlertsPage() {
                   disabled={loading}
                 >
                   <RefreshCw size={16} className={loading ? 'animate-spin' : ''} />
-                  Atualizar
+                  {tPatients('refresh')}
                 </button>
               </div>
             </div>
@@ -222,7 +224,7 @@ export default function AlertsPage() {
             <div className="bg-white/70 backdrop-blur-xl rounded-3xl border border-white/40 shadow-soft flex items-center justify-center py-24 animate-fade-in">
               <div className="flex flex-col items-center gap-3">
                 <Loader2 size={32} className="animate-spin text-clarita-green-400" />
-                <p className="text-sm text-gray-400">Carregando alertas...</p>
+                <p className="text-sm text-gray-400">{t('loading')}</p>
               </div>
             </div>
           ) : (

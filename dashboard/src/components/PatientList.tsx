@@ -2,6 +2,7 @@
 
 import { useState, useMemo } from 'react';
 import Link from 'next/link';
+import { useTranslations } from 'next-intl';
 import {
   Search,
   SortAsc,
@@ -23,13 +24,6 @@ interface PatientListProps {
 
 type SortField = 'name' | 'last_check_in' | 'alerts' | 'score';
 type SortDir = 'asc' | 'desc';
-
-const SORT_LABELS: Record<SortField, string> = {
-  name: 'Nome',
-  last_check_in: 'Último acesso',
-  alerts: 'Alertas',
-  score: 'Pontuação',
-};
 
 function getMoodColor(score: number | null): string {
   if (score === null) return 'border-l-gray-300';
@@ -93,10 +87,18 @@ function MoodSparkline({ data }: { data: number[] }) {
 }
 
 export default function PatientList({ patients }: PatientListProps) {
+  const t = useTranslations('patients');
   const [search, setSearch] = useState('');
   const [sortField, setSortField] = useState<SortField>('name');
   const [sortDir, setSortDir] = useState<SortDir>('asc');
   const [statusFilter, setStatusFilter] = useState<string>('active');
+
+  const SORT_LABELS: Record<SortField, string> = {
+    name: t('sort_name'),
+    last_check_in: t('sort_last_access'),
+    alerts: t('sort_alerts'),
+    score: t('sort_score'),
+  };
 
   const toggleSort = (field: SortField) => {
     if (sortField === field) {
@@ -156,7 +158,7 @@ export default function PatientList({ patients }: PatientListProps) {
           type="text"
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          placeholder="Buscar pacientes por nome, email ou diagnóstico..."
+          placeholder={t('search_placeholder')}
           className="w-full pl-12 pr-4 py-3.5 bg-white/60 backdrop-blur-sm border border-white/30 rounded-2xl
                      text-gray-800 placeholder-gray-400 transition-all duration-300
                      focus:outline-none focus:ring-2 focus:ring-clarita-green-200/70 focus:border-clarita-green-300
@@ -167,7 +169,7 @@ export default function PatientList({ patients }: PatientListProps) {
       {/* Sort Controls & Status Filter */}
       <div className="flex flex-wrap items-center gap-3">
         <div className="flex items-center gap-1.5">
-          <span className="text-xs text-gray-500 mr-1">Ordenar:</span>
+          <span className="text-xs text-gray-500 mr-1">{t('sort_by')}</span>
           {(['name', 'last_check_in', 'alerts', 'score'] as SortField[]).map((field) => {
             const isActive = sortField === field;
             return (
@@ -187,7 +189,7 @@ export default function PatientList({ patients }: PatientListProps) {
                     <span className="relative group/tip">
                       <Info size={11} className="text-gray-400 group-hover/tip:text-clarita-purple-400 transition-colors" />
                       <span className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-52 bg-gray-800 text-white text-[11px] rounded-xl px-3 py-2 shadow-lg opacity-0 group-hover/tip:opacity-100 pointer-events-none transition-opacity duration-200 z-20 leading-relaxed whitespace-normal text-left">
-                        Índice de Clareza Mental — calculado com base nos check-ins de humor, sono, energia e ansiedade do paciente.
+                        {t('sort_score_tooltip')}
                       </span>
                     </span>
                   )}
@@ -211,17 +213,17 @@ export default function PatientList({ patients }: PatientListProps) {
                        text-xs text-gray-600 transition-all duration-300
                        focus:outline-none focus:ring-2 focus:ring-clarita-green-200/70"
           >
-            <option value="all">Todos os status</option>
-            <option value="active">Ativo</option>
-            <option value="inactive">Inativo</option>
-            <option value="discharged">Alta</option>
+            <option value="all">{t('status_all')}</option>
+            <option value="active">{t('status_active')}</option>
+            <option value="inactive">{t('status_inactive')}</option>
+            <option value="discharged">{t('status_discharged')}</option>
           </select>
         </div>
       </div>
 
       {/* Results count */}
       <p className="text-sm text-gray-500">
-        {filtered.length} paciente{filtered.length !== 1 ? 's' : ''}
+        {filtered.length === 1 ? t('count_one', { count: 1 }) : t('count_many', { count: filtered.length })}
       </p>
 
       {/* Patient Cards */}
@@ -282,7 +284,7 @@ export default function PatientList({ patients }: PatientListProps) {
 
                 {/* Mood trend */}
                 <div className="mb-3">
-                  <p className="text-xs text-gray-400 mb-1">Tendência de humor</p>
+                  <p className="text-xs text-gray-400 mb-1">{t('mood_trend')}</p>
                   <MoodSparkline data={patient.mood_trend} />
                 </div>
 
@@ -294,7 +296,7 @@ export default function PatientList({ patients }: PatientListProps) {
                       ? formatDistanceToNow(new Date(patient.last_check_in), {
                           addSuffix: true,
                         })
-                      : 'Sem check-ins'}
+                      : t('no_checkins')}
                   </div>
 
                   {patient.mental_clarity_score !== null && (
@@ -313,12 +315,12 @@ export default function PatientList({ patients }: PatientListProps) {
                       </span>
                       {/* Tooltip */}
                       <div className="absolute bottom-full right-0 mb-2 w-56 bg-gray-800 text-white text-[11px] rounded-xl px-3 py-2 shadow-lg opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity duration-200 z-10 leading-relaxed">
-                        <p className="font-semibold mb-1">Clareza Mental</p>
-                        <p>Índice calculado com base nos check-ins do paciente: humor, sono, energia e ansiedade. Quanto maior, melhor o bem-estar geral.</p>
+                        <p className="font-semibold mb-1">{t('mental_clarity')}</p>
+                        <p>{t('mental_clarity_desc')}</p>
                         <div className="mt-1.5 flex flex-col gap-0.5">
-                          <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-clarita-green-400 inline-block" /> ≥ 70% Bom</span>
-                          <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-yellow-400 inline-block" /> 40–69% Moderado</span>
-                          <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-red-400 inline-block" /> &lt; 40% Atenção</span>
+                          <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-clarita-green-400 inline-block" /> {t('score_good')}</span>
+                          <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-yellow-400 inline-block" /> {t('score_moderate')}</span>
+                          <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-red-400 inline-block" /> {t('score_attention')}</span>
                         </div>
                       </div>
                     </div>
@@ -333,7 +335,11 @@ export default function PatientList({ patients }: PatientListProps) {
                           : 'bg-clarita-blue-100 text-clarita-blue-500'
                     }`}
                   >
-                    {patient.status}
+                    {patient.status === 'active'
+                      ? t('status_active')
+                      : patient.status === 'inactive'
+                        ? t('status_inactive')
+                        : t('status_discharged')}
                   </span>
                 </div>
               </div>
@@ -348,13 +354,13 @@ export default function PatientList({ patients }: PatientListProps) {
           <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-white/60 backdrop-blur-sm border border-white/30 mb-4">
             <Users size={28} className="text-gray-400" />
           </div>
-          <p className="text-gray-500 font-medium mb-1">Nenhum paciente encontrado</p>
+          <p className="text-gray-500 font-medium mb-1">{t('no_patients')}</p>
           <p className="text-gray-400 text-sm">
-            {search ? 'Tente ajustar os termos da busca' : 'Convide pacientes para começar'}
+            {search ? t('adjust_search') : t('invite_to_start')}
           </p>
           {search && (
             <button onClick={() => setSearch('')} className="btn-ghost text-xs mt-3">
-              Limpar busca
+              {t('clear_search')}
             </button>
           )}
         </div>

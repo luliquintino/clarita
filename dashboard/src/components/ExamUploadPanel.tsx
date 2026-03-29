@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback, useRef } from 'react';
+import { useTranslations } from 'next-intl';
 import {
   Upload,
   FileText,
@@ -44,6 +45,7 @@ function formatDate(dateStr: string): string {
 }
 
 export default function ExamUploadPanel() {
+  const t = useTranslations('exams');
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [exams, setExams] = useState<Exam[]>([]);
   const [professionals, setProfessionals] = useState<ProfessionalInfo[]>([]);
@@ -75,11 +77,11 @@ export default function ExamUploadPanel() {
       setExams(examsRes.exams);
       setProfessionals(profsRes.professionals);
     } catch {
-      setError('Erro ao carregar dados.');
+      setError(t('error_load'));
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [t]);
 
   useEffect(() => {
     loadData();
@@ -89,7 +91,7 @@ export default function ExamUploadPanel() {
     const file = e.target.files?.[0];
     if (file) {
       if (file.size > 10 * 1024 * 1024) {
-        setError('Arquivo muito grande. Máximo: 10MB.');
+        setError(t('file_too_large'));
         return;
       }
       setSelectedFile(file);
@@ -103,11 +105,11 @@ export default function ExamUploadPanel() {
     if (file) {
       const allowed = ['application/pdf', 'image/jpeg', 'image/png'];
       if (!allowed.includes(file.type)) {
-        setError('Tipo de arquivo não permitido. Use PDF, JPEG ou PNG.');
+        setError(t('file_type_error'));
         return;
       }
       if (file.size > 10 * 1024 * 1024) {
-        setError('Arquivo muito grande. Máximo: 10MB.');
+        setError(t('file_too_large'));
         return;
       }
       setSelectedFile(file);
@@ -117,7 +119,7 @@ export default function ExamUploadPanel() {
 
   const handleUpload = async () => {
     if (!selectedFile || !examType || !examDate) {
-      setError('Preencha todos os campos obrigatórios.');
+      setError(t('required_fields'));
       return;
     }
 
@@ -142,14 +144,14 @@ export default function ExamUploadPanel() {
       setSelectedProfessionals([]);
       if (fileInputRef.current) fileInputRef.current.value = '';
 
-      setSuccess('Exame enviado com sucesso!');
+      setSuccess(t('upload_success'));
       setTimeout(() => setSuccess(null), 3000);
 
       // Reload exams
       const examsRes = await examsApi.getMyExams();
       setExams(examsRes.exams);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Erro ao enviar exame.');
+      setError(err instanceof Error ? err.message : t('error_upload'));
     } finally {
       setUploading(false);
     }
@@ -162,7 +164,7 @@ export default function ExamUploadPanel() {
       window.open(url, '_blank');
       setTimeout(() => URL.revokeObjectURL(url), 60000);
     } catch {
-      setError('Erro ao baixar exame.');
+      setError(t('error_download'));
     }
   };
 
@@ -171,10 +173,10 @@ export default function ExamUploadPanel() {
       await examsApi.delete(examId);
       setExams((prev) => prev.filter((e) => e.id !== examId));
       setDeletingId(null);
-      setSuccess('Exame removido.');
+      setSuccess(t('remove_success'));
       setTimeout(() => setSuccess(null), 3000);
     } catch {
-      setError('Erro ao remover exame.');
+      setError(t('error_delete'));
     }
   };
 
@@ -194,7 +196,7 @@ export default function ExamUploadPanel() {
         prev.map((e) => (e.id === examId ? { ...e, permissions: res.permissions } : e))
       );
     } catch {
-      setError('Erro ao atualizar permissões.');
+      setError(t('error_permissions'));
     }
   };
 
@@ -217,7 +219,7 @@ export default function ExamUploadPanel() {
       <div className="card section-green">
         <div className="flex items-center gap-2 mb-4">
           <Upload className="w-5 h-5 text-clarita-green-500" />
-          <h3 className="section-title mb-0">Enviar Exame</h3>
+          <h3 className="section-title mb-0">{t('send_exam')}</h3>
         </div>
 
         {/* Messages */}
@@ -277,8 +279,8 @@ export default function ExamUploadPanel() {
           ) : (
             <div>
               <Upload className="w-8 h-8 mx-auto mb-2 text-gray-400" />
-              <p className="text-sm text-gray-600">Arraste um arquivo ou clique para selecionar</p>
-              <p className="text-xs text-gray-400 mt-1">PDF, JPEG ou PNG (máx. 10MB)</p>
+              <p className="text-sm text-gray-600">{t('drag_or_click')}</p>
+              <p className="text-xs text-gray-400 mt-1">{t('max_size')}</p>
             </div>
           )}
         </div>
@@ -286,28 +288,28 @@ export default function ExamUploadPanel() {
         {/* Form Fields */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Tipo de Exame *</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">{t('exam_type_label')}</label>
             <select
               value={examType}
               onChange={(e) => setExamType(e.target.value)}
               className="input-field"
             >
               <option value="">Selecione...</option>
-              {EXAM_TYPES.map((t) => (
-                <option key={t} value={t}>
-                  {t}
+              {EXAM_TYPES.map((tp) => (
+                <option key={tp} value={tp}>
+                  {tp}
                 </option>
               ))}
             </select>
             {examType === 'Laudo' && (
               <p className="text-xs text-amber-600 bg-amber-50 rounded-lg px-3 py-2 flex items-center gap-1.5">
                 <span>🔒</span>
-                Laudos são visíveis apenas para seus profissionais de saúde, não para você.
+                {t('laudo_warning')}
               </p>
             )}
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Data do Exame *</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">{t('exam_date_label')}</label>
             <input
               type="date"
               value={examDate}
@@ -318,11 +320,11 @@ export default function ExamUploadPanel() {
         </div>
 
         <div className="mb-4">
-          <label className="block text-sm font-medium text-gray-700 mb-1">Observações</label>
+          <label className="block text-sm font-medium text-gray-700 mb-1">{t('notes_label')}</label>
           <textarea
             value={notes}
             onChange={(e) => setNotes(e.target.value)}
-            placeholder="Notas adicionais sobre este exame..."
+            placeholder={t('notes_placeholder')}
             rows={2}
             className="input-field"
           />
@@ -331,7 +333,7 @@ export default function ExamUploadPanel() {
         {/* Professional Permissions */}
         {professionals.length > 0 && (
           <div className="mb-4">
-            <label className="block text-sm font-medium text-gray-700 mb-2">Compartilhar com</label>
+            <label className="block text-sm font-medium text-gray-700 mb-2">{t('share_with')}</label>
             <div className="space-y-2">
               {professionals.map((prof) => (
                 <label
@@ -366,7 +368,7 @@ export default function ExamUploadPanel() {
                         {prof.first_name} {prof.last_name}
                       </span>
                       <span className="text-xs text-gray-500 ml-2">
-                        {prof.role === 'psychiatrist' ? 'Psiquiatra' : 'Psicólogo(a)'}
+                        {prof.role === 'psychiatrist' ? t('role_psychiatrist') : t('role_psychologist')}
                       </span>
                     </div>
                   </div>
@@ -384,11 +386,11 @@ export default function ExamUploadPanel() {
         >
           {uploading ? (
             <>
-              <Loader2 className="w-4 h-4 animate-spin" /> Enviando...
+              <Loader2 className="w-4 h-4 animate-spin" /> {t('sending')}
             </>
           ) : (
             <>
-              <Upload className="w-4 h-4" /> Enviar Exame
+              <Upload className="w-4 h-4" /> {t('send_exam')}
             </>
           )}
         </button>
@@ -398,16 +400,16 @@ export default function ExamUploadPanel() {
       <div className="card section-blue">
         <div className="flex items-center gap-2 mb-4">
           <ClipboardList className="w-5 h-5 text-clarita-blue-400" />
-          <h3 className="section-title mb-0">Meus Exames</h3>
+          <h3 className="section-title mb-0">{t('my_exams')}</h3>
           <span className="badge badge-blue ml-auto">{exams.length}</span>
         </div>
 
         {exams.length === 0 ? (
           <div className="text-center py-8">
             <FileText className="w-10 h-10 mx-auto mb-3 text-gray-300" />
-            <p className="text-sm text-gray-500">Nenhum exame enviado ainda.</p>
+            <p className="text-sm text-gray-500">{t('no_exams_yet')}</p>
             <p className="text-xs text-gray-400 mt-1">
-              Use o formulário acima para enviar seu primeiro exame.
+              {t('no_exams_hint')}
             </p>
           </div>
         ) : (
@@ -431,14 +433,14 @@ export default function ExamUploadPanel() {
                     <button
                       onClick={() => handleDownload(exam)}
                       className="p-2 rounded-lg hover:bg-clarita-blue-50 text-clarita-blue-400 transition-colors"
-                      title="Baixar"
+                      title={t('download')}
                     >
                       <Download className="w-4 h-4" />
                     </button>
                     <button
                       onClick={() => setExpandedExam(expandedExam === exam.id ? null : exam.id)}
                       className="p-2 rounded-lg hover:bg-gray-100 text-gray-400 transition-colors"
-                      title="Detalhes"
+                      title={t('details')}
                     >
                       {expandedExam === exam.id ? (
                         <ChevronUp className="w-4 h-4" />
@@ -451,14 +453,14 @@ export default function ExamUploadPanel() {
                         <button
                           onClick={() => handleDelete(exam.id)}
                           className="p-2 rounded-lg bg-red-50 text-red-500 hover:bg-red-100 transition-colors"
-                          title="Confirmar"
+                          title={t('confirm_delete')}
                         >
                           <Check className="w-4 h-4" />
                         </button>
                         <button
                           onClick={() => setDeletingId(null)}
                           className="p-2 rounded-lg hover:bg-gray-100 text-gray-400 transition-colors"
-                          title="Cancelar"
+                          title={t('cancel_delete')}
                         >
                           <X className="w-4 h-4" />
                         </button>
@@ -467,7 +469,7 @@ export default function ExamUploadPanel() {
                       <button
                         onClick={() => setDeletingId(exam.id)}
                         className="p-2 rounded-lg hover:bg-red-50 text-gray-400 hover:text-red-500 transition-colors"
-                        title="Remover"
+                        title={t('remove')}
                       >
                         <Trash2 className="w-4 h-4" />
                       </button>
@@ -480,13 +482,13 @@ export default function ExamUploadPanel() {
                   <div className="border-t border-gray-100 p-3 bg-white/40 animate-fade-in">
                     {exam.notes && (
                       <p className="text-sm text-gray-600 mb-3">
-                        <span className="font-medium">Notas:</span> {exam.notes}
+                        <span className="font-medium">{t('shared_notes')}</span> {exam.notes}
                       </p>
                     )}
                     <div>
-                      <p className="text-xs font-medium text-gray-500 mb-2">Compartilhado com:</p>
+                      <p className="text-xs font-medium text-gray-500 mb-2">{t('shared_with')}</p>
                       {professionals.length === 0 ? (
-                        <p className="text-xs text-gray-400">Nenhum profissional vinculado.</p>
+                        <p className="text-xs text-gray-400">{t('no_professional')}</p>
                       ) : (
                         <div className="space-y-1.5">
                           {professionals.map((prof) => {
@@ -510,7 +512,7 @@ export default function ExamUploadPanel() {
                                   {prof.first_name} {prof.last_name}
                                 </span>
                                 <span className="text-xs text-gray-400">
-                                  {prof.role === 'psychiatrist' ? 'Psiquiatra' : 'Psicólogo(a)'}
+                                  {prof.role === 'psychiatrist' ? t('role_psychiatrist') : t('role_psychologist')}
                                 </span>
                               </label>
                             );

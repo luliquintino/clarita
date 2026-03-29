@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { Loader2, RefreshCw, UserPlus } from 'lucide-react';
+import { useTranslations } from 'next-intl';
 import Sidebar from '@/components/Sidebar';
 import PatientList from '@/components/PatientList';
 import DisplayIdBadge from '@/components/DisplayIdBadge';
@@ -133,6 +134,7 @@ const mockPatients: Patient[] = [
 
 export default function PatientsPage() {
   const router = useRouter();
+  const t = useTranslations('patients');
   const [user, setUser] = useState<AuthUser | null>(null);
   const [patients, setPatients] = useState<Patient[]>([]);
   const [alertCount, setAlertCount] = useState(0);
@@ -255,21 +257,21 @@ export default function PatientsPage() {
             <div className="flex items-center justify-between">
               <div>
                 <div className="flex items-center gap-3 flex-wrap">
-                  <h1 className="text-2xl font-bold text-gray-800">Pacientes</h1>
+                  <h1 className="text-2xl font-bold text-gray-800">{t('title')}</h1>
                   {user?.display_id && (
                     <DisplayIdBadge displayId={user.display_id} label="Seu ID:" size="sm" />
                   )}
                 </div>
-                <p className="text-sm text-gray-500 mt-1">Gerencie e monitore seus pacientes</p>
+                <p className="text-sm text-gray-500 mt-1">{t('manage_monitor')}</p>
               </div>
               <div className="flex items-center gap-2">
                 <button onClick={() => setShowInviteDialog(true)} className="btn-primary">
                   <UserPlus size={16} />
-                  Convidar Paciente
+                  {t('invite_patient')}
                 </button>
                 <button onClick={loadData} className="btn-secondary" disabled={loading}>
                   <RefreshCw size={16} className={loading ? 'animate-spin' : ''} />
-                  Atualizar
+                  {t('refresh')}
                 </button>
               </div>
             </div>
@@ -294,7 +296,7 @@ export default function PatientsPage() {
             <div className="card text-center py-12">
               <p className="text-red-500 mb-4">{error}</p>
               <button onClick={loadData} className="btn-primary">
-                Tentar novamente
+                {t('retry')}
               </button>
             </div>
           ) : (

@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
+import { useTranslations } from 'next-intl';
 import {
   UserCheck,
   UserX,
@@ -27,6 +28,7 @@ export default function PendingInvitations({
   onUpdate,
   currentUserId,
 }: PendingInvitationsProps) {
+  const t = useTranslations('invitations');
   const [responding, setResponding] = useState<string | null>(null);
   const [cancelling, setCancelling] = useState<string | null>(null);
   const [showSent, setShowSent] = useState(false);
@@ -58,11 +60,11 @@ export default function PendingInvitations({
   const roleLabel = (role: string) => {
     switch (role) {
       case 'psychologist':
-        return 'Psic\u00f3logo(a)';
+        return t('role_psychologist');
       case 'psychiatrist':
-        return 'Psiquiatra';
+        return t('role_psychiatrist');
       case 'patient':
-        return 'Paciente';
+        return t('role_patient');
       default:
         return role;
     }
@@ -75,10 +77,10 @@ export default function PendingInvitations({
     const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
     const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
 
-    if (diffHours < 1) return 'agora mesmo';
-    if (diffHours < 24) return `h\u00e1 ${diffHours}h`;
-    if (diffDays === 1) return 'ontem';
-    if (diffDays < 7) return `h\u00e1 ${diffDays} dias`;
+    if (diffHours < 1) return t('just_now');
+    if (diffHours < 24) return t('hours_ago', { hours: diffHours });
+    if (diffDays === 1) return t('yesterday');
+    if (diffDays < 7) return t('days_ago', { days: diffDays });
     return date.toLocaleDateString('pt-BR', { day: '2-digit', month: 'short' });
   };
 
@@ -86,14 +88,14 @@ export default function PendingInvitations({
 
   return (
     <div className="space-y-4">
-      {/* Received Invitations -- green-themed glassmorphism card */}
+      {/* Received Invitations */}
       {received.length > 0 && (
         <div className="bg-white/70 backdrop-blur-xl rounded-3xl shadow-2xl border border-white/40 p-5 border-l-4 border-l-clarita-green-400 animate-fade-in">
           <div className="flex items-center gap-2.5 mb-4">
             <div className="w-8 h-8 bg-gradient-to-br from-clarita-green-100 to-clarita-green-50 rounded-xl flex items-center justify-center">
               <Mail size={16} className="text-clarita-green-600" />
             </div>
-            <h3 className="text-sm font-semibold text-gray-800">Convites Recebidos</h3>
+            <h3 className="text-sm font-semibold text-gray-800">{t('received_title')}</h3>
             <span className="badge-green">{received.length}</span>
           </div>
 
@@ -120,8 +122,8 @@ export default function PendingInvitations({
                     </p>
                     <p className="text-xs text-gray-500">
                       {roleLabel(inv.other_role)}
-                      {inv.specialization && ` \u00b7 ${inv.specialization}`}
-                      {' \u00b7 '}
+                      {inv.specialization && ` · ${inv.specialization}`}
+                      {' · '}
                       <span className="font-mono">{inv.other_display_id}</span>
                     </p>
                     {inv.invitation_message && (
@@ -148,7 +150,7 @@ export default function PendingInvitations({
                         ) : (
                           <UserCheck size={14} />
                         )}
-                        Aceitar
+                        {t('accept')}
                       </button>
                       <button
                         onClick={() => handleRespond(inv.id, 'reject')}
@@ -156,7 +158,7 @@ export default function PendingInvitations({
                         className="btn-secondary text-xs px-3 py-1.5"
                       >
                         <UserX size={14} />
-                        Recusar
+                        {t('reject')}
                       </button>
                     </div>
                   )}
@@ -167,7 +169,7 @@ export default function PendingInvitations({
         </div>
       )}
 
-      {/* Sent Invitations -- orange-themed glassmorphism card */}
+      {/* Sent Invitations */}
       {sent.length > 0 && (
         <div className="bg-white/70 backdrop-blur-xl rounded-3xl shadow-2xl border border-white/40 p-5 border-l-4 border-l-orange-400 animate-fade-in">
           <button
@@ -177,7 +179,7 @@ export default function PendingInvitations({
             <div className="w-8 h-8 bg-gradient-to-br from-orange-100 to-orange-50 rounded-xl flex items-center justify-center">
               <Send size={14} className="text-orange-500" />
             </div>
-            <span className="text-sm font-semibold text-gray-800 flex-1">Convites Enviados</span>
+            <span className="text-sm font-semibold text-gray-800 flex-1">{t('sent_title')}</span>
             <span className="badge-orange mr-2">{sent.length}</span>
             {showSent ? (
               <ChevronUp size={16} className="text-gray-400" />
@@ -205,9 +207,9 @@ export default function PendingInvitations({
                     </p>
                     <p className="text-xs text-gray-400">
                       {roleLabel(inv.other_role)}
-                      {' \u00b7 '}
-                      <span className="text-orange-500 font-medium">Aguardando resposta</span>
-                      {' \u00b7 '}
+                      {' · '}
+                      <span className="text-orange-500 font-medium">{t('waiting_response')}</span>
+                      {' · '}
                       {formatDate(inv.created_at)}
                     </p>
                   </div>
@@ -215,7 +217,7 @@ export default function PendingInvitations({
                     onClick={() => handleCancel(inv.id)}
                     disabled={cancelling === inv.id}
                     className="p-2 rounded-xl hover:bg-red-50 text-gray-400 hover:text-red-500 transition-colors border border-transparent hover:border-red-200/50"
-                    title="Cancelar convite"
+                    title={t('cancel_invite')}
                   >
                     {cancelling === inv.id ? (
                       <Loader2 size={14} className="animate-spin" />

@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import { useTranslations } from 'next-intl';
 import {
   User,
   Mail,
@@ -38,12 +39,6 @@ interface UserData {
   created_at: string;
 }
 
-const ROLE_LABELS: Record<string, string> = {
-  psychologist: 'Psicóloga(o)',
-  psychiatrist: 'Psiquiatra',
-  patient: 'Paciente',
-};
-
 const ROLE_COLORS: Record<string, string> = {
   psychologist: 'from-clarita-green-100 to-clarita-green-50 text-clarita-green-700',
   psychiatrist: 'from-clarita-blue-100 to-clarita-blue-50 text-clarita-blue-700',
@@ -55,6 +50,8 @@ const INPUT_CLASS =
 
 export default function ProfilePage() {
   const router = useRouter();
+  const t = useTranslations('profile');
+  const tAuth = useTranslations('auth');
   const [user, setUser] = useState<UserData | null>(null);
   const [profile, setProfile] = useState<Profile | null>(null);
   const [loading, setLoading] = useState(true);
@@ -117,7 +114,7 @@ export default function ProfilePage() {
       const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/me/export`, {
         credentials: 'include',
       });
-      if (!res.ok) throw new Error('Falha ao exportar');
+      if (!res.ok) throw new Error('export_failed');
       const blob = await res.blob();
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
@@ -128,7 +125,7 @@ export default function ProfilePage() {
       document.body.removeChild(a);
       setTimeout(() => URL.revokeObjectURL(url), 100);
     } catch {
-      alert('Erro ao exportar dados.');
+      alert(t('export_error'));
     }
   };
 
@@ -142,10 +139,10 @@ export default function ProfilePage() {
         clearUserInfo();
         router.push('/login');
       } else {
-        alert('Erro ao excluir conta. Tente novamente.');
+        alert(t('delete_error'));
       }
     } catch {
-      alert('Erro ao excluir conta. Tente novamente.');
+      alert(t('delete_error'));
     }
   };
 
@@ -197,11 +194,18 @@ export default function ProfilePage() {
       await loadProfile();
       setEditingSection(null);
     } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : 'Erro ao salvar';
+      const message = err instanceof Error ? err.message : t('save_error');
       setSaveError(message);
     } finally {
       setSaving(false);
     }
+  };
+
+  const getRoleLabel = (role: string) => {
+    if (role === 'psychologist') return tAuth('role_psychologist');
+    if (role === 'psychiatrist') return tAuth('role_psychiatrist');
+    if (role === 'patient') return tAuth('role_patient');
+    return role;
   };
 
   const initials = user
@@ -250,7 +254,7 @@ export default function ProfilePage() {
                           hover:border-red-200/50"
                       >
                         <LogOut size={15} />
-                        Sair
+                        {t('logout')}
                       </button>
                     </div>
                     <p className="text-sm text-gray-500 mt-0.5">{user.email}</p>
@@ -260,7 +264,7 @@ export default function ProfilePage() {
                           bg-gradient-to-r ${ROLE_COLORS[user.role] ?? 'from-gray-100 to-gray-50 text-gray-600'}`}
                       >
                         <Stethoscope size={12} />
-                        {ROLE_LABELS[user.role] ?? user.role}
+                        {getRoleLabel(user.role)}
                       </span>
                     </div>
                   </div>
@@ -271,7 +275,7 @@ export default function ProfilePage() {
               <div className="bg-white/70 backdrop-blur-xl rounded-3xl shadow-2xl border border-white/40 p-6">
                 <div className="flex items-center justify-between mb-4">
                   <h2 className="text-sm font-semibold text-gray-500 uppercase tracking-wider">
-                    Informações da conta
+                    {t('account_info')}
                   </h2>
                   {editingSection !== 'account' && (
                     <button
@@ -279,7 +283,7 @@ export default function ProfilePage() {
                       className="btn-ghost text-sm flex items-center gap-1.5 text-gray-500 hover:text-gray-700"
                     >
                       <Pencil size={14} />
-                      Editar
+                      {t('edit')}
                     </button>
                   )}
                 </div>
@@ -288,39 +292,39 @@ export default function ProfilePage() {
                   <div className="space-y-4">
                     <div className="grid grid-cols-2 gap-3">
                       <div>
-                        <label className="text-xs text-gray-400 mb-1 block">Nome</label>
+                        <label className="text-xs text-gray-400 mb-1 block">{t('first_name')}</label>
                         <input
                           className={INPUT_CLASS}
                           value={draftAccount.first_name}
                           onChange={(e) => setDraftAccount((d) => ({ ...d, first_name: e.target.value }))}
-                          placeholder="Nome"
+                          placeholder={t('first_name')}
                         />
                       </div>
                       <div>
-                        <label className="text-xs text-gray-400 mb-1 block">Sobrenome</label>
+                        <label className="text-xs text-gray-400 mb-1 block">{t('last_name')}</label>
                         <input
                           className={INPUT_CLASS}
                           value={draftAccount.last_name}
                           onChange={(e) => setDraftAccount((d) => ({ ...d, last_name: e.target.value }))}
-                          placeholder="Sobrenome"
+                          placeholder={t('last_name')}
                         />
                       </div>
                     </div>
                     <div>
-                      <label className="text-xs text-gray-400 mb-1 block">Telefone</label>
+                      <label className="text-xs text-gray-400 mb-1 block">{t('phone')}</label>
                       <input
                         className={INPUT_CLASS}
                         value={draftAccount.phone}
                         onChange={(e) => setDraftAccount((d) => ({ ...d, phone: e.target.value }))}
-                        placeholder="Telefone"
+                        placeholder={t('phone')}
                         type="tel"
                       />
                     </div>
                     {/* Non-editable fields shown as read-only */}
-                    <InfoRow icon={<Mail size={16} />} label="E-mail" value={user.email} />
-                    <InfoRow icon={<Hash size={16} />} label="ID de exibição" value={user.display_id} />
+                    <InfoRow icon={<Mail size={16} />} label={t('email_label')} value={user.email} />
+                    <InfoRow icon={<Hash size={16} />} label={t('display_id_label')} value={user.display_id} />
                     {memberSince !== '—' && (
-                      <InfoRow icon={<Calendar size={16} />} label="Membro desde" value={memberSince} />
+                      <InfoRow icon={<Calendar size={16} />} label={t('member_since')} value={memberSince} />
                     )}
                     {/* Save / Cancel */}
                     <div className="flex items-center gap-2 pt-3 border-t border-clarita-beige-100/60 mt-3">
@@ -329,7 +333,7 @@ export default function ProfilePage() {
                         onClick={() => setEditingSection(null)}
                         className="px-3 py-1.5 text-sm text-gray-500 hover:text-gray-700 transition-colors"
                       >
-                        Cancelar
+                        {t('cancel')}
                       </button>
                       <button
                         onClick={() => handleSave('account')}
@@ -337,19 +341,19 @@ export default function ProfilePage() {
                         className="px-4 py-1.5 text-sm bg-clarita-green-500 hover:bg-clarita-green-600 text-white rounded-xl transition-colors disabled:opacity-60 flex items-center gap-1.5"
                       >
                         {saving && <Loader2 size={12} className="animate-spin" />}
-                        Salvar
+                        {t('save')}
                       </button>
                     </div>
                   </div>
                 ) : (
                   <div className="space-y-4">
-                    <InfoRow icon={<Mail size={16} />} label="E-mail" value={user.email} />
+                    <InfoRow icon={<Mail size={16} />} label={t('email_label')} value={user.email} />
                     {user.phone && (
-                      <InfoRow icon={<Phone size={16} />} label="Telefone" value={user.phone} />
+                      <InfoRow icon={<Phone size={16} />} label={t('phone')} value={user.phone} />
                     )}
-                    <InfoRow icon={<Hash size={16} />} label="ID de exibição" value={user.display_id} />
+                    <InfoRow icon={<Hash size={16} />} label={t('display_id_label')} value={user.display_id} />
                     {memberSince !== '—' && (
-                      <InfoRow icon={<Calendar size={16} />} label="Membro desde" value={memberSince} />
+                      <InfoRow icon={<Calendar size={16} />} label={t('member_since')} value={memberSince} />
                     )}
                   </div>
                 )}
@@ -360,7 +364,7 @@ export default function ProfilePage() {
                 <div className="bg-white/70 backdrop-blur-xl rounded-3xl shadow-2xl border border-white/40 p-6">
                   <div className="flex items-center justify-between mb-4">
                     <h2 className="text-sm font-semibold text-gray-500 uppercase tracking-wider">
-                      Perfil profissional
+                      {t('professional_profile')}
                     </h2>
                     {editingSection !== 'professional' && (
                       <button
@@ -368,7 +372,7 @@ export default function ProfilePage() {
                         className="btn-ghost text-sm flex items-center gap-1.5 text-gray-500 hover:text-gray-700"
                       >
                         <Pencil size={14} />
-                        Editar
+                        {t('edit')}
                       </button>
                     )}
                   </div>
@@ -376,60 +380,60 @@ export default function ProfilePage() {
                   {editingSection === 'professional' ? (
                     <div className="space-y-4">
                       <div>
-                        <label className="text-xs text-gray-400 mb-1 block">Número de registro</label>
+                        <label className="text-xs text-gray-400 mb-1 block">{t('license_number_label')}</label>
                         <input
                           className={INPUT_CLASS}
                           value={draftProfessional.license_number}
                           onChange={(e) =>
                             setDraftProfessional((d) => ({ ...d, license_number: e.target.value }))
                           }
-                          placeholder="Número de registro"
+                          placeholder={t('license_number_label')}
                         />
                       </div>
                       <div>
-                        <label className="text-xs text-gray-400 mb-1 block">Especialização</label>
+                        <label className="text-xs text-gray-400 mb-1 block">{t('specialization')}</label>
                         <input
                           className={INPUT_CLASS}
                           value={draftProfessional.specialization}
                           onChange={(e) =>
                             setDraftProfessional((d) => ({ ...d, specialization: e.target.value }))
                           }
-                          placeholder="Especialização"
+                          placeholder={t('specialization')}
                         />
                       </div>
                       <div>
-                        <label className="text-xs text-gray-400 mb-1 block">Instituição</label>
+                        <label className="text-xs text-gray-400 mb-1 block">{t('institution')}</label>
                         <input
                           className={INPUT_CLASS}
                           value={draftProfessional.institution}
                           onChange={(e) =>
                             setDraftProfessional((d) => ({ ...d, institution: e.target.value }))
                           }
-                          placeholder="Instituição"
+                          placeholder={t('institution')}
                         />
                       </div>
                       <div>
-                        <label className="text-xs text-gray-400 mb-1 block">Anos de experiência</label>
+                        <label className="text-xs text-gray-400 mb-1 block">{t('years_exp')}</label>
                         <input
                           className={INPUT_CLASS}
                           value={draftProfessional.years_of_experience}
                           onChange={(e) =>
                             setDraftProfessional((d) => ({ ...d, years_of_experience: e.target.value }))
                           }
-                          placeholder="Anos de experiência"
+                          placeholder={t('years_exp')}
                           type="number"
                           min="0"
                         />
                       </div>
                       <div>
-                        <label className="text-xs text-gray-400 mb-1 block">Biografia</label>
+                        <label className="text-xs text-gray-400 mb-1 block">{t('bio_label')}</label>
                         <textarea
                           className={`${INPUT_CLASS} resize-none`}
                           value={draftProfessional.bio}
                           onChange={(e) =>
                             setDraftProfessional((d) => ({ ...d, bio: e.target.value }))
                           }
-                          placeholder="Escreva uma breve biografia..."
+                          placeholder={t('bio_placeholder')}
                           rows={4}
                         />
                       </div>
@@ -440,7 +444,7 @@ export default function ProfilePage() {
                           onClick={() => setEditingSection(null)}
                           className="px-3 py-1.5 text-sm text-gray-500 hover:text-gray-700 transition-colors"
                         >
-                          Cancelar
+                          {t('cancel')}
                         </button>
                         <button
                           onClick={() => handleSave('professional')}
@@ -448,7 +452,7 @@ export default function ProfilePage() {
                           className="px-4 py-1.5 text-sm bg-clarita-green-500 hover:bg-clarita-green-600 text-white rounded-xl transition-colors disabled:opacity-60 flex items-center gap-1.5"
                         >
                           {saving && <Loader2 size={12} className="animate-spin" />}
-                          Salvar
+                          {t('save')}
                         </button>
                       </div>
                     </div>
@@ -457,34 +461,34 @@ export default function ProfilePage() {
                       {profile.license_number && (
                         <InfoRow
                           icon={<BadgeCheck size={16} />}
-                          label="Número de registro"
+                          label={t('license_number_label')}
                           value={profile.license_number}
                         />
                       )}
                       {profile.specialization && (
                         <InfoRow
                           icon={<Stethoscope size={16} />}
-                          label="Especialização"
+                          label={t('specialization')}
                           value={profile.specialization}
                         />
                       )}
                       {profile.institution && (
                         <InfoRow
                           icon={<Building2 size={16} />}
-                          label="Instituição"
+                          label={t('institution')}
                           value={profile.institution}
                         />
                       )}
                       {profile.years_of_experience != null && (
                         <InfoRow
                           icon={<User size={16} />}
-                          label="Anos de experiência"
-                          value={`${profile.years_of_experience} anos`}
+                          label={t('years_exp')}
+                          value={`${profile.years_of_experience} ${t('experience_years', { years: '' }).trim()}`}
                         />
                       )}
                       {profile.bio && (
                         <div className="pt-1">
-                          <p className="text-xs text-gray-400 mb-1.5">Biografia</p>
+                          <p className="text-xs text-gray-400 mb-1.5">{t('bio_label')}</p>
                           <p className="text-sm text-gray-700 leading-relaxed">{profile.bio}</p>
                         </div>
                       )}
@@ -498,30 +502,30 @@ export default function ProfilePage() {
                 <LanguageSelector />
               </div>
 
-              {/* Dados e Privacidade */}
+              {/* Data & Privacy */}
               <section className="bg-white rounded-xl p-6 border border-red-100">
-                <h3 className="font-semibold text-gray-800 mb-1">Dados e Privacidade</h3>
-                <p className="text-sm text-gray-500 mb-4">Gerencie seus dados conforme a LGPD.</p>
+                <h3 className="font-semibold text-gray-800 mb-1">{t('data_privacy')}</h3>
+                <p className="text-sm text-gray-500 mb-4">{t('lgpd_manage')}</p>
                 <div className="flex flex-col sm:flex-row gap-3">
                   <button
                     type="button"
                     onClick={handleExportData}
                     className="text-sm px-4 py-2 rounded-lg border border-gray-200 text-gray-700 hover:bg-gray-50 transition-colors text-center"
                   >
-                    Exportar meus dados
+                    {t('export_data')}
                   </button>
                   <button
                     type="button"
                     onClick={() => setShowDeleteConfirm(true)}
                     className="text-sm px-4 py-2 rounded-lg border border-red-200 text-red-600 hover:bg-red-50 transition-colors"
                   >
-                    Excluir minha conta
+                    {t('delete_account')}
                   </button>
                 </div>
                 {showDeleteConfirm && (
                   <div role="alertdialog" className="mt-4 p-4 bg-red-50 rounded-lg border border-red-200">
                     <p className="text-sm text-red-700 mb-3">
-                      Esta ação é permanente. Seus dados pessoais serão anonimizados. Tem certeza?
+                      {t('delete_confirm_perm')}
                     </p>
                     <div className="flex gap-2">
                       <button
@@ -529,14 +533,14 @@ export default function ProfilePage() {
                         onClick={handleDeleteAccount}
                         className="text-sm px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700"
                       >
-                        Confirmar exclusão
+                        {t('confirm_delete')}
                       </button>
                       <button
                         type="button"
                         onClick={() => setShowDeleteConfirm(false)}
                         className="text-sm px-4 py-2 border rounded-lg hover:bg-gray-50"
                       >
-                        Cancelar
+                        {t('cancel')}
                       </button>
                     </div>
                   </div>
