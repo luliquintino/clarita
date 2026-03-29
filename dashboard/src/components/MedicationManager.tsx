@@ -3,9 +3,8 @@
 import { useState } from 'react';
 import { format } from 'date-fns';
 import { Pill, Plus, X, Save, AlertTriangle, CheckCircle, Clock, Ban, Tag } from 'lucide-react';
-import type { Medication } from '@/lib/api';
+import { medicationCatalogApi, type Medication } from '@/lib/api';
 import Combobox, { type ComboboxOption } from '@/components/Combobox';
-import { medicationCatalogApi } from '@/lib/api';
 
 interface MedicationManagerProps {
   medications: Medication[];

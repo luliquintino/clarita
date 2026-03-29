@@ -82,9 +82,10 @@ export default function JournalEntry({ onSubmit, saving = false, medications }: 
   const [sleepHours, setSleepHours] = useState(7);
   const [journalText, setJournalText] = useState('');
   const [submitted, setSubmitted] = useState(false);
-  const [medAnswers, setMedAnswers] = useState<Record<string, boolean>>(
-    () => Object.fromEntries((medications ?? []).map((m) => [m.id, true]))
-  );
+  const buildDefaultMedAnswers = () =>
+    Object.fromEntries((medications ?? []).map((m) => [m.id, true]));
+
+  const [medAnswers, setMedAnswers] = useState<Record<string, boolean>>(buildDefaultMedAnswers);
 
   const moodConfig = moodEmojis.find((e) => mood >= e.min && mood <= e.max) || moodEmojis[1];
   const MoodIcon = moodConfig.icon;
@@ -105,7 +106,7 @@ export default function JournalEntry({ onSubmit, saving = false, medications }: 
     });
 
     setSubmitted(true);
-    setMedAnswers(Object.fromEntries((medications ?? []).map((m) => [m.id, true])));
+    setMedAnswers(buildDefaultMedAnswers());
     setTimeout(() => setSubmitted(false), 3000);
     setJournalText('');
   };
