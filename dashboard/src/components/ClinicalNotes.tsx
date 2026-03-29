@@ -82,11 +82,27 @@ export default function ClinicalNotes({
   const [formType, setFormType] = useState('session');
   const [formTitle, setFormTitle] = useState('');
   const [formContent, setFormContent] = useState('');
+  const [isTitleAutoFilled, setIsTitleAutoFilled] = useState(false);
+
+  const typeLabels: Record<string, string> = {
+    session: 'Sessão',
+    observation: 'Observação',
+    treatment_plan: 'Plano de Tratamento',
+    progress: 'Nota de Progresso',
+  };
+
+  function autoFillTitle(type: string) {
+    const label = typeLabels[type] ?? type;
+    const dateStr = format(new Date(), 'dd/MM/yyyy');
+    setFormTitle(`${label} — ${dateStr}`);
+    setIsTitleAutoFilled(true);
+  }
 
   const resetForm = () => {
     setFormType('session');
     setFormTitle('');
     setFormContent('');
+    setIsTitleAutoFilled(false);
     setIsCreating(false);
     setEditingId(null);
   };
@@ -145,7 +161,11 @@ export default function ClinicalNotes({
         <h3 className="section-title mb-0">Notas Clinicas</h3>
         {!isCreating && !editingId && (
           <button
-            onClick={() => setIsCreating(true)}
+            onClick={() => {
+              setIsCreating(true);
+              setEditingId(null);
+              autoFillTitle(formType);
+            }}
             className="btn-primary flex items-center gap-2 text-sm"
           >
             <Plus size={16} />
@@ -181,7 +201,12 @@ export default function ClinicalNotes({
                     return (
                       <button
                         key={type}
-                        onClick={() => setFormType(type)}
+                        onClick={() => {
+                          setFormType(type);
+                          if (isTitleAutoFilled || !formTitle.trim()) {
+                            autoFillTitle(type);
+                          }
+                        }}
                         className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-sm font-medium transition-all duration-300
                           ${
                             isSelected
@@ -203,7 +228,10 @@ export default function ClinicalNotes({
                 <input
                   type="text"
                   value={formTitle}
-                  onChange={(e) => setFormTitle(e.target.value)}
+                  onChange={(e) => {
+                    setFormTitle(e.target.value);
+                    setIsTitleAutoFilled(false);
+                  }}
                   className="input-field"
                   placeholder="Titulo da nota..."
                 />
