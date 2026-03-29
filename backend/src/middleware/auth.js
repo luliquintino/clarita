@@ -35,7 +35,7 @@ async function authenticate(req, res, next) {
     }
 
     const result = await query(
-      'SELECT id, email, role, first_name, last_name, is_active, display_id FROM users WHERE id = $1',
+      'SELECT id, email, role, first_name, last_name, is_active, display_id, language FROM users WHERE id = $1',
       [decoded.userId]
     );
 

@@ -86,7 +86,7 @@ router.post('/register', registerLimiter, registrationValidator, handleValidatio
     const userResult = await query(
       `INSERT INTO users (email, password_hash, role, first_name, last_name, phone, display_id, consent_accepted_at)
        VALUES ($1, $2, $3, $4, $5, $6, $7, NOW())
-       RETURNING id, email, role, first_name, last_name, phone, display_id, created_at`,
+       RETURNING id, email, role, first_name, last_name, phone, display_id, language, created_at`,
       [email, passwordHash, role, first_name, last_name, phone || null, displayId]
     );
 
@@ -140,7 +140,7 @@ router.post('/login', loginLimiter, loginValidator, handleValidation, async (req
     const { email, password } = req.body;
 
     const result = await query(
-      `SELECT id, email, password_hash, role, first_name, last_name, is_active, display_id
+      `SELECT id, email, password_hash, role, first_name, last_name, is_active, display_id, language
        FROM users WHERE email = $1`,
       [email]
     );
@@ -257,6 +257,15 @@ router.put('/me', authenticate, async (req, res, next) => {
     if (avatar_url !== undefined) {
       updates.push(`avatar_url = $${idx++}`);
       values.push(avatar_url);
+    }
+
+    const { language } = req.body;
+    if (language !== undefined) {
+      if (!['pt', 'es', 'en'].includes(language)) {
+        return res.status(400).json({ error: 'Idioma inválido. Use: pt, es ou en.' });
+      }
+      updates.push(`language = $${idx++}`);
+      values.push(language);
     }
 
     if (updates.length === 0) {

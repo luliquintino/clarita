@@ -77,6 +77,8 @@ async function runAutoMigrations() {
     // alert_type enum — add values used by psych-tests and other modules
     `ALTER TYPE alert_type ADD VALUE IF NOT EXISTS 'test_assigned'`,
     `ALTER TYPE alert_type ADD VALUE IF NOT EXISTS 'test_completed'`,
+    `ALTER TABLE users ADD COLUMN IF NOT EXISTS language VARCHAR(5) NOT NULL DEFAULT 'pt'
+  CHECK (language IN ('pt','es','en'))`,
   ];
 
   for (const sql of migrations) {
