@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { Eye, EyeOff, Loader2, Heart, Brain, ClipboardList, Search, Shield } from 'lucide-react';
 import Image from 'next/image';
-import { authApi, setToken } from '@/lib/api';
+import { authApi, setUserInfo } from '@/lib/api';
 
 const features = [
   {
@@ -43,7 +43,12 @@ export default function LoginPage() {
 
     try {
       const response = await authApi.login(email, password);
-      setToken(response.token);
+      setUserInfo({
+        id: response.user.id,
+        role: response.user.role,
+        firstName: response.user.first_name,
+        lastName: response.user.last_name,
+      });
       if (response.user.role === 'patient') {
         router.push('/patient-home');
       } else {

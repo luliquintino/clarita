@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { Eye, EyeOff, Loader2, Stethoscope, Brain, Heart } from 'lucide-react';
 import Image from 'next/image';
-import { authApi, setToken } from '@/lib/api';
+import { authApi, setUserInfo } from '@/lib/api';
 import type { RegisterData } from '@/lib/api';
 
 type Role = 'psychologist' | 'psychiatrist' | 'patient';
@@ -94,7 +94,12 @@ export default function RegisterPage() {
           };
 
       const response = await authApi.register(payload);
-      setToken(response.token);
+      setUserInfo({
+        id: response.user.id,
+        role: response.user.role,
+        firstName: response.user.first_name,
+        lastName: response.user.last_name,
+      });
       router.push(isPatient ? '/onboarding' : '/patients');
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Erro ao criar conta. Tente novamente.');
