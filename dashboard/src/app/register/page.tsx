@@ -54,19 +54,19 @@ export default function RegisterPage() {
     setError('');
 
     if (form.password.length < 8) {
-      setError('A senha deve ter pelo menos 8 caracteres.');
+      setError(t('auth.password_min_error'));
       return;
     }
     if (form.password !== form.confirmPassword) {
-      setError('As senhas não coincidem.');
+      setError(t('auth.passwords_no_match'));
       return;
     }
     if (!isPatient && !form.licenseNumber.trim()) {
-      setError('O número de registro profissional é obrigatório.');
+      setError(t('auth.license_required'));
       return;
     }
     if (!form.consent) {
-      setError('Você precisa aceitar os Termos de Uso e a Política de Privacidade para continuar.');
+      setError(t('auth.consent_required'));
       return;
     }
 
@@ -105,7 +105,7 @@ export default function RegisterPage() {
       });
       router.push(isPatient ? '/onboarding' : '/patients');
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Erro ao criar conta. Tente novamente.');
+      setError(err instanceof Error ? err.message : t('auth.register_error'));
     } finally {
       setLoading(false);
     }
@@ -385,15 +385,14 @@ export default function RegisterPage() {
                 className="mt-1 h-4 w-4 rounded border-gray-300"
               />
               <label htmlFor="consent" className="text-sm text-gray-600 leading-relaxed">
-                Li e aceito os{' '}
+                {t('auth.accept_terms')}{' '}
                 <Link href="/terms" target="_blank" className="text-green-600 hover:underline font-medium">
-                  Termos de Uso
+                  {t('auth.terms_link')}
                 </Link>{' '}
-                e a{' '}
+                {t('auth.and')}{' '}
                 <Link href="/privacy" target="_blank" className="text-green-600 hover:underline font-medium">
-                  Política de Privacidade
+                  {t('auth.privacy_link')}
                 </Link>
-                . Concordo com o tratamento dos meus dados conforme a LGPD.
               </label>
             </div>
 

@@ -47,6 +47,8 @@ interface SidebarProps {
 
 export default function Sidebar({ alertCount = 0 }: SidebarProps) {
   const t = useTranslations('nav');
+  const tAuth = useTranslations('auth');
+  const tPatients = useTranslations('patients');
   const [collapsed, setCollapsed] = useState(false);
   const [patients, setPatients] = useState<SidebarPatient[]>([]);
   const [patientsLoading, setPatientsLoading] = useState(true);
@@ -146,7 +148,7 @@ export default function Sidebar({ alertCount = 0 }: SidebarProps) {
         {!collapsed && (
           <div className="animate-fade-in">
             <h1 className="text-lg font-bold text-slate-700 tracking-tight">Clarita</h1>
-            <p className="text-[10px] text-gray-400 -mt-0.5">Profissional</p>
+            <p className="text-[10px] text-gray-400 -mt-0.5">{tAuth('role_psychologist')}</p>
           </div>
         )}
       </div>
@@ -165,7 +167,7 @@ export default function Sidebar({ alertCount = 0 }: SidebarProps) {
             </div>
           ) : patients.length === 0 ? (
             <p className={`text-xs text-gray-400 ${collapsed ? 'text-center' : 'px-3'}`}>
-              {collapsed ? '\u2014' : 'Nenhum paciente'}
+              {collapsed ? '\u2014' : tPatients('no_patients')}
             </p>
           ) : (
             patients.map((patient) => (
@@ -236,10 +238,10 @@ export default function Sidebar({ alertCount = 0 }: SidebarProps) {
           className={`flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all duration-200
             text-gray-400 hover:bg-red-50/80 hover:text-red-500 w-full
             ${collapsed ? 'justify-center' : ''}`}
-          title={collapsed ? 'Sair' : undefined}
+          title={collapsed ? tAuth('logout') : undefined}
         >
           <LogOut size={20} />
-          {!collapsed && <span className="animate-fade-in">Sair</span>}
+          {!collapsed && <span className="animate-fade-in">{tAuth('logout')}</span>}
         </button>
 
         <button

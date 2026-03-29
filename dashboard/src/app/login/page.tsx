@@ -58,7 +58,7 @@ export default function LoginPage() {
         router.push('/patients');
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Credenciais inválidas. Tente novamente.');
+      setError(err instanceof Error ? err.message : t('auth.invalid_credentials'));
     } finally {
       setLoading(false);
     }

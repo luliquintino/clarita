@@ -23,7 +23,7 @@ export default function ForgotPasswordPage() {
       await authApi.forgotPassword(email);
       setSent(true);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Erro ao enviar email. Tente novamente.');
+      setError(err instanceof Error ? err.message : t('auth.forgot_password_error'));
     } finally {
       setLoading(false);
     }

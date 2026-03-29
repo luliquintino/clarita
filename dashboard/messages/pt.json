@@ -91,7 +91,13 @@
     "email_sent_desc": "Se este email estiver cadastrado, você receberá um link para redefinir sua senha. Verifique sua caixa de entrada e a pasta de spam.",
     "forgot_password_subtitle": "Sem problemas, acontece!",
     "forgot_password_desc": "Digite seu email e enviaremos um link para redefinir sua senha.",
-    "mental_health_platform": "Plataforma de Saúde Mental"
+    "mental_health_platform": "Plataforma de Saúde Mental",
+    "invalid_credentials": "Credenciais inválidas. Tente novamente.",
+    "password_min_error": "A senha deve ter pelo menos 8 caracteres.",
+    "passwords_no_match": "As senhas não coincidem.",
+    "license_required": "O número de registro profissional é obrigatório.",
+    "register_error": "Erro ao criar conta. Tente novamente.",
+    "forgot_password_error": "Erro ao enviar email. Tente novamente."
   },
   "nav": {
     "patients": "Pacientes",

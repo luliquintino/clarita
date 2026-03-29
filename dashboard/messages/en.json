@@ -91,7 +91,13 @@
     "email_sent_desc": "If this email is registered, you will receive a link to reset your password. Check your inbox and spam folder.",
     "forgot_password_subtitle": "No problem, it happens!",
     "forgot_password_desc": "Enter your email and we will send you a link to reset your password.",
-    "mental_health_platform": "Mental Health Platform"
+    "mental_health_platform": "Mental Health Platform",
+    "invalid_credentials": "Invalid credentials. Please try again.",
+    "password_min_error": "Password must be at least 8 characters.",
+    "passwords_no_match": "Passwords do not match.",
+    "license_required": "Professional license number is required.",
+    "register_error": "Error creating account. Please try again.",
+    "forgot_password_error": "Error sending email. Please try again."
   },
   "nav": {
     "patients": "Patients",
