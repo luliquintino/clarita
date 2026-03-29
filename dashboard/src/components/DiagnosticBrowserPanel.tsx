@@ -213,6 +213,7 @@ export default function DiagnosticBrowserPanel({
   const [quickDate, setQuickDate] = useState(new Date().toISOString().split('T')[0]);
   const [quickNotes, setQuickNotes] = useState('');
   const [quickSaving, setQuickSaving] = useState(false);
+  const [quickError, setQuickError] = useState('');
 
   // Task 8 — Patient diagnosis history
   const [patientDiagnoses, setPatientDiagnoses] = useState<PatientDiagnosis[]>([]);
@@ -437,6 +438,7 @@ export default function DiagnosticBrowserPanel({
 
   async function handleQuickDiagnosis() {
     if (!quickSelectedCode || !patientId) return;
+    setQuickError('');
     setQuickSaving(true);
     try {
       const data = await diagnosesApi.create(patientId, {
@@ -456,9 +458,10 @@ export default function DiagnosticBrowserPanel({
       setQuickCertainty('suspected');
       setQuickDate(new Date().toISOString().split('T')[0]);
       setQuickIcdOptions([]);
+      setQuickError('');
       icd11Api.recent().then((d) => setRecentIcds(d.recent)).catch(() => {});
     } catch {
-      // silent
+      setQuickError('Erro ao salvar diagnóstico. Tente novamente.');
     } finally {
       setQuickSaving(false);
     }
@@ -907,7 +910,7 @@ export default function DiagnosticBrowserPanel({
       )}
 
       {/* Quick Diagnose */}
-      {patientId && (
+      {patientId && currentProfessionalId && (
         <div className="border border-indigo-200 rounded-xl overflow-hidden">
           <button
             onClick={() => setShowQuickDiagnose((v) => !v)}
@@ -973,6 +976,9 @@ export default function DiagnosticBrowserPanel({
                       className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm bg-white resize-none focus:outline-none focus:border-indigo-400 placeholder-gray-400"
                     />
                   </div>
+                  {quickError && (
+                    <p className="text-sm text-red-500 bg-red-50 rounded-lg px-3 py-2">{quickError}</p>
+                  )}
                   <button
                     onClick={handleQuickDiagnosis}
                     disabled={quickSaving}
