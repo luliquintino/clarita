@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import { Inter } from 'next/font/google';
 import './globals.css';
 import ServiceWorkerRegistration from '@/components/ServiceWorkerRegistration';
+import I18nProvider from '@/components/I18nProvider';
 
 const inter = Inter({
   subsets: ['latin'],
@@ -43,7 +44,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       </head>
       <body className={`${inter.className} antialiased`}>
         <ServiceWorkerRegistration />
-        {children}
+        <I18nProvider>{children}</I18nProvider>
       </body>
     </html>
   );

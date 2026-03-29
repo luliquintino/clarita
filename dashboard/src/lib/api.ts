@@ -13,6 +13,7 @@ interface UserInfo {
   role: string;
   firstName: string;
   lastName: string;
+  language?: string;
 }
 
 export function getUserInfo(): UserInfo | null {
