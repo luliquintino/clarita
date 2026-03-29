@@ -23,6 +23,7 @@ function toSymptomKey(name: string): string {
 
 export default function ReportSymptomModal({ open, onClose, onCreated }: ReportSymptomModalProps) {
   const t = useTranslations('symptoms');
+  const tCommon = useTranslations('common');
   const [symptoms, setSymptoms] = useState<Symptom[]>([]);
   const [loadingSymptoms, setLoadingSymptoms] = useState(false);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
@@ -33,6 +34,17 @@ export default function ReportSymptomModal({ open, onClose, onCreated }: ReportS
   const [error, setError] = useState('');
   const [search, setSearch] = useState('');
 
+  const categoryLabels: Record<string, string> = {
+    results: t('cat_results'),
+    mood: t('cat_mood'),
+    anxiety: t('cat_anxiety'),
+    sleep: t('cat_sleep'),
+    cognitive: t('cat_cognitive'),
+    physical: t('cat_physical'),
+    behavioral: t('cat_behavior'),
+    Outros: t('cat_other'),
+  };
+
   useEffect(() => {
     if (!open) return;
     setLoadingSymptoms(true);
@@ -41,7 +53,7 @@ export default function ReportSymptomModal({ open, onClose, onCreated }: ReportS
         const raw = res as any;
         setSymptoms(Array.isArray(raw) ? raw : (raw?.symptoms ?? []));
       })
-      .catch(() => setError('Erro ao carregar sintomas.'))
+      .catch(() => setError(t('error_loading')))
       .finally(() => setLoadingSymptoms(false));
   }, [open]);
 
@@ -71,7 +83,7 @@ export default function ReportSymptomModal({ open, onClose, onCreated }: ReportS
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (selectedIds.size === 0) {
-      setError('Selecione pelo menos um sintoma');
+      setError(t('error_select'));
       return;
     }
     setSaving(true);
@@ -97,7 +109,7 @@ export default function ReportSymptomModal({ open, onClose, onCreated }: ReportS
       onCreated();
       onClose();
     } catch {
-      setError('Erro ao salvar. Tente novamente.');
+      setError(t('error_saving'));
     } finally {
       setSaving(false);
     }
@@ -151,17 +163,6 @@ export default function ReportSymptomModal({ open, onClose, onCreated }: ReportS
     return acc;
   }, {});
 
-  const categoryLabels: Record<string, string> = {
-    results: 'Resultados',
-    mood: 'Humor',
-    anxiety: 'Ansiedade',
-    sleep: 'Sono',
-    cognitive: 'Cognitivo',
-    physical: 'Físico',
-    behavioral: 'Comportamento',
-    Outros: 'Outros',
-  };
-
   const count = selectedIds.size;
 
   if (!open) return null;
@@ -181,11 +182,11 @@ export default function ReportSymptomModal({ open, onClose, onCreated }: ReportS
             <div>
               <h2 className="text-lg font-semibold text-gray-800">{t('title')}</h2>
               {count > 0 && (
-                <p className="text-xs text-orange-500 font-medium">{count} selecionado{count > 1 ? 's' : ''}</p>
+                <p className="text-xs text-orange-500 font-medium">{`${count} ${count === 1 ? t('selected_one') : t('selected_many')}`}</p>
               )}
             </div>
           </div>
-          <button onClick={handleClose} aria-label="Fechar" className="btn-ghost p-2 text-gray-400 hover:text-gray-600">
+          <button onClick={handleClose} aria-label={t('close')} className="btn-ghost p-2 text-gray-400 hover:text-gray-600">
             <X size={18} />
           </button>
         </div>
@@ -197,7 +198,7 @@ export default function ReportSymptomModal({ open, onClose, onCreated }: ReportS
             {/* Symptom chips */}
             <div>
               <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">
-                Sintomas <span className="text-red-400">*</span>
+                {t('section_title')} <span className="text-red-400">*</span>
               </p>
               {/* Search input */}
               <div className="relative mb-3">
@@ -214,7 +215,7 @@ export default function ReportSymptomModal({ open, onClose, onCreated }: ReportS
               {loadingSymptoms ? (
                 <div className="flex items-center gap-2 text-sm text-gray-400 py-2">
                   <Loader2 size={14} className="animate-spin" />
-                  Carregando...
+                  {t('loading')}
                 </div>
               ) : (
                 <div className="space-y-3">
@@ -266,16 +267,16 @@ export default function ReportSymptomModal({ open, onClose, onCreated }: ReportS
                 disabled={saving}
               />
               <div className="flex justify-between text-[10px] text-gray-400 mt-0.5">
-                <span>Leve</span>
-                <span>Moderado</span>
-                <span>Intenso</span>
+                <span>{t('severity_mild')}</span>
+                <span>{t('severity_moderate')}</span>
+                <span>{t('severity_intense')}</span>
               </div>
             </div>
 
             {/* Data */}
             <div>
               <label htmlFor="symptom-date" className="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1.5">
-                Data
+                {t('date_label')}
               </label>
               <input
                 id="symptom-date"
@@ -290,7 +291,7 @@ export default function ReportSymptomModal({ open, onClose, onCreated }: ReportS
             {/* Observações */}
             <div>
               <label htmlFor="symptom-notes" className="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1.5">
-                Observações <span className="text-gray-300 font-normal">(opcional)</span>
+                {t('notes_label')} <span className="text-gray-300 font-normal">({tCommon('optional')})</span>
               </label>
               <textarea
                 id="symptom-notes"
@@ -312,7 +313,7 @@ export default function ReportSymptomModal({ open, onClose, onCreated }: ReportS
           {/* Footer */}
           <div className="flex gap-3 p-6 pt-4 border-t border-gray-100 flex-shrink-0">
             <button type="button" onClick={handleClose} disabled={saving} className="btn-ghost flex-1 py-2.5">
-              Cancelar
+              {t('cancel')}
             </button>
             <button
               type="submit"
@@ -320,7 +321,7 @@ export default function ReportSymptomModal({ open, onClose, onCreated }: ReportS
               className="btn-primary flex-1 py-2.5 flex items-center justify-center gap-2"
             >
               {saving ? <Loader2 size={14} className="animate-spin" /> : null}
-              {saving ? 'Salvando...' : count > 0 ? `${t('submit')} ${count} sintoma${count > 1 ? 's' : ''}` : t('submit')}
+              {saving ? t('saving') : count > 0 ? `${t('submit')} ${count} sintoma${count > 1 ? 's' : ''}` : t('submit')}
             </button>
           </div>
         </form>
