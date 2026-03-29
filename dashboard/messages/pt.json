@@ -427,7 +427,14 @@
     "symptom_search_title": "Sugestão por Sintomas",
     "symptom_search_desc": "Digite sintomas separados por vírgula. O sistema sugerirá áreas diagnósticas relevantes.",
     "symptom_input_placeholder": "Ex: insônia, fadiga, tristeza, concentração...",
-    "diagnosed": "Diagnosticado"
+    "diagnosed": "Diagnosticado",
+    "note_content_placeholder": "Conteúdo da nota clínica...",
+    "save_note_btn": "Salvar nota no prontuário",
+    "note_saved": "Nota criada no prontuário.",
+    "conduct_placeholder": "Descreva o plano terapêutico e conduta...",
+    "saved": "Salvo!",
+    "save_conduct": "Salvar conduta",
+    "diagnosis_prefix": "Diagnóstico"
   },
   "onboarding": {
     "step_of": "Passo {step} de {total}",

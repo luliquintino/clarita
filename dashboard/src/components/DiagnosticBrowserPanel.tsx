@@ -51,7 +51,8 @@ function ClinicalNoteBlock({ patientId, diagnosis, onNoteCreated }: {
   diagnosis: PatientDiagnosis;
   onNoteCreated: (noteId: string) => void;
 }) {
-  const [title, setTitle] = useState(`Diagnóstico: ${diagnosis.icd_name}`);
+  const t = useTranslations('diagnostic_browser');
+  const [title, setTitle] = useState(`${t('diagnosis_prefix')}: ${diagnosis.icd_name}`);
   const [content, setContent] = useState('');
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
@@ -78,7 +79,7 @@ function ClinicalNoteBlock({ patientId, diagnosis, onNoteCreated }: {
   }
 
   if (saved) {
-    return <p className="text-sm text-emerald-600 flex items-center gap-2"><CheckCircle2 className="w-4 h-4" /> Nota criada no prontuário.</p>;
+    return <p className="text-sm text-emerald-600 flex items-center gap-2"><CheckCircle2 className="w-4 h-4" /> {t('note_saved')}</p>;
   }
 
   return (
@@ -91,7 +92,7 @@ function ClinicalNoteBlock({ patientId, diagnosis, onNoteCreated }: {
       <textarea
         value={content}
         onChange={e => setContent(e.target.value)}
-        placeholder="Conteúdo da nota clínica..."
+        placeholder={t('note_content_placeholder')}
         rows={4}
         className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm bg-white resize-none focus:outline-none focus:ring-2 focus:ring-indigo-300 placeholder-gray-400"
       />
@@ -101,7 +102,7 @@ function ClinicalNoteBlock({ patientId, diagnosis, onNoteCreated }: {
         className="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg text-sm font-medium flex items-center gap-2 disabled:opacity-50 transition-colors"
       >
         {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
-        Salvar nota no prontuário
+        {t('save_note_btn')}
       </button>
     </div>
   );
@@ -112,6 +113,7 @@ function ConductBlock({ diagnosisId, patientId, initialNotes }: {
   patientId: string;
   initialNotes: string;
 }) {
+  const t = useTranslations('diagnostic_browser');
   const [conduct, setConduct] = useState(initialNotes);
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
@@ -134,7 +136,7 @@ function ConductBlock({ diagnosisId, patientId, initialNotes }: {
       <textarea
         value={conduct}
         onChange={e => { setConduct(e.target.value); setSaved(false); }}
-        placeholder="Descreva o plano terapêutico e conduta..."
+        placeholder={t('conduct_placeholder')}
         rows={4}
         className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm bg-white resize-none focus:outline-none focus:ring-2 focus:ring-indigo-300 placeholder-gray-400"
       />
@@ -144,7 +146,7 @@ function ConductBlock({ diagnosisId, patientId, initialNotes }: {
         className="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg text-sm font-medium flex items-center gap-2 disabled:opacity-50 transition-colors"
       >
         {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : saved ? <CheckCircle2 className="w-4 h-4" /> : <Save className="w-4 h-4" />}
-        {saved ? 'Salvo!' : 'Salvar conduta'}
+        {saved ? t('saved') : t('save_conduct')}
       </button>
     </div>
   );

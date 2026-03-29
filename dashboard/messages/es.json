@@ -427,7 +427,14 @@
     "symptom_search_title": "Sugerencia por Síntomas",
     "symptom_search_desc": "Ingresa síntomas separados por coma. El sistema sugerirá áreas diagnósticas relevantes.",
     "symptom_input_placeholder": "Ej: insomnio, fatiga, tristeza, concentración...",
-    "diagnosed": "Diagnosticado"
+    "diagnosed": "Diagnosticado",
+    "note_content_placeholder": "Contenido de la nota clínica...",
+    "save_note_btn": "Guardar nota en el historial",
+    "note_saved": "Nota creada en el historial.",
+    "conduct_placeholder": "Describa el plan terapéutico y conducta...",
+    "saved": "¡Guardado!",
+    "save_conduct": "Guardar conducta",
+    "diagnosis_prefix": "Diagnóstico"
   },
   "onboarding": {
     "step_of": "Paso {step} de {total}",

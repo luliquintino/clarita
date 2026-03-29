@@ -427,7 +427,14 @@
     "symptom_search_title": "Symptom-Based Suggestion",
     "symptom_search_desc": "Enter symptoms separated by commas. The system will suggest relevant diagnostic areas.",
     "symptom_input_placeholder": "e.g. insomnia, fatigue, sadness, concentration...",
-    "diagnosed": "Diagnosed"
+    "diagnosed": "Diagnosed",
+    "note_content_placeholder": "Clinical note content...",
+    "save_note_btn": "Save note to medical record",
+    "note_saved": "Note created in medical record.",
+    "conduct_placeholder": "Describe the therapeutic plan and conduct...",
+    "saved": "Saved!",
+    "save_conduct": "Save conduct",
+    "diagnosis_prefix": "Diagnosis"
   },
   "onboarding": {
     "step_of": "Step {step} of {total}",
