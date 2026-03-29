@@ -9,6 +9,7 @@ const {
   generateAccessToken,
   verifyAndAccess,
 } = require('../services/recordSharingService');
+const { audit } = require('../services/auditService');
 
 // All routes require authentication
 router.use(authenticate);
@@ -41,6 +42,8 @@ router.post(
       }
 
       const tokenRecord = await generateAccessToken(req.user.id, patient_id);
+
+      audit(req, 'record.share', 'record_sharing_token', tokenRecord.id, { patient_id: req.user.id });
 
       res.status(201).json({ access_token: tokenRecord });
     } catch (err) {

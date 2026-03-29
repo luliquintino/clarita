@@ -17,6 +17,7 @@ const {
 } = require('../validators');
 const { sendPasswordResetEmail, sendWelcomeEmail } = require('../services/emailService');
 const { generateDisplayId } = require('../utils/generateDisplayId');
+const { audit } = require('../services/auditService');
 
 const SALT_ROUNDS = 12;
 const TOKEN_EXPIRY = '7d';
@@ -164,6 +165,7 @@ router.post('/login', loginLimiter, loginValidator, handleValidation, async (req
     const { password_hash: _, ...safeUser } = user;
 
     setAuthCookie(res, token);
+    audit(req, 'auth.login', 'user', user.id, { role: safeUser.role });
     res.json({ user: safeUser });
   } catch (err) {
     next(err);
@@ -438,6 +440,7 @@ router.post('/logout', (req, res) => {
     sameSite: 'strict',
     secure: process.env.NODE_ENV === 'production',
   });
+  audit(req, 'auth.logout');
   res.json({ message: 'Sessão encerrada com sucesso.' });
 });
 

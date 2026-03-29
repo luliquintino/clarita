@@ -8,6 +8,7 @@ const authenticate = require('../middleware/auth');
 const { requireRole } = require('../middleware/rbac');
 const { uploadExam } = require('../middleware/upload');
 const { handleValidation, isUUID } = require('../validators');
+const { audit } = require('../services/auditService');
 
 router.use(authenticate);
 
@@ -232,6 +233,8 @@ router.get('/download/:examId', isUUID('examId'), handleValidation, async (req, 
     if (!fs.existsSync(filePath)) {
       return res.status(404).json({ error: 'Arquivo não encontrado no servidor.' });
     }
+
+    audit(req, 'exam.download', 'exam', exam.id, { file_name: exam.original_name, exam_type: exam.exam_type });
 
     res.setHeader('Content-Type', exam.mime_type);
     res.setHeader('Content-Disposition', `inline; filename="${exam.original_name}"`);
