@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { useTranslations } from 'next-intl';
 import { Smile, Frown, Meh, Zap, Moon, Heart, CheckCircle2, XCircle, Pill } from 'lucide-react';
 import type { PatientMedication } from '@/lib/api';
 
@@ -76,6 +77,7 @@ function SliderField({
 }
 
 export default function JournalEntry({ onSubmit, saving = false, medications }: JournalEntryProps) {
+  const t = useTranslations('journal');
   const [mood, setMood] = useState(5);
   const [anxiety, setAnxiety] = useState(5);
   const [energy, setEnergy] = useState(5);
@@ -116,49 +118,49 @@ export default function JournalEntry({ onSubmit, saving = false, medications }: 
       <div>
         <h3 className="text-lg font-semibold text-gray-800 mb-0.5 flex items-center gap-2">
           <Smile size={20} className="text-clarita-green-500" />
-          Como você está se sentindo?
+          {t('heading')}
         </h3>
         <p className="text-sm text-gray-400 ml-7">
-          Registre seus sentimentos e acompanhe sua evolução.
+          {t('heading_sub')}
         </p>
       </div>
 
       {/* Emotional sliders */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
         <SliderField
-          label="Humor"
+          label={t('mood')}
           value={mood}
           onChange={setMood}
           icon={<MoodIcon size={18} className={moodConfig.color} />}
-          lowLabel="Muito triste"
-          highLabel="Muito feliz"
+          lowLabel={t('mood_low')}
+          highLabel={t('mood_high')}
           color="text-clarita-green-600"
         />
         <SliderField
-          label="Ansiedade"
+          label={t('anxiety')}
           value={anxiety}
           onChange={setAnxiety}
           icon={<Zap size={18} className="text-orange-400" />}
-          lowLabel="Calmo(a)"
-          highLabel="Muito ansioso(a)"
+          lowLabel={t('anxiety_low')}
+          highLabel={t('anxiety_high')}
           color="text-orange-500"
         />
         <SliderField
-          label="Energia"
+          label={t('energy')}
           value={energy}
           onChange={setEnergy}
           icon={<Zap size={18} className="text-clarita-blue-400" />}
-          lowLabel="Sem energia"
-          highLabel="Muita energia"
+          lowLabel={t('energy_low')}
+          highLabel={t('energy_high')}
           color="text-clarita-blue-500"
         />
         <SliderField
-          label="Horas de sono"
+          label={t('sleep_hours')}
           value={sleepHours}
           onChange={setSleepHours}
           icon={<Moon size={18} className="text-clarita-purple-400" />}
-          lowLabel="0h"
-          highLabel="10h+"
+          lowLabel={t('sleep_low')}
+          highLabel={t('sleep_high')}
           color="text-clarita-purple-500"
         />
       </div>
@@ -166,12 +168,12 @@ export default function JournalEntry({ onSubmit, saving = false, medications }: 
       {/* Journal text */}
       <div>
         <label className="block text-sm font-medium text-gray-600 mb-2">
-          Conte mais sobre seu dia...
+          {t('notes_label')}
         </label>
         <textarea
           value={journalText}
           onChange={(e) => setJournalText(e.target.value)}
-          placeholder="Como foi seu dia? O que te deixou feliz ou triste?"
+          placeholder={t('notes_placeholder')}
           className="input-field min-h-[100px] resize-y"
           maxLength={10000}
         />
@@ -184,8 +186,7 @@ export default function JournalEntry({ onSubmit, saving = false, medications }: 
           <div className="flex items-center gap-2">
             <Pill size={16} className="text-indigo-500" />
             <p className="text-sm font-medium text-gray-700">
-              Medicações de hoje{' '}
-              <span className="text-xs text-gray-400 font-normal">(desmarque o que não tomou)</span>
+              {t('medications_label')}
             </p>
           </div>
           <div className="space-y-2">
@@ -204,26 +205,26 @@ export default function JournalEntry({ onSubmit, saving = false, medications }: 
                     <button
                       type="button"
                       onClick={() => setMedAnswers((prev) => ({ ...prev, [med.id]: true }))}
-                      aria-label={`Sim, tomei ${med.medication_name}`}
+                      aria-label={t('med_yes_aria', { name: med.medication_name })}
                       className={`flex items-center gap-1 px-2.5 py-1.5 rounded-xl text-xs font-medium border transition-colors ${
                         answer === true
                           ? 'bg-green-100 text-green-700 border-green-300'
                           : 'bg-green-50 text-green-600 border-green-200 hover:bg-green-100'
                       }`}
                     >
-                      <CheckCircle2 size={13} /> Sim
+                      <CheckCircle2 size={13} /> {t('med_yes')}
                     </button>
                     <button
                       type="button"
                       onClick={() => setMedAnswers((prev) => ({ ...prev, [med.id]: false }))}
-                      aria-label={`Não tomei ${med.medication_name}`}
+                      aria-label={t('med_no_aria', { name: med.medication_name })}
                       className={`flex items-center gap-1 px-2.5 py-1.5 rounded-xl text-xs font-medium border transition-colors ${
                         answer === false
                           ? 'bg-red-100 text-red-600 border-red-300'
                           : 'bg-red-50 text-red-500 border-red-100 hover:bg-red-100'
                       }`}
                     >
-                      <XCircle size={13} /> Não
+                      <XCircle size={13} /> {t('med_no')}
                     </button>
                   </div>
                 </div>
@@ -242,17 +243,17 @@ export default function JournalEntry({ onSubmit, saving = false, medications }: 
           className="btn-primary flex items-center gap-2"
         >
           {saving ? (
-            <>Registrando...</>
+            <>{t('submitting')}</>
           ) : (
             <>
               <Heart size={16} />
-              Registrar check-in
+              {t('submit')}
             </>
           )}
         </button>
         {submitted && (
           <span className="text-sm text-clarita-green-500 animate-fade-in font-medium">
-            Registrado com sucesso!
+            {t('checkin_done')}
           </span>
         )}
       </div>

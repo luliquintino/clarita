@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useTranslations } from 'next-intl';
 import { X, Loader2, AlertCircle, Check, Search } from 'lucide-react';
 import { format } from 'date-fns';
 import { symptomsApi, type Symptom } from '@/lib/api';
@@ -11,7 +12,17 @@ interface ReportSymptomModalProps {
   onCreated: () => void;
 }
 
+function toSymptomKey(name: string): string {
+  return name
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/\s+/g, '_')
+    .replace(/[^a-z0-9_]/g, '');
+}
+
 export default function ReportSymptomModal({ open, onClose, onCreated }: ReportSymptomModalProps) {
+  const t = useTranslations('symptoms');
   const [symptoms, setSymptoms] = useState<Symptom[]>([]);
   const [loadingSymptoms, setLoadingSymptoms] = useState(false);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
@@ -106,6 +117,15 @@ export default function ReportSymptomModal({ open, onClose, onCreated }: ReportS
     localStorage.setItem('clarita_recent_symptoms', JSON.stringify(ids));
   }
 
+  function getSymptomDisplayName(symptom: Symptom): string {
+    const key = toSymptomKey(symptom.name);
+    try {
+      return t(key as any);
+    } catch {
+      return symptom.name;
+    }
+  }
+
   const recentIds = getRecentIds();
 
   // Sort: recent first, then alphabetical within each group
@@ -159,7 +179,7 @@ export default function ReportSymptomModal({ open, onClose, onCreated }: ReportS
               <AlertCircle size={18} className="text-orange-500" />
             </div>
             <div>
-              <h2 className="text-lg font-semibold text-gray-800">Relatar Sintomas</h2>
+              <h2 className="text-lg font-semibold text-gray-800">{t('title')}</h2>
               {count > 0 && (
                 <p className="text-xs text-orange-500 font-medium">{count} selecionado{count > 1 ? 's' : ''}</p>
               )}
@@ -186,7 +206,7 @@ export default function ReportSymptomModal({ open, onClose, onCreated }: ReportS
                   type="text"
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
-                  placeholder="Buscar sintoma..."
+                  placeholder={t('search_placeholder')}
                   className="input-field w-full pl-8 py-2 text-sm"
                   disabled={saving}
                 />
@@ -219,7 +239,7 @@ export default function ReportSymptomModal({ open, onClose, onCreated }: ReportS
                               }`}
                             >
                               {selected && <Check size={12} />}
-                              {s.name}
+                              {getSymptomDisplayName(s)}
                             </button>
                           );
                         })}
@@ -233,7 +253,7 @@ export default function ReportSymptomModal({ open, onClose, onCreated }: ReportS
             {/* Intensidade */}
             <div>
               <label htmlFor="symptom-severity" className="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1.5">
-                Intensidade: <span className="text-gray-700 font-bold">{severity}/10</span>
+                {t('severity')}: <span className="text-gray-700 font-bold">{severity}/10</span>
               </label>
               <input
                 id="symptom-severity"
@@ -276,7 +296,7 @@ export default function ReportSymptomModal({ open, onClose, onCreated }: ReportS
                 id="symptom-notes"
                 value={notes}
                 onChange={(e) => setNotes(e.target.value)}
-                placeholder="Descreva como está se sentindo..."
+                placeholder={t('notes_placeholder')}
                 rows={2}
                 maxLength={5000}
                 className="input-field w-full resize-none"
@@ -300,7 +320,7 @@ export default function ReportSymptomModal({ open, onClose, onCreated }: ReportS
               className="btn-primary flex-1 py-2.5 flex items-center justify-center gap-2"
             >
               {saving ? <Loader2 size={14} className="animate-spin" /> : null}
-              {saving ? 'Salvando...' : count > 0 ? `Relatar ${count} sintoma${count > 1 ? 's' : ''}` : 'Relatar sintomas'}
+              {saving ? 'Salvando...' : count > 0 ? `${t('submit')} ${count} sintoma${count > 1 ? 's' : ''}` : t('submit')}
             </button>
           </div>
         </form>

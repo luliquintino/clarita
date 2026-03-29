@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
+import { useTranslations } from 'next-intl';
 import { LogOut, Loader2, Star, AlertCircle, Hash } from 'lucide-react';
 import Image from 'next/image';
 import {
@@ -40,6 +41,7 @@ import MyPrescriptionsPanel from '@/components/MyPrescriptionsPanel';
 
 export default function PatientHomePage() {
   const router = useRouter();
+  const t = useTranslations('patient_home');
   const [user, setUser] = useState<AuthUser | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -259,7 +261,7 @@ export default function PatientHomePage() {
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
           <Loader2 size={32} className="animate-spin text-clarita-green-400 mx-auto mb-3" />
-          <p className="text-sm text-gray-400">Carregando...</p>
+          <p className="text-sm text-gray-400">{t('loading')}</p>
         </div>
       </div>
     );
@@ -301,9 +303,9 @@ export default function PatientHomePage() {
               />
               <div>
                 <h1 className="text-base font-semibold text-gray-800">
-                  Olá, {user?.first_name || 'Paciente'}!
+                  {t('greeting', { name: user?.first_name || 'Paciente' })}
                 </h1>
-                <p className="text-xs text-gray-400">Como você está hoje?</p>
+                <p className="text-xs text-gray-400">{t('how_are_you')}</p>
               </div>
             </div>
             <div className="flex items-center gap-3">
@@ -330,7 +332,7 @@ export default function PatientHomePage() {
             {/* Desktop-only greeting + Clarita ID */}
             <div className="hidden md:flex items-center justify-between mb-6">
               <h1 className="text-xl font-semibold text-gray-800">
-                Olá, {user?.first_name || 'Paciente'}!
+                {t('greeting', { name: user?.first_name || 'Paciente' })}
               </h1>
               {user?.display_id && (
                 <div className="flex items-center gap-1.5 text-xs text-gray-400">
@@ -342,8 +344,8 @@ export default function PatientHomePage() {
             {permission === 'default' && !subscribed && (
               <div className="bg-green-50 border border-green-200 rounded-xl p-4 flex items-center justify-between gap-4 mb-6">
                 <div>
-                  <p className="font-medium text-green-800 text-sm">Ativar lembretes de check-in 🔔</p>
-                  <p className="text-xs text-green-600 mt-0.5">Receba um lembrete diário para registrar como você está.</p>
+                  <p className="font-medium text-green-800 text-sm">{t('enable_reminders_title')} 🔔</p>
+                  <p className="text-xs text-green-600 mt-0.5">{t('enable_reminders_desc')}</p>
                 </div>
                 <button
                   type="button"
@@ -351,7 +353,7 @@ export default function PatientHomePage() {
                   disabled={pushLoading}
                   className="text-sm px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50 transition-colors whitespace-nowrap"
                 >
-                  {pushLoading ? 'Ativando...' : 'Ativar'}
+                  {pushLoading ? t('activating') : t('activate')}
                 </button>
               </div>
             )}
@@ -368,8 +370,8 @@ export default function PatientHomePage() {
                       <AlertCircle size={18} className="text-orange-500" />
                     </div>
                     <div>
-                      <p className="font-semibold text-gray-800 text-sm">Relatar Sintoma</p>
-                      <p className="text-[11px] text-gray-500 leading-tight">Como você está se sentindo?</p>
+                      <p className="font-semibold text-gray-800 text-sm">{t('report_symptom')}</p>
+                      <p className="text-[11px] text-gray-500 leading-tight">{t('how_feeling')}</p>
                     </div>
                   </button>
                   <button
@@ -380,8 +382,8 @@ export default function PatientHomePage() {
                       <Star size={18} className="text-purple-500" />
                     </div>
                     <div>
-                      <p className="font-semibold text-gray-800 text-sm">+ Momento</p>
-                      <p className="text-[11px] text-gray-500 leading-tight">Registre algo importante</p>
+                      <p className="font-semibold text-gray-800 text-sm">{t('add_moment')}</p>
+                      <p className="text-[11px] text-gray-500 leading-tight">{t('add_moment_desc')}</p>
                     </div>
                   </button>
                 </div>
@@ -432,11 +434,11 @@ export default function PatientHomePage() {
           {activeSection === 'medications' && (
             <div className="space-y-6">
               <div>
-                <h2 className="text-lg font-semibold text-gray-800 mb-3">Medicações Ativas</h2>
+                <h2 className="text-lg font-semibold text-gray-800 mb-3">{t('active_medications')}</h2>
                 <MedicationCheckCard />
               </div>
               <div>
-                <h2 className="text-lg font-semibold text-gray-800 mb-3">Minhas Prescrições</h2>
+                <h2 className="text-lg font-semibold text-gray-800 mb-3">{t('my_prescriptions')}</h2>
                 <MyPrescriptionsPanel />
               </div>
             </div>
@@ -455,7 +457,7 @@ export default function PatientHomePage() {
                     <span className="w-6 h-6 rounded-lg bg-purple-50 flex items-center justify-center">
                       <Star size={13} className="text-purple-500" />
                     </span>
-                    Momentos de Vida
+                    {t('life_moments')}
                   </h3>
                   <div className="space-y-2">
                     {lifeEvents.slice(0, 20).map((ev) => (
@@ -472,7 +474,7 @@ export default function PatientHomePage() {
                             ev.impact_level >= 5 ? 'bg-orange-100 text-orange-600' :
                             'bg-green-100 text-green-600'
                           }`}>
-                            Impacto {ev.impact_level}/10
+                            {t('impact', { level: ev.impact_level })}
                           </span>
                           <p className="text-[10px] text-gray-400 mt-0.5">
                             {new Date(ev.event_date).toLocaleDateString('pt-BR')}
@@ -491,7 +493,7 @@ export default function PatientHomePage() {
                     <span className="w-6 h-6 rounded-lg bg-orange-50 flex items-center justify-center">
                       <AlertCircle size={13} className="text-orange-500" />
                     </span>
-                    Sintomas Relatados
+                    {t('reported_symptoms')}
                   </h3>
                   <div className="space-y-2">
                     {patientSymptoms.slice(0, 20).map((ps) => (
@@ -523,7 +525,7 @@ export default function PatientHomePage() {
           )}
 
           <p className="text-center text-xs text-gray-400 pt-6 pb-2">
-            Informações protegidas &middot; Conformidade LGPD
+            {t('protected_info')}
           </p>
         </main>
 
