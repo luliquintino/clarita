@@ -276,7 +276,7 @@ router.put('/me', authenticate, async (req, res, next) => {
 
     const result = await query(
       `UPDATE users SET ${updates.join(', ')} WHERE id = $${idx}
-       RETURNING id, email, role, first_name, last_name, phone, avatar_url, updated_at`,
+       RETURNING id, email, role, first_name, last_name, phone, avatar_url, language, updated_at`,
       values
     );
 
