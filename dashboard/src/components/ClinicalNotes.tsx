@@ -112,6 +112,7 @@ export default function ClinicalNotes({
     setFormType(note.type);
     setFormTitle(note.title);
     setFormContent(note.content);
+    setIsTitleAutoFilled(false);
     setIsCreating(false);
   };
 
