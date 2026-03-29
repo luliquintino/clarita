@@ -5,18 +5,24 @@ const { query } = require('../config/database');
 
 /**
  * JWT authentication middleware.
- * Extracts the token from the Authorization header (Bearer <token>),
- * verifies it, loads the user from the database and attaches it to req.user.
+ * Reads token from httpOnly cookie first, falls back to Authorization header
+ * for API/mobile clients that can't use cookies.
  */
 async function authenticate(req, res, next) {
   try {
-    const authHeader = req.headers.authorization;
+    // Prefer httpOnly cookie; fall back to Authorization header
+    let token = req.cookies?.token;
 
-    if (!authHeader || !authHeader.startsWith('Bearer ')) {
-      return res.status(401).json({ error: 'Autenticação necessária' });
+    if (!token) {
+      const authHeader = req.headers.authorization;
+      if (authHeader && authHeader.startsWith('Bearer ')) {
+        token = authHeader.slice(7);
+      }
     }
 
-    const token = authHeader.slice(7); // strip "Bearer "
+    if (!token) {
+      return res.status(401).json({ error: 'Autenticação necessária' });
+    }
 
     let decoded;
     try {

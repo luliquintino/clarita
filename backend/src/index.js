@@ -5,6 +5,7 @@ require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
 const helmet = require('helmet');
+const cookieParser = require('cookie-parser');
 const cron = require('node-cron');
 
 const authRoutes = require('./routes/auth');
@@ -108,6 +109,10 @@ app.use(
 
 app.use(express.json({ limit: '1mb' }));
 app.use(express.urlencoded({ extended: true }));
+app.use(cookieParser());
+
+const { globalLimiter } = require('./middleware/rateLimiter');
+app.use('/api', globalLimiter);
 
 // ---------------------------------------------------------------------------
 // Health Check

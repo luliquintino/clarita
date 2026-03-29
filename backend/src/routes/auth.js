@@ -7,6 +7,7 @@ const jwt = require('jsonwebtoken');
 
 const { query } = require('../config/database');
 const authenticate = require('../middleware/auth');
+const { loginLimiter, registerLimiter, forgotPasswordLimiter } = require('../middleware/rateLimiter');
 const {
   registrationValidator,
   loginValidator,
@@ -19,12 +20,23 @@ const { generateDisplayId } = require('../utils/generateDisplayId');
 
 const SALT_ROUNDS = 12;
 const TOKEN_EXPIRY = '7d';
+const COOKIE_MAX_AGE = 7 * 24 * 60 * 60 * 1000; // 7 days in ms
+
+function setAuthCookie(res, token) {
+  res.cookie('token', token, {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === 'production',
+    sameSite: 'strict',
+    maxAge: COOKIE_MAX_AGE,
+    path: '/',
+  });
+}
 
 // ---------------------------------------------------------------------------
 // POST /api/auth/register
 // ---------------------------------------------------------------------------
 
-router.post('/register', registrationValidator, handleValidation, async (req, res, next) => {
+router.post('/register', registerLimiter, registrationValidator, handleValidation, async (req, res, next) => {
   try {
     const {
       email,
@@ -108,7 +120,8 @@ router.post('/register', registrationValidator, handleValidation, async (req, re
       console.error('[auth] Welcome email failed:', err.message)
     );
 
-    res.status(201).json({ user, token });
+    setAuthCookie(res, token);
+    res.status(201).json({ user });
   } catch (err) {
     next(err);
   }
@@ -118,7 +131,7 @@ router.post('/register', registrationValidator, handleValidation, async (req, re
 // POST /api/auth/login
 // ---------------------------------------------------------------------------
 
-router.post('/login', loginValidator, handleValidation, async (req, res, next) => {
+router.post('/login', loginLimiter, loginValidator, handleValidation, async (req, res, next) => {
   try {
     const { email, password } = req.body;
 
@@ -150,7 +163,8 @@ router.post('/login', loginValidator, handleValidation, async (req, res, next) =
     // Remove password_hash from response
     const { password_hash: _, ...safeUser } = user;
 
-    res.json({ user: safeUser, token });
+    setAuthCookie(res, token);
+    res.json({ user: safeUser });
   } catch (err) {
     next(err);
   }
@@ -331,6 +345,7 @@ router.put('/me', authenticate, async (req, res, next) => {
 
 router.post(
   '/forgot-password',
+  forgotPasswordLimiter,
   forgotPasswordValidation,
   handleValidation,
   async (req, res, next) => {
@@ -412,5 +427,18 @@ router.post(
     }
   }
 );
+
+// ---------------------------------------------------------------------------
+// POST /api/auth/logout
+// ---------------------------------------------------------------------------
+
+router.post('/logout', (req, res) => {
+  res.clearCookie('token', {
+    path: '/',
+    sameSite: 'strict',
+    secure: process.env.NODE_ENV === 'production',
+  });
+  res.json({ message: 'Sessão encerrada com sucesso.' });
+});
 
 module.exports = router;
