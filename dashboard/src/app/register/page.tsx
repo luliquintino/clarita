@@ -99,6 +99,7 @@ export default function RegisterPage() {
         role: response.user.role,
         firstName: response.user.first_name,
         lastName: response.user.last_name,
+        language: (response.user as any).language ?? 'pt',
       });
       router.push(isPatient ? '/onboarding' : '/patients');
     } catch (err) {

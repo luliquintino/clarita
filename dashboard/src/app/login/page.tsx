@@ -48,6 +48,7 @@ export default function LoginPage() {
         role: response.user.role,
         firstName: response.user.first_name,
         lastName: response.user.last_name,
+        language: (response.user as any).language ?? 'pt',
       });
       if (response.user.role === 'patient') {
         router.push('/patient-home');
