@@ -50,6 +50,16 @@ export default function Combobox({
     return () => document.removeEventListener('mousedown', handleMouseDown);
   }, []);
 
+  useEffect(() => {
+    return () => {
+      if (debounceRef.current) clearTimeout(debounceRef.current);
+    };
+  }, []);
+
+  useEffect(() => {
+    setHighlighted(0);
+  }, [options]);
+
   const handleChange = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {
       const q = e.target.value;
