@@ -6,10 +6,9 @@ import { LogOut, Loader2, Star, AlertCircle, Hash } from 'lucide-react';
 import Image from 'next/image';
 import {
   authApi,
-  removeToken,
+  clearUserInfo,
   isAuthenticated,
   getUserRoleFromToken,
-  getToken,
   journalApi,
   patientProfileApi,
   goalsApi,
@@ -66,7 +65,7 @@ export default function PatientHomePage() {
   const [showLifeEventModal, setShowLifeEventModal] = useState(false);
   const [showSymptomModal, setShowSymptomModal] = useState(false);
 
-  const { permission, subscribed, loading: pushLoading, subscribe } = usePushNotifications(getToken());
+  const { permission, subscribed, loading: pushLoading, subscribe } = usePushNotifications();
 
   useEffect(() => {
     if (!isAuthenticated()) {
@@ -249,8 +248,9 @@ export default function PatientHomePage() {
     [user, loadProfessionals]
   );
 
-  const handleLogout = () => {
-    removeToken();
+  const handleLogout = async () => {
+    await authApi.logout();
+    clearUserInfo();
     router.push('/login');
   };
 

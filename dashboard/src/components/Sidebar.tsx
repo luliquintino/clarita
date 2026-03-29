@@ -14,7 +14,7 @@ import {
   MessageCircle,
 } from 'lucide-react';
 import Image from 'next/image';
-import { removeToken, patientsApi, chatApi } from '@/lib/api';
+import { clearUserInfo, authApi, patientsApi, chatApi } from '@/lib/api';
 import PatientCircle from './PatientCircle';
 
 interface NavItem {
@@ -119,8 +119,9 @@ export default function Sidebar({ alertCount = 0 }: SidebarProps) {
     },
   ];
 
-  const handleLogout = () => {
-    removeToken();
+  const handleLogout = async () => {
+    await authApi.logout();
+    clearUserInfo();
     window.location.href = '/login';
   };
 

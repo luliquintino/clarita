@@ -16,7 +16,7 @@ import {
   Pencil,
 } from 'lucide-react';
 import Sidebar from '@/components/Sidebar';
-import { authApi, removeToken, isAuthenticated, getToken } from '@/lib/api';
+import { authApi, clearUserInfo, isAuthenticated } from '@/lib/api';
 
 interface Profile {
   license_number?: string;
@@ -105,16 +105,16 @@ export default function ProfilePage() {
     }
   };
 
-  const handleLogout = () => {
-    removeToken();
+  const handleLogout = async () => {
+    await authApi.logout();
+    clearUserInfo();
     window.location.href = '/login';
   };
 
   const handleExportData = async () => {
     try {
-      const token = getToken();
       const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/me/export`, {
-        headers: { Authorization: `Bearer ${token}` },
+        credentials: 'include',
       });
       if (!res.ok) throw new Error('Falha ao exportar');
       const blob = await res.blob();
@@ -133,13 +133,12 @@ export default function ProfilePage() {
 
   const handleDeleteAccount = async () => {
     try {
-      const token = getToken();
       const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/me`, {
         method: 'DELETE',
-        headers: { Authorization: `Bearer ${token}` },
+        credentials: 'include',
       });
       if (res.ok) {
-        removeToken();
+        clearUserInfo();
         router.push('/login');
       } else {
         alert('Erro ao excluir conta. Tente novamente.');
