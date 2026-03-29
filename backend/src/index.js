@@ -96,11 +96,31 @@ const PORT = process.env.PORT || 3001;
 // Global Middleware
 // ---------------------------------------------------------------------------
 
-app.use(helmet());
+app.use(
+  helmet({
+    contentSecurityPolicy: {
+      directives: {
+        defaultSrc: ["'self'"],
+        scriptSrc: ["'self'"],
+        imgSrc: ["'self'", 'data:', 'res.cloudinary.com'],
+        connectSrc: ["'self'", process.env.CORS_ORIGIN || 'http://localhost:3000'].filter(Boolean),
+      },
+    },
+  })
+);
+
+const corsOrigin =
+  process.env.CORS_ORIGIN ||
+  (process.env.NODE_ENV !== 'production' ? 'http://localhost:3000' : null);
+
+if (process.env.NODE_ENV === 'production' && !corsOrigin) {
+  console.error('[security] CORS_ORIGIN not set in production — refusing to start');
+  process.exit(1);
+}
 
 app.use(
   cors({
-    origin: process.env.CORS_ORIGIN || '*',
+    origin: corsOrigin,
     methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization'],
     credentials: true,
@@ -267,9 +287,10 @@ if (process.env.NODE_ENV !== 'test') {
 
 if (require.main === module) {
   runAutoMigrations().then(() => {
-    app.listen(PORT, () => {
+    const server = app.listen(PORT, () => {
       console.log(`CLARITA API running on port ${PORT} [${process.env.NODE_ENV || 'development'}]`);
     });
+    server.timeout = 30_000; // 30 seconds
   });
 }
 
