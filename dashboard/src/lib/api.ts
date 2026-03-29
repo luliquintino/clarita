@@ -741,6 +741,13 @@ export const medicationsApi = {
     }),
 };
 
+export const medicationCatalogApi = {
+  search: (query: string) =>
+    request<{ medications: { id: string; name: string; category: string }[] }>(
+      `/medications?search=${encodeURIComponent(query)}&limit=10`
+    ),
+};
+
 // ---------------------------------------------------------------------------
 // Patient Medications API (for the patient themselves)
 // ---------------------------------------------------------------------------

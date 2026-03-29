@@ -4,6 +4,8 @@ import { useState } from 'react';
 import { format } from 'date-fns';
 import { Pill, Plus, X, Save, AlertTriangle, CheckCircle, Clock, Ban, Tag } from 'lucide-react';
 import type { Medication } from '@/lib/api';
+import Combobox, { type ComboboxOption } from '@/components/Combobox';
+import { medicationCatalogApi } from '@/lib/api';
 
 interface MedicationManagerProps {
   medications: Medication[];
@@ -92,6 +94,8 @@ export default function MedicationManager({
   const [medDosage, setMedDosage] = useState('');
   const [medFrequency, setMedFrequency] = useState('');
   const [medNotes, setMedNotes] = useState('');
+  const [medOptions, setMedOptions] = useState<ComboboxOption[]>([]);
+  const [medSearching, setMedSearching] = useState(false);
 
   const [adjDosage, setAdjDosage] = useState('');
   const [adjFrequency, setAdjFrequency] = useState('');
@@ -108,6 +112,7 @@ export default function MedicationManager({
     setMedDosage('');
     setMedFrequency('');
     setMedNotes('');
+    setMedOptions([]);
     setShowPrescribeForm(false);
   };
 
@@ -116,6 +121,25 @@ export default function MedicationManager({
     setAdjFrequency('');
     setAdjNotes('');
     setAdjustingId(null);
+  };
+
+  const handleMedSearch = async (query: string) => {
+    if (!query.trim()) return;
+    setMedSearching(true);
+    try {
+      const data = await medicationCatalogApi.search(query);
+      setMedOptions(
+        data.medications.map((m) => ({
+          label: m.name,
+          value: m.name,
+          subtitle: m.category,
+        }))
+      );
+    } catch {
+      setMedOptions([]);
+    } finally {
+      setMedSearching(false);
+    }
   };
 
   const handlePrescribe = async () => {
@@ -246,12 +270,16 @@ export default function MedicationManager({
                 <label className="block text-sm font-medium text-gray-700 mb-1.5">
                   Nome do Medicamento
                 </label>
-                <input
-                  type="text"
+                <Combobox
                   value={medName}
-                  onChange={(e) => setMedName(e.target.value)}
-                  className="input-field"
+                  onChange={setMedName}
+                  onSelect={(item) => setMedName(item.value)}
+                  options={medOptions}
+                  onSearch={handleMedSearch}
+                  loading={medSearching}
                   placeholder="ex.: Sertralina"
+                  minChars={3}
+                  disabled={saving}
                 />
               </div>
               <div>
