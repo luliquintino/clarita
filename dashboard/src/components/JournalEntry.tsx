@@ -82,7 +82,9 @@ export default function JournalEntry({ onSubmit, saving = false, medications }: 
   const [sleepHours, setSleepHours] = useState(7);
   const [journalText, setJournalText] = useState('');
   const [submitted, setSubmitted] = useState(false);
-  const [medAnswers, setMedAnswers] = useState<Record<string, boolean>>({});
+  const [medAnswers, setMedAnswers] = useState<Record<string, boolean>>(
+    () => Object.fromEntries((medications ?? []).map((m) => [m.id, true]))
+  );
 
   const moodConfig = moodEmojis.find((e) => mood >= e.min && mood <= e.max) || moodEmojis[1];
   const MoodIcon = moodConfig.icon;
@@ -103,7 +105,7 @@ export default function JournalEntry({ onSubmit, saving = false, medications }: 
     });
 
     setSubmitted(true);
-    setMedAnswers({});
+    setMedAnswers(Object.fromEntries((medications ?? []).map((m) => [m.id, true])));
     setTimeout(() => setSubmitted(false), 3000);
     setJournalText('');
   };
@@ -180,7 +182,10 @@ export default function JournalEntry({ onSubmit, saving = false, medications }: 
         <div className="bg-indigo-50/50 rounded-2xl p-4 border border-indigo-100 space-y-3">
           <div className="flex items-center gap-2">
             <Pill size={16} className="text-indigo-500" />
-            <p className="text-sm font-medium text-gray-700">Você tomou sua medicação hoje?</p>
+            <p className="text-sm font-medium text-gray-700">
+              Medicações de hoje{' '}
+              <span className="text-xs text-gray-400 font-normal">(desmarque o que não tomou)</span>
+            </p>
           </div>
           <div className="space-y-2">
             {medications.map((med) => {
