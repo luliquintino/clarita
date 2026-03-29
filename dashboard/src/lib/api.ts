@@ -5,63 +5,57 @@
 const BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3005/api';
 
 // ---------------------------------------------------------------------------
-// Token helpers
+// Session helpers (JWT lives in httpOnly cookie — not accessible from JS)
 // ---------------------------------------------------------------------------
 
-export function getToken(): string | null {
-  if (typeof window === 'undefined') return null;
-  return localStorage.getItem('clarita_token');
+interface UserInfo {
+  id: string;
+  role: string;
+  firstName: string;
+  lastName: string;
 }
 
-export function setToken(token: string): void {
-  if (typeof window !== 'undefined') {
-    localStorage.setItem('clarita_token', token);
+export function getUserInfo(): UserInfo | null {
+  if (typeof window === 'undefined') return null;
+  try {
+    const raw = localStorage.getItem('clarita_user');
+    return raw ? JSON.parse(raw) : null;
+  } catch {
+    return null;
   }
 }
 
-export function removeToken(): void {
+export function setUserInfo(user: UserInfo): void {
   if (typeof window !== 'undefined') {
-    localStorage.removeItem('clarita_token');
+    localStorage.setItem('clarita_user', JSON.stringify(user));
+  }
+}
+
+export function clearUserInfo(): void {
+  if (typeof window !== 'undefined') {
+    localStorage.removeItem('clarita_user');
   }
 }
 
 export function isAuthenticated(): boolean {
-  return !!getToken();
+  return getUserInfo() !== null;
 }
 
+/** @deprecated reads from clarita_user instead of JWT */
 export function getUserRoleFromToken(): string | null {
-  const token = getToken();
-  if (!token) return null;
-  try {
-    const payload = JSON.parse(atob(token.split('.')[1]));
-    return payload.role || null;
-  } catch {
-    return null;
-  }
+  return getUserInfo()?.role ?? null;
 }
 
+/** @deprecated reads from clarita_user instead of JWT */
 export function getUserIdFromToken(): string | null {
-  const token = getToken();
-  if (!token) return null;
-  try {
-    const payload = JSON.parse(atob(token.split('.')[1]));
-    return payload.sub || payload.user_id || null;
-  } catch {
-    return null;
-  }
+  return getUserInfo()?.id ?? null;
 }
 
-export function isTokenExpired(): boolean {
-  const token = getToken();
-  if (!token) return true;
-  try {
-    const payload = JSON.parse(atob(token.split('.')[1]));
-    // exp is in seconds; add 10s buffer
-    return payload.exp ? payload.exp * 1000 < Date.now() - 10000 : false;
-  } catch {
-    return true;
-  }
-}
+// Legacy no-ops — kept so existing import sites don't break:
+export function getToken(): string | null { return null; }
+export function setToken(_token: string): void {}
+export function removeToken(): void { clearUserInfo(); }
+export function isTokenExpired(): boolean { return !isAuthenticated(); }
 
 // ---------------------------------------------------------------------------
 // Error class
@@ -84,38 +78,45 @@ export class ApiError extends Error {
 // ---------------------------------------------------------------------------
 
 async function request<T>(endpoint: string, options: RequestInit = {}): Promise<T> {
-  const token = getToken();
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), 30_000);
 
   const headers: Record<string, string> = {
     'Content-Type': 'application/json',
     ...(options.headers as Record<string, string>),
   };
 
-  if (token) {
-    headers['Authorization'] = `Bearer ${token}`;
-  }
+  try {
+    const response = await fetch(`${BASE_URL}${endpoint}`, {
+      ...options,
+      headers,
+      credentials: 'include',
+      signal: controller.signal,
+    });
 
-  const response = await fetch(`${BASE_URL}${endpoint}`, {
-    ...options,
-    headers,
-  });
-
-  if (!response.ok) {
-    let detail = 'An error occurred';
-    try {
-      const errorBody = await response.json();
-      detail = errorBody.detail || errorBody.message || errorBody.error || detail;
-    } catch {
-      detail = response.statusText;
+    if (response.status === 401) {
+      clearUserInfo();
     }
-    throw new ApiError(response.status, detail);
-  }
 
-  if (response.status === 204) {
-    return undefined as T;
-  }
+    if (!response.ok) {
+      let detail = 'An error occurred';
+      try {
+        const errorBody = await response.json();
+        detail = errorBody.detail || errorBody.message || errorBody.error || detail;
+      } catch {
+        detail = response.statusText;
+      }
+      throw new ApiError(response.status, detail);
+    }
 
-  return response.json();
+    if (response.status === 204) {
+      return undefined as T;
+    }
+
+    return response.json();
+  } finally {
+    clearTimeout(timeoutId);
+  }
 }
 
 // ---------------------------------------------------------------------------
@@ -579,9 +580,7 @@ export const authApi = {
       body: JSON.stringify(data),
     }),
 
-  logout: () => {
-    removeToken();
-  },
+  logout: () => request<void>('/auth/logout', { method: 'POST' }),
 
   forgotPassword: (email: string) =>
     request<{ message: string }>('/auth/forgot-password', {
