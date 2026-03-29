@@ -454,6 +454,8 @@ export default function DiagnosticBrowserPanel({
       setQuickSelectedName('');
       setQuickNotes('');
       setQuickCertainty('suspected');
+      setQuickDate(new Date().toISOString().split('T')[0]);
+      setQuickIcdOptions([]);
       icd11Api.recent().then((d) => setRecentIcds(d.recent)).catch(() => {});
     } catch {
       // silent
