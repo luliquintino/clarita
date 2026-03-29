@@ -63,14 +63,14 @@ router.get('/export', async (req, res, next) => {
 router.delete('/', async (req, res, next) => {
   try {
     const userId = req.user.id;
+    const { audit } = require('../services/auditService');
 
-    // Idempotency guard — reject if account is already inactive
     const userResult = await query('SELECT is_active FROM users WHERE id = $1', [userId]);
     if (!userResult.rows[0] || !userResult.rows[0].is_active) {
       return res.status(404).json({ error: 'Conta não encontrada ou já removida.' });
     }
 
-    // Anonimizar dados pessoais
+    // 1. Anonymize user record
     await query(
       `UPDATE users SET
         email = 'deleted_' || id || '@clarita.deleted',
@@ -84,15 +84,65 @@ router.delete('/', async (req, res, next) => {
       [userId]
     );
 
-    // Remover notas sensíveis dos registros emocionais (journal_entry e notes)
+    // 2. Clear emotional log content
     await query(
       'UPDATE emotional_logs SET notes = NULL, journal_entry = NULL WHERE patient_id = $1',
       [userId]
     );
 
-    res.json({
-      message: 'Conta removida com sucesso. Seus dados pessoais foram anonimizados.',
-    });
+    // 3. Anonymize clinical notes
+    await query(
+      `UPDATE clinical_notes SET title = 'Nota removida', content = '[conteúdo removido]'
+       WHERE patient_id = $1 OR professional_id = $1`,
+      [userId]
+    );
+
+    // 4. Clear diagnosis notes
+    await query('UPDATE patient_diagnoses SET notes = NULL WHERE patient_id = $1', [userId]);
+
+    // 5. Clear medication notes
+    await query('UPDATE patient_medications SET notes = NULL WHERE patient_id = $1', [userId]);
+
+    // 6. Anonymize life events
+    await query(
+      `UPDATE life_events SET title = '[removido]', description = NULL WHERE patient_id = $1`,
+      [userId]
+    );
+
+    // 7. Anonymize goals
+    await query(
+      `UPDATE goals SET title = '[removido]', description = NULL WHERE patient_id = $1`,
+      [userId]
+    );
+
+    // 8. Clear assessment notes
+    await query('UPDATE assessment_results SET notes = NULL WHERE patient_id = $1', [userId]);
+
+    // 9. Clear emergency contact
+    await query(
+      `UPDATE patient_profiles SET emergency_contact_name = NULL, emergency_contact_phone = NULL
+       WHERE user_id = $1`,
+      [userId]
+    );
+
+    // 10. Revoke all exam permissions
+    await query(
+      `DELETE FROM exam_permissions WHERE exam_id IN (
+        SELECT id FROM patient_exams WHERE patient_id = $1
+      )`,
+      [userId]
+    );
+
+    // 11. Cancel active record sharing tokens
+    await query(
+      `UPDATE record_sharing_tokens SET is_active = false
+       WHERE patient_id = $1 AND is_active = true`,
+      [userId]
+    );
+
+    audit(req, 'account.delete', 'user', userId);
+
+    res.json({ message: 'Conta removida com sucesso. Seus dados pessoais foram anonimizados.' });
   } catch (err) {
     next(err);
   }
