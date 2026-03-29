@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { X, Loader2, AlertCircle, Check } from 'lucide-react';
+import { X, Loader2, AlertCircle, Check, Search } from 'lucide-react';
 import { format } from 'date-fns';
 import { symptomsApi, type Symptom } from '@/lib/api';
 
@@ -20,6 +20,7 @@ export default function ReportSymptomModal({ open, onClose, onCreated }: ReportS
   const [reportedAt, setReportedAt] = useState(format(new Date(), 'yyyy-MM-dd'));
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
+  const [search, setSearch] = useState('');
 
   useEffect(() => {
     if (!open) return;
@@ -39,6 +40,7 @@ export default function ReportSymptomModal({ open, onClose, onCreated }: ReportS
     setNotes('');
     setReportedAt(format(new Date(), 'yyyy-MM-dd'));
     setError('');
+    setSearch('');
   };
 
   const handleClose = () => {
@@ -75,6 +77,11 @@ export default function ReportSymptomModal({ open, onClose, onCreated }: ReportS
           })
         )
       );
+      // Save recent symptom IDs (keep last 5)
+      const recent = getRecentIds();
+      const submitted = Array.from(selectedIds);
+      const updated = [...submitted, ...recent.filter((id) => !submitted.includes(id))].slice(0, 5);
+      saveRecentIds(updated);
       reset();
       onCreated();
       onClose();
@@ -85,15 +92,47 @@ export default function ReportSymptomModal({ open, onClose, onCreated }: ReportS
     }
   };
 
-  // Group symptoms by category
-  const grouped = symptoms.reduce<Record<string, Symptom[]>>((acc, s) => {
-    const cat = s.category ?? 'Outros';
+  function getRecentIds(): string[] {
+    if (typeof window === 'undefined') return [];
+    try {
+      return JSON.parse(localStorage.getItem('clarita_recent_symptoms') ?? '[]');
+    } catch {
+      return [];
+    }
+  }
+
+  function saveRecentIds(ids: string[]) {
+    if (typeof window === 'undefined') return;
+    localStorage.setItem('clarita_recent_symptoms', JSON.stringify(ids));
+  }
+
+  const recentIds = getRecentIds();
+
+  // Sort: recent first, then alphabetical within each group
+  const sortedSymptoms = [...symptoms].sort((a, b) => {
+    const aRecent = recentIds.indexOf(a.id);
+    const bRecent = recentIds.indexOf(b.id);
+    if (aRecent !== -1 && bRecent !== -1) return aRecent - bRecent;
+    if (aRecent !== -1) return -1;
+    if (bRecent !== -1) return 1;
+    return a.name.localeCompare(b.name);
+  });
+
+  const filtered = search.trim()
+    ? sortedSymptoms.filter((s) =>
+        s.name.toLowerCase().includes(search.toLowerCase())
+      )
+    : sortedSymptoms;
+
+  const grouped = filtered.reduce<Record<string, Symptom[]>>((acc, s) => {
+    const cat = search.trim() ? 'results' : (s.category ?? 'Outros');
     if (!acc[cat]) acc[cat] = [];
     acc[cat].push(s);
     return acc;
   }, {});
 
   const categoryLabels: Record<string, string> = {
+    results: 'Resultados',
     mood: 'Humor',
     anxiety: 'Ansiedade',
     sleep: 'Sono',
@@ -140,6 +179,18 @@ export default function ReportSymptomModal({ open, onClose, onCreated }: ReportS
               <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">
                 Sintomas <span className="text-red-400">*</span>
               </p>
+              {/* Search input */}
+              <div className="relative mb-3">
+                <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+                <input
+                  type="text"
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                  placeholder="Buscar sintoma..."
+                  className="input-field w-full pl-8 py-2 text-sm"
+                  disabled={saving}
+                />
+              </div>
               {loadingSymptoms ? (
                 <div className="flex items-center gap-2 text-sm text-gray-400 py-2">
                   <Loader2 size={14} className="animate-spin" />
