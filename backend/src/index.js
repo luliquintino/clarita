@@ -236,6 +236,16 @@ if (process.env.NODE_ENV !== 'test') {
     }
   });
 
+  // Prune audit logs older than 90 days (weekly on Saturdays at 3:30am)
+  cron.schedule('30 3 * * 6', async () => {
+    try {
+      const { pruneOldLogs } = require('./services/auditService');
+      await pruneOldLogs();
+    } catch (err) {
+      console.error('[cron] Audit log pruning failed:', err.message);
+    }
+  });
+
   // No check-in reminder (daily at 09:00 BRT / 12:00 UTC)
   startNoCheckinJob();
 
