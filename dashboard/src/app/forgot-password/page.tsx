@@ -4,9 +4,11 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { ArrowLeft, Loader2, Mail, CheckCircle } from 'lucide-react';
 import Image from 'next/image';
+import { useTranslations } from 'next-intl';
 import { authApi } from '@/lib/api';
 
 export default function ForgotPasswordPage() {
+  const t = useTranslations();
   const [email, setEmail] = useState('');
   const [loading, setLoading] = useState(false);
   const [sent, setSent] = useState(false);
@@ -45,7 +47,7 @@ export default function ForgotPasswordPage() {
             className="mx-auto mb-3 drop-shadow-lg"
             priority
           />
-          <p className="text-gray-500 text-sm font-light">Plataforma de Saúde Mental</p>
+          <p className="text-gray-500 text-sm font-light">{t('auth.mental_health_platform')}</p>
         </div>
 
         <div className="bg-white/70 backdrop-blur-xl rounded-3xl shadow-2xl border border-white/40 p-8">
@@ -54,17 +56,16 @@ export default function ForgotPasswordPage() {
               <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-clarita-green-100 to-clarita-green-200 rounded-full mb-4">
                 <CheckCircle size={32} className="text-clarita-green-500" />
               </div>
-              <h2 className="text-2xl font-semibold text-gray-800 mb-2">Email enviado!</h2>
+              <h2 className="text-2xl font-semibold text-gray-800 mb-2">{t('auth.email_sent_title')}</h2>
               <p className="text-sm text-gray-500 mb-6 leading-relaxed">
-                Se este email estiver cadastrado, você receberá um link para redefinir sua senha.
-                Verifique sua caixa de entrada e a pasta de spam.
+                {t('auth.email_sent_desc')}
               </p>
               <Link
                 href="/login"
                 className="btn-primary inline-flex items-center gap-2 px-6 py-3 rounded-xl"
               >
                 <ArrowLeft size={16} />
-                Voltar ao login
+                {t('auth.back_to_login')}
               </Link>
             </div>
           ) : (
@@ -74,12 +75,12 @@ export default function ForgotPasswordPage() {
                   <Mail size={22} className="text-clarita-purple-500" />
                 </div>
                 <div>
-                  <h2 className="text-xl font-semibold text-gray-800">Esqueceu sua senha?</h2>
-                  <p className="text-xs text-gray-400">Sem problemas, acontece!</p>
+                  <h2 className="text-xl font-semibold text-gray-800">{t('auth.forgot_password')}</h2>
+                  <p className="text-xs text-gray-400">{t('auth.forgot_password_subtitle')}</p>
                 </div>
               </div>
               <p className="text-sm text-gray-500 mb-6 mt-4">
-                Digite seu email e enviaremos um link para redefinir sua senha.
+                {t('auth.forgot_password_desc')}
               </p>
 
               <form onSubmit={handleSubmit} className="space-y-5">
@@ -92,7 +93,7 @@ export default function ForgotPasswordPage() {
 
                 <div>
                   <label htmlFor="email" className="block text-sm font-medium text-gray-600 mb-2">
-                    Endereço de email
+                    {t('auth.email')}
                   </label>
                   <input
                     id="email"
@@ -100,7 +101,7 @@ export default function ForgotPasswordPage() {
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     className="input-field py-3.5"
-                    placeholder="voce@exemplo.com"
+                    placeholder={t('auth.email_placeholder')}
                     required
                     autoComplete="email"
                     autoFocus
@@ -115,7 +116,7 @@ export default function ForgotPasswordPage() {
                   {loading ? (
                     <Loader2 size={20} className="animate-spin" />
                   ) : (
-                    'Enviar link de recuperação'
+                    t('auth.send_reset_link')
                   )}
                 </button>
               </form>
@@ -126,7 +127,7 @@ export default function ForgotPasswordPage() {
                   className="text-sm text-clarita-purple-500 hover:text-clarita-purple-600 font-medium inline-flex items-center gap-1 transition-colors"
                 >
                   <ArrowLeft size={14} />
-                  Voltar ao login
+                  {t('auth.back_to_login')}
                 </Link>
               </div>
             </>

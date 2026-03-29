@@ -5,31 +5,33 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { Eye, EyeOff, Loader2, Heart, Brain, ClipboardList, Search, Shield } from 'lucide-react';
 import Image from 'next/image';
+import { useTranslations } from 'next-intl';
 import { authApi, setUserInfo } from '@/lib/api';
 
-const features = [
-  {
-    icon: Brain,
-    iconClass: 'text-clarita-purple-500 bg-clarita-purple-50',
-    title: 'Linha do Tempo com IA',
-    description: 'Analisa padrões emocionais e comportamentais entre consultas.',
-  },
-  {
-    icon: Search,
-    iconClass: 'text-clarita-blue-500 bg-clarita-blue-50',
-    title: 'Do sintoma ao diagnóstico em segundos',
-    description: 'Browser completo da CID-11 integrado ao prontuário — busca por palavras-chave.',
-  },
-  {
-    icon: Shield,
-    iconClass: 'text-clarita-orange-500 bg-clarita-orange-50',
-    title: 'Privacidade que pertence ao paciente',
-    description: 'Controle granular por LGPD — o paciente decide quem acessa e pode revogar a qualquer momento.',
-  },
-];
-
 export default function LoginPage() {
+  const t = useTranslations();
   const router = useRouter();
+
+  const features = [
+    {
+      icon: Brain,
+      iconClass: 'text-clarita-purple-500 bg-clarita-purple-50',
+      title: t('auth.feature_1_title'),
+      description: t('auth.feature_1_desc'),
+    },
+    {
+      icon: Search,
+      iconClass: 'text-clarita-blue-500 bg-clarita-blue-50',
+      title: t('auth.feature_2_title'),
+      description: t('auth.feature_2_desc'),
+    },
+    {
+      icon: Shield,
+      iconClass: 'text-clarita-orange-500 bg-clarita-orange-50',
+      title: t('auth.feature_3_title'),
+      description: t('auth.feature_3_desc'),
+    },
+  ];
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
@@ -92,16 +94,16 @@ export default function LoginPage() {
         <div className="relative z-10 space-y-10">
           <div className="space-y-4">
             <span className="inline-block text-xs font-semibold tracking-widest text-clarita-green-600 uppercase">
-              Saúde Mental Digital
+              {t('auth.tagline')}
             </span>
             <h1 className="text-4xl font-bold text-gray-900 leading-tight tracking-tight">
-              A plataforma clínica<br />
+              {t('auth.hero_title_1')}<br />
               <span className="bg-gradient-to-r from-clarita-green-500 to-clarita-purple-500 bg-clip-text text-transparent">
-                que entende seus pacientes
+                {t('auth.hero_title_2')}
               </span>
             </h1>
             <p className="text-gray-500 text-base leading-relaxed max-w-md">
-              Prontuário longitudinal, avaliações psicológicas e análise por IA — tudo em um único sistema para psicólogos e psiquiatras.
+              {t('auth.hero_desc')}
             </p>
           </div>
 
@@ -153,7 +155,7 @@ export default function LoginPage() {
           {/* Login Card */}
           <div className="bg-white/70 backdrop-blur-xl rounded-3xl shadow-2xl border border-gray-100 p-8">
             <h2 className="text-2xl font-semibold text-gray-800 mb-8 flex items-center gap-2">
-              Que bom te ver por aqui{' '}
+              {t('auth.welcome_back')}{' '}
               <Heart size={20} className="text-clarita-purple-400 fill-clarita-purple-400" />
             </h2>
 
@@ -167,7 +169,7 @@ export default function LoginPage() {
 
               <div>
                 <label htmlFor="email" className="block text-sm font-medium text-gray-600 mb-2">
-                  Endereço de email
+                  {t('auth.email')}
                 </label>
                 <input
                   id="email"
@@ -175,7 +177,7 @@ export default function LoginPage() {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   className="input-field py-3.5"
-                  placeholder="voce@exemplo.com"
+                  placeholder={t('auth.email_placeholder')}
                   required
                   autoComplete="email"
                   autoFocus
@@ -184,7 +186,7 @@ export default function LoginPage() {
 
               <div>
                 <label htmlFor="password" className="block text-sm font-medium text-gray-600 mb-2">
-                  Senha
+                  {t('auth.password')}
                 </label>
                 <div className="relative">
                   <input
@@ -193,7 +195,7 @@ export default function LoginPage() {
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     className="input-field py-3.5 pr-11"
-                    placeholder="Digite sua senha"
+                    placeholder={t('auth.password_placeholder')}
                     required
                     autoComplete="current-password"
                   />
@@ -213,7 +215,7 @@ export default function LoginPage() {
                   href="/forgot-password"
                   className="text-sm text-clarita-purple-500 hover:text-clarita-purple-600 font-medium transition-colors"
                 >
-                  Esqueceu sua senha?
+                  {t('auth.forgot_password')}
                 </Link>
               </div>
 
@@ -222,23 +224,23 @@ export default function LoginPage() {
                 disabled={loading}
                 className="btn-primary w-full py-3.5 text-base rounded-xl"
               >
-                {loading ? <Loader2 size={20} className="animate-spin" /> : 'Entrar'}
+                {loading ? <Loader2 size={20} className="animate-spin" /> : t('auth.login')}
               </button>
             </form>
 
             <div className="mt-8 text-center">
-              <span className="text-sm text-gray-500">Não tem uma conta? </span>
+              <span className="text-sm text-gray-500">{t('auth.no_account')} </span>
               <Link
                 href="/register"
                 className="text-sm text-clarita-purple-500 hover:text-clarita-purple-600 font-semibold transition-colors"
               >
-                Cadastre-se
+                {t('auth.register')}
               </Link>
             </div>
           </div>
 
           <p className="text-center text-xs text-gray-400 mt-6">
-            Informações protegidas &middot; Conformidade LGPD
+            {t('auth.protected_info')}
           </p>
         </div>
       </div>

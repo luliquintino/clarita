@@ -20,7 +20,7 @@ export type PatientSection =
 
 export const NAV_ITEMS: Array<{
   key: PatientSection;
-  label: string;
+  labelKey: PatientSection;
   icon: LucideIcon;
   color: string;
   activeColor: string;
@@ -28,7 +28,7 @@ export const NAV_ITEMS: Array<{
 }> = [
   {
     key: 'home',
-    label: 'Home',
+    labelKey: 'home',
     icon: Home,
     color: 'text-gray-400',
     activeColor: 'text-clarita-green-600',
@@ -36,7 +36,7 @@ export const NAV_ITEMS: Array<{
   },
   {
     key: 'exams',
-    label: 'Exames',
+    labelKey: 'exams',
     icon: FileText,
     color: 'text-gray-400',
     activeColor: 'text-clarita-green-700',
@@ -44,7 +44,7 @@ export const NAV_ITEMS: Array<{
   },
   {
     key: 'tests',
-    label: 'Testes',
+    labelKey: 'tests',
     icon: FlaskConical,
     color: 'text-gray-400',
     activeColor: 'text-indigo-500',
@@ -52,7 +52,7 @@ export const NAV_ITEMS: Array<{
   },
   {
     key: 'anamnesis',
-    label: 'Anamnese',
+    labelKey: 'anamnesis',
     icon: ClipboardList,
     color: 'text-gray-400',
     activeColor: 'text-teal-600',
@@ -60,7 +60,7 @@ export const NAV_ITEMS: Array<{
   },
   {
     key: 'goals',
-    label: 'Metas',
+    labelKey: 'goals',
     icon: Target,
     color: 'text-gray-400',
     activeColor: 'text-clarita-purple-600',
@@ -68,7 +68,7 @@ export const NAV_ITEMS: Array<{
   },
   {
     key: 'history',
-    label: 'Histórico',
+    labelKey: 'history',
     icon: BookOpen,
     color: 'text-gray-400',
     activeColor: 'text-blue-600',
@@ -76,7 +76,7 @@ export const NAV_ITEMS: Array<{
   },
   {
     key: 'medications',
-    label: 'Medicamentos',
+    labelKey: 'medications',
     icon: Pill,
     color: 'text-gray-400',
     activeColor: 'text-amber-600',

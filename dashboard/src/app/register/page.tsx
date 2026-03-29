@@ -5,24 +5,26 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { Eye, EyeOff, Loader2, Stethoscope, Brain, Heart } from 'lucide-react';
 import Image from 'next/image';
+import { useTranslations } from 'next-intl';
 import { authApi, setUserInfo } from '@/lib/api';
 import type { RegisterData } from '@/lib/api';
 
 type Role = 'psychologist' | 'psychiatrist' | 'patient';
 
-const roles = [
-  { value: 'psychologist' as Role, label: 'Psicólogo(a)', icon: Brain, color: 'clarita-green' },
-  {
-    value: 'psychiatrist' as Role,
-    label: 'Psiquiatra',
-    icon: Stethoscope,
-    color: 'clarita-purple',
-  },
-  { value: 'patient' as Role, label: 'Paciente', icon: Heart, color: 'clarita-pink' },
-];
-
 export default function RegisterPage() {
+  const t = useTranslations();
   const router = useRouter();
+
+  const roles = [
+    { value: 'psychologist' as Role, label: t('auth.role_psychologist'), icon: Brain, color: 'clarita-green' },
+    {
+      value: 'psychiatrist' as Role,
+      label: t('auth.role_psychiatrist'),
+      icon: Stethoscope,
+      color: 'clarita-purple',
+    },
+    { value: 'patient' as Role, label: t('auth.role_patient'), icon: Heart, color: 'clarita-pink' },
+  ];
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [showPassword, setShowPassword] = useState(false);
@@ -131,17 +133,17 @@ export default function RegisterPage() {
           />
           <h1 className="text-2xl font-bold text-gray-800 tracking-tight mb-1">Clarita</h1>
           <p className="text-gray-500 text-sm font-light">
-            {isPatient ? 'Portal do Paciente' : 'Painel Profissional'}
+            {isPatient ? t('auth.portal_patient') : t('auth.professional_panel')}
           </p>
         </div>
 
         {/* Register Card */}
         <div className="bg-white/70 backdrop-blur-xl rounded-3xl shadow-2xl border border-white/40 p-8">
-          <h2 className="text-2xl font-semibold text-gray-800 mb-1">Criar sua conta</h2>
+          <h2 className="text-2xl font-semibold text-gray-800 mb-1">{t('auth.create_your_account')}</h2>
           <p className="text-sm text-gray-500 mb-6">
             {isPatient
-              ? 'Cadastre-se para acompanhar sua saúde mental.'
-              : 'Cadastre-se para acessar o painel de pacientes.'}
+              ? t('auth.register_patient_subtitle')
+              : t('auth.register_professional_subtitle')}
           </p>
 
           <form onSubmit={handleSubmit} className="space-y-5">
@@ -154,7 +156,7 @@ export default function RegisterPage() {
 
             {/* Role selector */}
             <div>
-              <label className="block text-sm font-medium text-gray-600 mb-3">Tipo de conta</label>
+              <label className="block text-sm font-medium text-gray-600 mb-3">{t('auth.role')}</label>
               <div className="grid grid-cols-3 gap-3">
                 {roles.map((role) => {
                   const Icon = role.icon;
@@ -186,7 +188,7 @@ export default function RegisterPage() {
             <div className="grid grid-cols-2 gap-3">
               <div>
                 <label htmlFor="firstName" className="block text-sm font-medium text-gray-600 mb-2">
-                  Nome
+                  {t('auth.first_name')}
                 </label>
                 <input
                   id="firstName"
@@ -201,7 +203,7 @@ export default function RegisterPage() {
               </div>
               <div>
                 <label htmlFor="lastName" className="block text-sm font-medium text-gray-600 mb-2">
-                  Sobrenome
+                  {t('auth.last_name')}
                 </label>
                 <input
                   id="lastName"
@@ -218,7 +220,7 @@ export default function RegisterPage() {
             {/* Email */}
             <div>
               <label htmlFor="email" className="block text-sm font-medium text-gray-600 mb-2">
-                {isPatient ? 'Email' : 'Email profissional'}
+                {isPatient ? t('auth.email') : t('auth.email_professional')}
               </label>
               <input
                 id="email"
@@ -226,7 +228,7 @@ export default function RegisterPage() {
                 value={form.email}
                 onChange={(e) => update('email', e.target.value)}
                 className="input-field"
-                placeholder={isPatient ? 'voce@exemplo.com' : 'voce@clinica.com'}
+                placeholder={isPatient ? t('auth.email_placeholder') : 'voce@clinica.com'}
                 required
                 autoComplete="email"
               />
@@ -256,7 +258,7 @@ export default function RegisterPage() {
                       htmlFor="specialization"
                       className="block text-sm font-medium text-gray-600 mb-2"
                     >
-                      Especialização
+                      {t('auth.specialization')}
                     </label>
                     <input
                       id="specialization"
@@ -272,7 +274,7 @@ export default function RegisterPage() {
                       htmlFor="institution"
                       className="block text-sm font-medium text-gray-600 mb-2"
                     >
-                      Instituição
+                      {t('auth.institution')}
                     </label>
                     <input
                       id="institution"
@@ -295,7 +297,7 @@ export default function RegisterPage() {
                     htmlFor="dateOfBirth"
                     className="block text-sm font-medium text-gray-600 mb-2"
                   >
-                    Data de nascimento
+                    {t('auth.date_of_birth')}
                   </label>
                   <input
                     id="dateOfBirth"
@@ -307,7 +309,7 @@ export default function RegisterPage() {
                 </div>
                 <div>
                   <label htmlFor="gender" className="block text-sm font-medium text-gray-600 mb-2">
-                    Gênero
+                    {t('auth.gender')}
                   </label>
                   <select
                     id="gender"
@@ -315,12 +317,12 @@ export default function RegisterPage() {
                     onChange={(e) => update('gender', e.target.value)}
                     className="input-field"
                   >
-                    <option value="">Selecione</option>
-                    <option value="male">Masculino</option>
-                    <option value="female">Feminino</option>
-                    <option value="non_binary">Não-binário</option>
-                    <option value="other">Outro</option>
-                    <option value="prefer_not_to_say">Prefiro não dizer</option>
+                    <option value="">{t('auth.gender_select')}</option>
+                    <option value="male">{t('auth.gender_male')}</option>
+                    <option value="female">{t('auth.gender_female')}</option>
+                    <option value="non_binary">{t('auth.gender_non_binary')}</option>
+                    <option value="other">{t('auth.gender_other')}</option>
+                    <option value="prefer_not_to_say">{t('auth.gender_prefer_not')}</option>
                   </select>
                 </div>
               </div>
@@ -329,7 +331,7 @@ export default function RegisterPage() {
             {/* Password */}
             <div>
               <label htmlFor="password" className="block text-sm font-medium text-gray-600 mb-2">
-                Senha
+                {t('auth.password')}
               </label>
               <div className="relative">
                 <input
@@ -338,7 +340,7 @@ export default function RegisterPage() {
                   value={form.password}
                   onChange={(e) => update('password', e.target.value)}
                   className="input-field pr-11"
-                  placeholder="Mínimo 8 caracteres"
+                  placeholder={t('auth.password_min')}
                   required
                   minLength={8}
                   autoComplete="new-password"
@@ -359,7 +361,7 @@ export default function RegisterPage() {
                 htmlFor="confirmPassword"
                 className="block text-sm font-medium text-gray-600 mb-2"
               >
-                Confirmar senha
+                {t('auth.confirm_password')}
               </label>
               <input
                 id="confirmPassword"
@@ -367,7 +369,7 @@ export default function RegisterPage() {
                 value={form.confirmPassword}
                 onChange={(e) => update('confirmPassword', e.target.value)}
                 className="input-field"
-                placeholder="Digite novamente"
+                placeholder={t('auth.confirm_password_placeholder')}
                 required
                 minLength={8}
               />
@@ -400,23 +402,23 @@ export default function RegisterPage() {
               disabled={loading}
               className="btn-primary w-full py-3.5 text-base rounded-xl"
             >
-              {loading ? <Loader2 size={20} className="animate-spin" /> : 'Criar conta'}
+              {loading ? <Loader2 size={20} className="animate-spin" /> : t('auth.create_account')}
             </button>
           </form>
 
           <div className="mt-8 text-center">
-            <span className="text-sm text-gray-500">Já tem uma conta? </span>
+            <span className="text-sm text-gray-500">{t('auth.have_account')} </span>
             <Link
               href="/login"
               className="text-sm text-clarita-purple-500 hover:text-clarita-purple-600 font-semibold transition-colors"
             >
-              Entrar
+              {t('auth.login')}
             </Link>
           </div>
         </div>
 
         <p className="text-center text-xs text-gray-400 mt-6">
-          Informações protegidas &middot; Conformidade LGPD
+          {t('auth.protected_info')}
         </p>
       </div>
     </div>

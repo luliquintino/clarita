@@ -14,6 +14,7 @@ import {
   MessageCircle,
 } from 'lucide-react';
 import Image from 'next/image';
+import { useTranslations } from 'next-intl';
 import { clearUserInfo, authApi, patientsApi, chatApi } from '@/lib/api';
 import PatientCircle from './PatientCircle';
 
@@ -45,6 +46,7 @@ interface SidebarProps {
 }
 
 export default function Sidebar({ alertCount = 0 }: SidebarProps) {
+  const t = useTranslations('nav');
   const [collapsed, setCollapsed] = useState(false);
   const [patients, setPatients] = useState<SidebarPatient[]>([]);
   const [patientsLoading, setPatientsLoading] = useState(true);
@@ -96,24 +98,24 @@ export default function Sidebar({ alertCount = 0 }: SidebarProps) {
 
   const navItems: NavItem[] = [
     {
-      label: 'Pacientes',
+      label: t('patients'),
       href: '/patients',
       icon: <Users size={20} />,
     },
     {
-      label: 'Alertas',
+      label: t('alerts'),
       href: '/alerts',
       icon: <Bell size={20} />,
       badge: alertCount,
     },
     {
-      label: 'Chat',
+      label: t('chat'),
       href: '/chat',
       icon: <MessageCircle size={20} />,
       badge: chatUnread,
     },
     {
-      label: 'Perfil',
+      label: t('profile'),
       href: '/profile',
       icon: <User size={20} />,
     },
@@ -153,7 +155,7 @@ export default function Sidebar({ alertCount = 0 }: SidebarProps) {
       <div className="px-3 pt-4 pb-2 overflow-y-auto max-h-[40vh]">
         {!collapsed && (
           <p className="text-[10px] uppercase tracking-wider text-gray-400 font-semibold mb-2 px-3 animate-fade-in">
-            Pacientes
+            {t('patients')}
           </p>
         )}
         <div className="space-y-1">

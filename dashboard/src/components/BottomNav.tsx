@@ -1,5 +1,6 @@
 'use client';
 
+import { useTranslations } from 'next-intl';
 import { NAV_ITEMS, type PatientSection } from './nav-items';
 
 interface BottomNavProps {
@@ -9,6 +10,7 @@ interface BottomNavProps {
 }
 
 export default function BottomNav({ active, onChange, badges = {} }: BottomNavProps) {
+  const t = useTranslations('nav');
   return (
     <nav className="md:hidden fixed bottom-0 left-0 right-0 z-40 glass border-t border-white/40 shadow-lg">
       <div
@@ -18,7 +20,7 @@ export default function BottomNav({ active, onChange, badges = {} }: BottomNavPr
           paddingBottom: 'max(env(safe-area-inset-bottom), 0.5rem)', // safe area for home indicator
         }}
       >
-        {NAV_ITEMS.map(({ key, label, icon: Icon, color, activeColor, activeBg }) => {
+        {NAV_ITEMS.map(({ key, labelKey, icon: Icon, color, activeColor, activeBg }) => {
           const isActive = active === key;
           const badge = badges[key] ?? 0;
 
@@ -38,7 +40,7 @@ export default function BottomNav({ active, onChange, badges = {} }: BottomNavPr
               `}
             >
               <Icon size={20} className={isActive ? activeColor : color} />
-              <span>{label}</span>
+              <span>{t(labelKey)}</span>
               {badge > 0 && (
                 <span className="absolute -top-0.5 -right-0.5 inline-flex items-center justify-center w-4 h-4 text-[9px] font-bold bg-gradient-to-r from-clarita-purple-400 to-clarita-green-400 text-white rounded-full">
                   {badge}
