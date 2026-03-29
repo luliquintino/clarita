@@ -16,6 +16,7 @@ import {
   Pencil,
 } from 'lucide-react';
 import Sidebar from '@/components/Sidebar';
+import LanguageSelector from '@/components/LanguageSelector';
 import { authApi, clearUserInfo, isAuthenticated } from '@/lib/api';
 
 interface Profile {
@@ -491,6 +492,11 @@ export default function ProfilePage() {
                   )}
                 </div>
               )}
+
+              {/* Language */}
+              <div className="bg-white rounded-xl p-6 border border-gray-200">
+                <LanguageSelector />
+              </div>
 
               {/* Dados e Privacidade */}
               <section className="bg-white rounded-xl p-6 border border-red-100">

@@ -575,6 +575,7 @@ export const authApi = {
     license_number?: string;
     bio?: string;
     years_of_experience?: number;
+    language?: string;
   }) =>
     request<{ user: AuthUser }>('/auth/me', {
       method: 'PUT',
