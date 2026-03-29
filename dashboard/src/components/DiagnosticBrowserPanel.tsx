@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useTranslations } from 'next-intl';
 import {
   Search, BookOpen, FlaskConical, ShieldCheck, ShieldAlert,
   ChevronRight, Loader2, AlertTriangle, Tag, ArrowLeft,
@@ -160,6 +161,8 @@ export default function DiagnosticBrowserPanel({
   diagnosesForPatient,
   currentProfessionalId,
 }: DiagnosticBrowserPanelProps) {
+  const tCertainty = useTranslations('diagnosis_certainty');
+  const tDiag = useTranslations('diagnostic_browser');
   const [view, setView] = useState<View>('browse');
   const [disorders, setDisorders] = useState<ICD11Disorder[]>([]);
   const [categories, setCategories] = useState<string[]>([]);
@@ -461,7 +464,7 @@ export default function DiagnosticBrowserPanel({
       setQuickError('');
       icd11Api.recent().then((d) => setRecentIcds(d.recent)).catch(() => {});
     } catch {
-      setQuickError('Erro ao salvar diagnóstico. Tente novamente.');
+      setQuickError(tDiag('save_error'));
     } finally {
       setQuickSaving(false);
     }
@@ -480,18 +483,18 @@ export default function DiagnosticBrowserPanel({
     return (
       <div className="space-y-4 animate-fade-in">
         <button onClick={() => setView('browse')} className="text-sm text-indigo-600 hover:text-indigo-500 flex items-center gap-1">
-          <ArrowLeft className="w-3 h-3" /> Voltar
+          <ArrowLeft className="w-3 h-3" /> {tDiag('back')}
         </button>
         <h3 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
           <ShieldCheck className="w-5 h-5 text-emerald-400" />
-          Testes Aprovados SATEPSI/CFP
+          {tDiag('satepsi_title')}
         </h3>
         <div className="flex gap-2">
           <input
             value={satepsiSearch}
             onChange={(e) => setSatepsiSearch(e.target.value)}
             onKeyDown={(e) => e.key === 'Enter' && handleSearchSatepsi()}
-            placeholder="Buscar teste SATEPSI..."
+            placeholder={tDiag('satepsi_search_placeholder')}
             className="flex-1 bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:border-indigo-400"
           />
           <button onClick={handleSearchSatepsi} className="bg-emerald-50 border border-emerald-200 text-emerald-700 px-3 py-2 rounded-lg text-sm">
@@ -501,7 +504,7 @@ export default function DiagnosticBrowserPanel({
         {loadingSatepsi ? (
           <div className="flex items-center justify-center py-8"><Loader2 className="w-5 h-5 animate-spin text-indigo-400" /></div>
         ) : satepsiTests.length === 0 ? (
-          <p className="text-gray-400 text-sm py-4 text-center">Nenhum teste encontrado.</p>
+          <p className="text-gray-400 text-sm py-4 text-center">{tDiag('no_tests_found')}</p>
         ) : (
           <div className="space-y-2 max-h-[500px] overflow-y-auto pr-1">
             {satepsiTests.map((t) => (
@@ -525,12 +528,12 @@ export default function DiagnosticBrowserPanel({
                       : 'bg-red-50 text-red-700'
                   }`}>
                     {t.approval_status === 'active' ? <ShieldCheck className="w-3 h-3" /> : <ShieldAlert className="w-3 h-3" />}
-                    {t.approval_status === 'active' ? 'Ativo' : 'Expirado'}
+                    {t.approval_status === 'active' ? tDiag('status_active') : tDiag('status_expired')}
                   </span>
                 </div>
                 {t.expiry_date && (
                   <p className="text-xs text-gray-400 mt-1">
-                    Validade: {new Date(t.expiry_date).toLocaleDateString('pt-BR')}
+                    {tDiag('expiry_date', { date: new Date(t.expiry_date).toLocaleDateString('pt-BR') })}
                   </p>
                 )}
               </div>
@@ -554,7 +557,7 @@ export default function DiagnosticBrowserPanel({
           }}
           className="text-sm text-indigo-600 hover:text-indigo-500 flex items-center gap-1"
         >
-          <ArrowLeft className="w-3 h-3" /> Voltar
+          <ArrowLeft className="w-3 h-3" /> {tDiag('back')}
         </button>
 
         <div className="bg-gray-50 border border-gray-200 rounded-xl p-5">
@@ -576,7 +579,7 @@ export default function DiagnosticBrowserPanel({
           {selectedDisorder.symptom_keywords && selectedDisorder.symptom_keywords.length > 0 && (
             <div className="mt-4">
               <h4 className="text-xs font-medium text-gray-400 mb-2 flex items-center gap-1">
-                <Tag className="w-3 h-3" /> Palavras-chave de sintomas
+                <Tag className="w-3 h-3" /> {tDiag('symptom_keywords')}
               </h4>
               <div className="flex flex-wrap gap-1.5">
                 {selectedDisorder.symptom_keywords.map((kw) => (
@@ -594,17 +597,17 @@ export default function DiagnosticBrowserPanel({
             className="w-full bg-indigo-600 hover:bg-indigo-700 text-white py-2.5 rounded-xl font-medium text-sm flex items-center justify-center gap-2 transition-colors"
           >
             <Stethoscope className="w-4 h-4" />
-            Diagnosticar este Paciente
+            {tDiag('diagnose_patient')}
           </button>
         )}
 
         {showDiagnoseForm && (
           <div className="bg-indigo-50 border border-indigo-200 rounded-xl p-4 space-y-3 animate-fade-in">
             <p className="text-sm font-semibold text-indigo-800">
-              Registrar Diagnóstico — {selectedDisorder?.icd_code}
+              {tDiag('register_diagnosis')} — {selectedDisorder?.icd_code}
             </p>
             <div>
-              <label className="text-xs text-gray-500 mb-1 block">Data do diagnóstico</label>
+              <label className="text-xs text-gray-500 mb-1 block">{tDiag('diagnosis_date')}</label>
               <input
                 type="date"
                 value={diagDate}
@@ -613,7 +616,7 @@ export default function DiagnosticBrowserPanel({
               />
             </div>
             <div>
-              <label className="text-xs text-gray-500 mb-1 block">Grau de certeza</label>
+              <label className="text-xs text-gray-500 mb-1 block">{tDiag('certainty_label')}</label>
               <div className="flex gap-4">
                 {(['suspected', 'confirmed'] as const).map(opt => (
                   <label key={opt} className="flex items-center gap-2 cursor-pointer">
@@ -626,18 +629,18 @@ export default function DiagnosticBrowserPanel({
                       className="accent-indigo-600"
                     />
                     <span className="text-sm text-gray-700">
-                      {opt === 'suspected' ? 'Suspeita' : 'Confirmado'}
+                      {tCertainty(opt)}
                     </span>
                   </label>
                 ))}
               </div>
             </div>
             <div>
-              <label className="text-xs text-gray-500 mb-1 block">Observação (opcional)</label>
+              <label className="text-xs text-gray-500 mb-1 block">{tDiag('notes_optional')}</label>
               <textarea
                 value={diagNotes}
                 onChange={e => setDiagNotes(e.target.value)}
-                placeholder="Observações clínicas..."
+                placeholder={tDiag('clinical_notes_placeholder')}
                 rows={3}
                 className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm bg-white resize-none focus:outline-none focus:ring-2 focus:ring-indigo-300 placeholder-gray-400"
               />
@@ -647,7 +650,7 @@ export default function DiagnosticBrowserPanel({
                 onClick={() => setShowDiagnoseForm(false)}
                 className="flex-1 border border-gray-200 text-gray-600 py-2 rounded-lg text-sm font-medium hover:bg-gray-50 transition-colors"
               >
-                Cancelar
+                {tDiag('cancel')}
               </button>
               <button
                 onClick={handleRegisterDiagnosis}
@@ -655,7 +658,7 @@ export default function DiagnosticBrowserPanel({
                 className="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white py-2 rounded-lg text-sm font-medium flex items-center justify-center gap-2 disabled:opacity-50 transition-colors"
               >
                 {diagSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : null}
-                Registrar e continuar →
+                {tDiag('register_and_continue')}
               </button>
             </div>
           </div>
@@ -667,11 +670,11 @@ export default function DiagnosticBrowserPanel({
             <div className="flex items-center gap-2 text-emerald-700 bg-emerald-50 border border-emerald-200 rounded-xl p-3">
               <CheckCircle2 className="w-4 h-4 flex-shrink-0" />
               <span className="text-sm font-medium">
-                Diagnóstico {savedDiagnosis.certainty === 'confirmed' ? 'confirmado' : 'suspeita'} registrado!
+                {tDiag('diagnosis_registered', { certainty: tCertainty(savedDiagnosis.certainty) })}
               </span>
             </div>
-            <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Próximos passos</p>
-            <NextStepBlock title="Nota clínica" icon={<FileText className="w-4 h-4" />}>
+            <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider">{tDiag('next_steps')}</p>
+            <NextStepBlock title={tDiag('clinical_note')} icon={<FileText className="w-4 h-4" />}>
               <ClinicalNoteBlock
                 patientId={patientId!}
                 diagnosis={savedDiagnosis}
@@ -680,13 +683,13 @@ export default function DiagnosticBrowserPanel({
                 }}
               />
             </NextStepBlock>
-            <NextStepBlock title={`Testes sugeridos${suggestedTests.length > 0 ? ` (${suggestedTests.length})` : ''}`} icon={<ClipboardList className="w-4 h-4" />}>
+            <NextStepBlock title={`${tDiag('suggested_tests')}${suggestedTests.length > 0 ? ` (${suggestedTests.length})` : ''}`} icon={<ClipboardList className="w-4 h-4" />}>
               {loadingTests ? (
                 <div className="flex items-center justify-center py-4">
                   <Loader2 className="w-4 h-4 animate-spin text-indigo-400" />
                 </div>
               ) : suggestedTests.length === 0 ? (
-                <p className="text-xs text-gray-400 text-center py-2">Nenhum teste mapeado para este transtorno.</p>
+                <p className="text-xs text-gray-400 text-center py-2">{tDiag('no_tests_mapped')}</p>
               ) : (
                 <div className="space-y-2">
                   {suggestedTests.map(t => (
@@ -697,14 +700,14 @@ export default function DiagnosticBrowserPanel({
                           <div className="flex items-center gap-2 mt-1 flex-wrap">
                             {t.category && <span className="text-xs text-gray-400">{t.category}</span>}
                             <span className="text-xs bg-indigo-50 text-indigo-600 border border-indigo-100 px-1.5 py-0.5 rounded">
-                              Relevância: {Math.round(t.relevance_score * 100)}%
+                              {tDiag('relevance', { pct: Math.round(t.relevance_score * 100) })}
                             </span>
                             {t.satepsi_status && (
                               <span className={`text-xs px-1.5 py-0.5 rounded flex items-center gap-1 ${
                                 t.satepsi_status === 'active' ? 'bg-emerald-50 text-emerald-600' : 'bg-red-50 text-red-600'
                               }`}>
                                 {t.satepsi_status === 'active' ? <ShieldCheck className="w-3 h-3" /> : <ShieldAlert className="w-3 h-3" />}
-                                SATEPSI {t.satepsi_status === 'active' ? 'Ativo' : 'Inativo'}
+                                SATEPSI {t.satepsi_status === 'active' ? tDiag('status_active') : tDiag('status_inactive')}
                               </span>
                             )}
                           </div>
@@ -717,7 +720,7 @@ export default function DiagnosticBrowserPanel({
                             className="flex-shrink-0 bg-indigo-50 hover:bg-indigo-100 border border-indigo-200 text-indigo-700 px-2 py-1 rounded-lg text-xs flex items-center gap-1 transition-colors disabled:opacity-50"
                           >
                             {assigning === t.id ? <Loader2 className="w-3 h-3 animate-spin" /> : <Send className="w-3 h-3" />}
-                            Atribuir
+                            {tDiag('assign')}
                           </button>
                         )}
                       </div>
@@ -726,7 +729,7 @@ export default function DiagnosticBrowserPanel({
                 </div>
               )}
             </NextStepBlock>
-            <NextStepBlock title="Conduta / Tratamento" icon={<Brain className="w-4 h-4" />}>
+            <NextStepBlock title={tDiag('conduct_treatment')} icon={<Brain className="w-4 h-4" />}>
               <ConductBlock
                 diagnosisId={savedDiagnosis.id}
                 patientId={patientId!}
@@ -738,13 +741,13 @@ export default function DiagnosticBrowserPanel({
 
         {/* Suggested Tests */}
         <h4 className="text-sm font-medium text-gray-500 flex items-center gap-2">
-          <FlaskConical className="w-4 h-4 text-indigo-400" /> Testes Sugeridos
+          <FlaskConical className="w-4 h-4 text-indigo-400" /> {tDiag('suggested_tests')}
         </h4>
 
         {loadingTests ? (
           <div className="flex items-center justify-center py-6"><Loader2 className="w-5 h-5 animate-spin text-indigo-400" /></div>
         ) : suggestedTests.length === 0 ? (
-          <p className="text-gray-400 text-sm py-4 text-center">Nenhum teste mapeado para este transtorno.</p>
+          <p className="text-gray-400 text-sm py-4 text-center">{tDiag('no_tests_mapped')}</p>
         ) : (
           <div className="space-y-2">
             {suggestedTests.map((t) => (
@@ -755,7 +758,7 @@ export default function DiagnosticBrowserPanel({
                     <div className="flex items-center gap-2 mt-1">
                       {t.category && <span className="text-xs text-gray-400">{t.category}</span>}
                       <span className="text-xs bg-indigo-50 text-indigo-700 border border-indigo-200 px-2 py-0.5 rounded">
-                        Relevância: {Math.round(t.relevance_score * 100)}%
+                        {tDiag('relevance', { pct: Math.round(t.relevance_score * 100) })}
                       </span>
                       {t.satepsi_status && (
                         <span className={`text-xs px-2 py-0.5 rounded flex items-center gap-1 ${
@@ -764,7 +767,7 @@ export default function DiagnosticBrowserPanel({
                             : 'bg-red-50 text-red-700'
                         }`}>
                           {t.satepsi_status === 'active' ? <ShieldCheck className="w-3 h-3" /> : <ShieldAlert className="w-3 h-3" />}
-                          SATEPSI {t.satepsi_status === 'active' ? 'Ativo' : 'Inativo'}
+                          SATEPSI {t.satepsi_status === 'active' ? tDiag('status_active') : tDiag('status_inactive')}
                         </span>
                       )}
                     </div>
@@ -777,7 +780,7 @@ export default function DiagnosticBrowserPanel({
                       className="flex-shrink-0 bg-indigo-50 hover:bg-indigo-100 border border-indigo-200 text-indigo-700 px-2.5 py-1.5 rounded-lg text-xs flex items-center gap-1 ml-2 transition-colors"
                     >
                       {assigning === t.id ? <Loader2 className="w-3 h-3 animate-spin" /> : <Send className="w-3 h-3" />}
-                      Atribuir
+                      {tDiag('assign')}
                     </button>
                   )}
                 </div>
@@ -802,21 +805,21 @@ export default function DiagnosticBrowserPanel({
     return (
       <div className="space-y-4 animate-fade-in">
         <button onClick={() => setView('browse')} className="text-sm text-indigo-600 hover:text-indigo-500 flex items-center gap-1">
-          <ArrowLeft className="w-3 h-3" /> Voltar
+          <ArrowLeft className="w-3 h-3" /> {tDiag('back')}
         </button>
         <h3 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
           <Sparkles className="w-5 h-5 text-amber-400" />
-          Sugestão por Sintomas
+          {tDiag('symptom_search_title')}
         </h3>
         <p className="text-xs text-gray-400">
-          Digite sintomas separados por vírgula. O sistema sugerirá áreas diagnósticas relevantes.
+          {tDiag('symptom_search_desc')}
         </p>
         <div className="flex gap-2">
           <input
             value={symptomInput}
             onChange={(e) => setSymptomInput(e.target.value)}
             onKeyDown={(e) => e.key === 'Enter' && handleSymptomSearch()}
-            placeholder="Ex: insônia, fadiga, tristeza, concentração..."
+            placeholder={tDiag('symptom_input_placeholder')}
             className="flex-1 bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:border-amber-400"
           />
           <button
@@ -872,20 +875,20 @@ export default function DiagnosticBrowserPanel({
       <div className="flex items-center justify-between">
         <h3 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
           <BookOpen className="w-5 h-5 text-indigo-400" />
-          Referência CID-11
+          {tDiag('icd11_reference')}
         </h3>
         <div className="flex gap-2">
           <button
             onClick={() => setView('symptom-search')}
             className="text-xs bg-amber-50 hover:bg-amber-100 border border-amber-200 text-amber-700 px-2.5 py-1.5 rounded-lg flex items-center gap-1 transition-colors"
           >
-            <Sparkles className="w-3 h-3" /> Por Sintomas
+            <Sparkles className="w-3 h-3" /> {tDiag('by_symptoms')}
           </button>
           <button
             onClick={handleLoadSatepsi}
             className="text-xs bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 text-emerald-700 px-2.5 py-1.5 rounded-lg flex items-center gap-1 transition-colors"
           >
-            <ShieldCheck className="w-3 h-3" /> SATEPSI
+            <ShieldCheck className="w-3 h-3" /> {tDiag('satepsi_btn')}
           </button>
         </div>
       </div>
@@ -893,7 +896,7 @@ export default function DiagnosticBrowserPanel({
       {/* Task 6a — Recent ICDs carousel */}
       {recentIcds.length > 0 && (
         <div className="space-y-1.5">
-          <p className="text-xs text-gray-400 font-medium uppercase tracking-wider">Usados recentemente</p>
+          <p className="text-xs text-gray-400 font-medium uppercase tracking-wider">{tDiag('recently_used')}</p>
           <div className="flex gap-2 overflow-x-auto pb-1">
             {recentIcds.map(r => (
               <button
@@ -917,14 +920,14 @@ export default function DiagnosticBrowserPanel({
             className="w-full flex items-center justify-between px-4 py-3 bg-indigo-50 hover:bg-indigo-100 transition-colors text-left"
           >
             <span className="flex items-center gap-2 text-sm font-medium text-indigo-700">
-              <Stethoscope className="w-4 h-4" /> Diagnosticar diretamente por CID
+              <Stethoscope className="w-4 h-4" /> {tDiag('quick_diagnose_title')}
             </span>
             <ChevronDown className={`w-4 h-4 text-indigo-400 transition-transform ${showQuickDiagnose ? 'rotate-180' : ''}`} />
           </button>
           {showQuickDiagnose && (
             <div className="p-4 space-y-3">
               <div>
-                <label className="block text-xs font-medium text-gray-600 mb-1.5">Código ou nome CID-11</label>
+                <label className="block text-xs font-medium text-gray-600 mb-1.5">{tDiag('icd_code_or_name')}</label>
                 <Combobox
                   value={quickIcdValue}
                   onChange={setQuickIcdValue}
@@ -943,18 +946,18 @@ export default function DiagnosticBrowserPanel({
               {quickSelectedCode && (
                 <div className="grid grid-cols-2 gap-3">
                   <div>
-                    <label className="block text-xs font-medium text-gray-600 mb-1.5">Certeza</label>
+                    <label className="block text-xs font-medium text-gray-600 mb-1.5">{tDiag('certainty_label')}</label>
                     <select
                       value={quickCertainty}
                       onChange={(e) => setQuickCertainty(e.target.value as 'suspected' | 'confirmed')}
                       className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm bg-white focus:outline-none focus:border-indigo-400"
                     >
-                      <option value="suspected">Suspeita</option>
-                      <option value="confirmed">Confirmado</option>
+                      <option value="suspected">{tCertainty('suspected')}</option>
+                      <option value="confirmed">{tCertainty('confirmed')}</option>
                     </select>
                   </div>
                   <div>
-                    <label className="block text-xs font-medium text-gray-600 mb-1.5">Data</label>
+                    <label className="block text-xs font-medium text-gray-600 mb-1.5">{tDiag('diagnosis_date')}</label>
                     <input
                       type="date"
                       value={quickDate}
@@ -967,12 +970,12 @@ export default function DiagnosticBrowserPanel({
               {quickSelectedCode && (
                 <>
                   <div>
-                    <label className="block text-xs font-medium text-gray-600 mb-1.5">Notas (opcional)</label>
+                    <label className="block text-xs font-medium text-gray-600 mb-1.5">{tDiag('notes_optional')}</label>
                     <textarea
                       value={quickNotes}
                       onChange={(e) => setQuickNotes(e.target.value)}
                       rows={2}
-                      placeholder="Observações clínicas..."
+                      placeholder={tDiag('clinical_notes_placeholder')}
                       className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm bg-white resize-none focus:outline-none focus:border-indigo-400 placeholder-gray-400"
                     />
                   </div>
@@ -985,7 +988,7 @@ export default function DiagnosticBrowserPanel({
                     className="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg text-sm font-medium flex items-center gap-2 disabled:opacity-50 transition-colors"
                   >
                     {quickSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
-                    {quickSaving ? 'Salvando...' : `Registrar ${quickCertainty === 'confirmed' ? 'diagnóstico' : 'suspeita'}`}
+                    {quickSaving ? tDiag('saving') : tDiag('register_with_certainty', { certainty: tCertainty(quickCertainty) })}
                   </button>
                 </>
               )}
@@ -998,7 +1001,7 @@ export default function DiagnosticBrowserPanel({
       {patientDiagnoses.length > 0 && (
         <div className="space-y-2">
           <p className="text-xs text-gray-400 font-medium uppercase tracking-wider">
-            Diagnósticos deste Paciente
+            {tDiag('patient_diagnoses')}
           </p>
           <div className="space-y-1.5">
             {patientDiagnoses.map(d => (
@@ -1022,7 +1025,7 @@ export default function DiagnosticBrowserPanel({
                       onClick={() => handleUpgradeCertainty(d)}
                       className="text-xs text-indigo-600 hover:text-indigo-800 font-medium transition-colors"
                     >
-                      Confirmar
+                      {tCertainty('confirmed')}
                     </button>
                   )}
                 </div>
@@ -1038,7 +1041,7 @@ export default function DiagnosticBrowserPanel({
           value={search}
           onChange={(e) => handleSearchInput(e.target.value)}
           onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
-          placeholder="Buscar transtorno ou descreva sintomas..."
+          placeholder={tDiag('search_placeholder')}
           className="flex-1 bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:border-indigo-400"
         />
         <select
@@ -1046,7 +1049,7 @@ export default function DiagnosticBrowserPanel({
           onChange={(e) => { setSelectedCategory(e.target.value); }}
           className="bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-600 focus:outline-none focus:border-indigo-400 max-w-[200px]"
         >
-          <option value="">Todas categorias</option>
+          <option value="">{tDiag('all_categories')}</option>
           {categories.map((c) => (
             <option key={c} value={c}>{c}</option>
           ))}
@@ -1061,13 +1064,13 @@ export default function DiagnosticBrowserPanel({
 
       {searchMode === 'symptom' && search.trim().length > 10 && (
         <p className="text-xs text-amber-600 flex items-center gap-1">
-          <Sparkles className="w-3 h-3" /> Buscando por sintomas...
+          <Sparkles className="w-3 h-3" /> {tDiag('searching_by_symptoms')}
         </p>
       )}
 
       {/* Disorders list */}
       {displayDisorders.length === 0 ? (
-        <p className="text-gray-400 text-sm py-8 text-center">Nenhum transtorno encontrado. Execute o seed de dados CID-11.</p>
+        <p className="text-gray-400 text-sm py-8 text-center">{tDiag('no_disorders_found')}</p>
       ) : (
         <div className="space-y-1.5 max-h-[500px] overflow-y-auto pr-1">
           {displayDisorders.map((d) => (
@@ -1083,7 +1086,7 @@ export default function DiagnosticBrowserPanel({
                     <span className="text-gray-900 text-sm font-medium">{d.disorder_name}</span>
                     {diagnosesForPatient?.some(diag => diag.icd_code === d.icd_code && diag.is_active) && (
                       <span className="text-xs bg-indigo-100 text-indigo-600 px-1.5 py-0.5 rounded font-medium">
-                        Diagnosticado
+                        {tDiag('diagnosed')}
                       </span>
                     )}
                   </div>
@@ -1115,8 +1118,7 @@ export default function DiagnosticBrowserPanel({
       <div className="bg-amber-50 border border-amber-200 rounded-xl p-3 flex items-start gap-2">
         <AlertTriangle className="w-4 h-4 text-amber-500 flex-shrink-0 mt-0.5" />
         <p className="text-xs text-amber-700 leading-relaxed">
-          Resultados de testes e insights de IA são ferramentas de apoio clínico e não substituem o julgamento profissional.
-          O sistema NÃO gera diagnósticos automaticamente — apenas sugere áreas diagnósticas relevantes.
+          {tDiag('clinical_disclaimer')}
         </p>
       </div>
     </div>

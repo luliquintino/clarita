@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { format } from 'date-fns';
+import { useTranslations } from 'next-intl';
 import { Pill, Plus, X, Save, AlertTriangle, CheckCircle, Clock, Ban, Tag } from 'lucide-react';
 import { medicationCatalogApi, type Medication } from '@/lib/api';
 import Combobox, { type ComboboxOption } from '@/components/Combobox';
@@ -46,32 +47,28 @@ function AdherenceBar({ rate }: { rate: number }) {
   );
 }
 
-const statusConfig: Record<
+const statusConfigBase: Record<
   string,
   {
     icon: React.ReactNode;
     borderColor: string;
     badgeClass: string;
-    label: string;
   }
 > = {
   active: {
     icon: <CheckCircle size={14} />,
     borderColor: 'border-l-clarita-green-400',
     badgeClass: 'badge-green',
-    label: 'Ativo',
   },
   adjusted: {
     icon: <Clock size={14} />,
     borderColor: 'border-l-yellow-400',
     badgeClass: 'badge-yellow',
-    label: 'Ajustado',
   },
   discontinued: {
     icon: <Ban size={14} />,
     borderColor: 'border-l-gray-300',
     badgeClass: 'badge bg-gray-100 text-gray-500 border border-gray-200/50',
-    label: 'Descontinuado',
   },
 };
 
@@ -85,6 +82,18 @@ export default function MedicationManager({
   onDiscontinue,
   onUpdateSideEffects,
 }: MedicationManagerProps) {
+  const t = useTranslations('medications');
+
+  const statusConfig = Object.fromEntries(
+    Object.entries(statusConfigBase).map(([key, val]) => [
+      key,
+      {
+        ...val,
+        label: key === 'active' ? t('status_active') : key === 'adjusted' ? t('status_adjusted') : t('status_discontinued'),
+      },
+    ])
+  );
+
   const [showPrescribeForm, setShowPrescribeForm] = useState(false);
   const [adjustingId, setAdjustingId] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
@@ -179,7 +188,7 @@ export default function MedicationManager({
 
   const handleDiscontinue = async (medId: string) => {
     if (!onDiscontinue) return;
-    if (!confirm('Tem certeza de que deseja descontinuar este medicamento?')) return;
+    if (!confirm(t('discontinue_confirm'))) return;
     try {
       await onDiscontinue(medId);
     } catch (err) {
@@ -224,7 +233,7 @@ export default function MedicationManager({
     <div className="card animate-fade-in">
       {/* Header */}
       <div className="flex items-center justify-between mb-6">
-        <h3 className="section-title mb-0">Medicamentos</h3>
+        <h3 className="section-title mb-0">{t('title')}</h3>
         {isPrescriber && !showPrescribeForm && (
           <button
             onClick={() => {
@@ -234,7 +243,7 @@ export default function MedicationManager({
             className="btn-primary flex items-center gap-2 text-sm"
           >
             <Plus size={16} />
-            Prescrever
+            {t('prescribe')}
           </button>
         )}
       </div>
@@ -243,9 +252,8 @@ export default function MedicationManager({
         <div className="flex items-start gap-3 p-3 mb-4 rounded-xl bg-amber-50 border border-amber-200/60">
           <AlertTriangle size={16} className="text-amber-500 flex-shrink-0 mt-0.5" />
           <p className="text-xs text-amber-700 leading-relaxed">
-            <span className="font-semibold">Visualização clínica.</span>{' '}
-            Prescrição de medicamentos é competência exclusiva do psiquiatra.
-            Os dados abaixo estão disponíveis para contexto do acompanhamento.
+            <span className="font-semibold">{t('readonly_title')}</span>{' '}
+            {t('readonly_desc')}
           </p>
         </div>
       )}
@@ -255,7 +263,7 @@ export default function MedicationManager({
         {showPrescribeForm && isPrescriber && (
           <div className="bg-white/40 backdrop-blur-sm rounded-2xl p-4 border border-clarita-purple-200/50 animate-scale-in">
             <div className="flex items-center justify-between mb-4">
-              <h4 className="font-medium text-gray-800">Nova Prescricao</h4>
+              <h4 className="font-medium text-gray-800">{t('new_prescription')}</h4>
               <button
                 onClick={resetPrescribeForm}
                 className="text-gray-400 hover:text-gray-600 transition-colors"
@@ -267,7 +275,7 @@ export default function MedicationManager({
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1.5">
-                  Nome do Medicamento
+                  {t('name')}
                 </label>
                 <Combobox
                   value={medName}
@@ -276,43 +284,43 @@ export default function MedicationManager({
                   options={medOptions}
                   onSearch={handleMedSearch}
                   loading={medSearching}
-                  placeholder="ex.: Sertralina"
+                  placeholder={t('name_placeholder')}
                   minChars={3}
                   disabled={saving}
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1.5">Dosagem</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1.5">{t('dosage')}</label>
                 <input
                   type="text"
                   value={medDosage}
                   onChange={(e) => setMedDosage(e.target.value)}
                   className="input-field"
-                  placeholder="ex.: 50mg"
+                  placeholder={t('dosage_placeholder')}
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1.5">Frequencia</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1.5">{t('frequency')}</label>
                 <input
                   type="text"
                   value={medFrequency}
                   onChange={(e) => setMedFrequency(e.target.value)}
                   className="input-field"
-                  placeholder="ex.: Uma vez ao dia"
+                  placeholder={t('frequency_placeholder')}
                 />
               </div>
             </div>
 
             <div className="mb-4">
               <label className="block text-sm font-medium text-gray-700 mb-1.5">
-                Observacoes (opcional)
+                {t('notes_optional')}
               </label>
               <textarea
                 value={medNotes}
                 onChange={(e) => setMedNotes(e.target.value)}
                 className="input-field"
                 rows={2}
-                placeholder="Observacoes adicionais..."
+                placeholder={t('notes_placeholder')}
               />
             </div>
 
@@ -323,10 +331,10 @@ export default function MedicationManager({
                 className="btn-primary flex items-center gap-2"
               >
                 <Save size={16} />
-                {saving ? 'Prescrevendo...' : 'Prescrever Medicamento'}
+                {saving ? t('prescribing') : t('prescribe_medication')}
               </button>
               <button onClick={resetPrescribeForm} className="btn-ghost">
-                Cancelar
+                {t('cancel')}
               </button>
             </div>
           </div>
@@ -335,7 +343,7 @@ export default function MedicationManager({
         {/* Active medications */}
         <div>
           <h4 className="text-sm font-medium text-gray-500 mb-3">
-            Medicamentos Ativos ({activeMeds.length})
+            {t('active_medications', { count: activeMeds.length })}
           </h4>
           <div className="space-y-3">
             {activeMeds.map((med) => {
@@ -350,7 +358,7 @@ export default function MedicationManager({
                   {adjustingId === med.id && isPrescriber ? (
                     <div className="space-y-4 animate-scale-in">
                       <div className="flex items-center justify-between">
-                        <h4 className="font-medium text-gray-800">Ajustar: {med.name}</h4>
+                        <h4 className="font-medium text-gray-800">{t('adjust_title', { name: med.name })}</h4>
                         <button
                           onClick={resetAdjustForm}
                           className="text-gray-400 hover:text-gray-600 transition-colors"
@@ -361,7 +369,7 @@ export default function MedicationManager({
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
                           <label className="block text-sm font-medium text-gray-700 mb-1.5">
-                            Nova Dosagem
+                            {t('new_dosage')}
                           </label>
                           <input
                             type="text"
@@ -372,7 +380,7 @@ export default function MedicationManager({
                         </div>
                         <div>
                           <label className="block text-sm font-medium text-gray-700 mb-1.5">
-                            Nova Frequencia
+                            {t('new_frequency')}
                           </label>
                           <input
                             type="text"
@@ -384,7 +392,7 @@ export default function MedicationManager({
                       </div>
                       <div>
                         <label className="block text-sm font-medium text-gray-700 mb-1.5">
-                          Notas do Ajuste
+                          {t('adjust_notes')}
                         </label>
                         <textarea
                           value={adjNotes}
@@ -400,10 +408,10 @@ export default function MedicationManager({
                           className="btn-primary flex items-center gap-2 text-sm"
                         >
                           <Save size={14} />
-                          {saving ? 'Salvando...' : 'Salvar Ajuste'}
+                          {saving ? t('saving') : t('save_adjustment')}
                         </button>
                         <button onClick={resetAdjustForm} className="btn-ghost text-sm">
-                          Cancelar
+                          {t('cancel')}
                         </button>
                       </div>
                     </div>
@@ -429,7 +437,7 @@ export default function MedicationManager({
 
                       {/* Adherence */}
                       <div className="mb-3">
-                        <p className="text-xs text-gray-500 mb-1">Adesao</p>
+                        <p className="text-xs text-gray-500 mb-1">{t('adherence')}</p>
                         <AdherenceBar rate={med.adherence_rate} />
                       </div>
 
@@ -437,13 +445,13 @@ export default function MedicationManager({
                       <div className="mb-3">
                         <div className="flex items-center gap-1.5 mb-1.5">
                           <AlertTriangle size={12} className="text-clarita-orange-400" />
-                          <p className="text-xs text-gray-500">Efeitos colaterais</p>
+                          <p className="text-xs text-gray-500">{t('side_effects')}</p>
                           <button
                             onClick={() => setEditingSideEffects(editingSideEffects === med.id ? null : med.id)}
                             className="ml-auto text-[10px] text-clarita-purple-500 hover:text-clarita-purple-700 flex items-center gap-0.5 transition-colors"
                           >
                             <Tag size={10} />
-                            {editingSideEffects === med.id ? 'Fechar' : 'Editar'}
+                            {editingSideEffects === med.id ? t('close') : t('edit')}
                           </button>
                         </div>
                         <div className="flex flex-wrap gap-1 mb-1">
@@ -461,7 +469,7 @@ export default function MedicationManager({
                             </span>
                           ))}
                           {med.side_effects.length === 0 && editingSideEffects !== med.id && (
-                            <span className="text-xs text-gray-400 italic">Nenhum relatado</span>
+                            <span className="text-xs text-gray-400 italic">{t('no_side_effects')}</span>
                           )}
                         </div>
                         {editingSideEffects === med.id && (
@@ -471,7 +479,7 @@ export default function MedicationManager({
                               value={newEffect}
                               onChange={(e) => setNewEffect(e.target.value)}
                               onKeyDown={(e) => e.key === 'Enter' && handleAddSideEffect(med)}
-                              placeholder="Adicionar efeito colateral..."
+                              placeholder={t('add_side_effect_placeholder')}
                               className="flex-1 text-xs px-2.5 py-1.5 bg-white/60 border border-gray-200/60 rounded-xl focus:outline-none focus:ring-1 focus:ring-clarita-purple-300"
                             />
                             <button
@@ -488,20 +496,19 @@ export default function MedicationManager({
                       {/* Footer */}
                       <div className="flex items-center justify-between pt-3 border-t border-white/30">
                         <span className="text-xs text-gray-400">
-                          Prescrito por {med.prescribed_by} em{' '}
-                          {format(new Date(med.prescribed_date), 'MMM d, yyyy')}
+                          {t('prescribed_by', { name: med.prescribed_by, date: format(new Date(med.prescribed_date), 'MMM d, yyyy') })}
                         </span>
 
                         {isPrescriber && (
                           <div className="flex items-center gap-2">
                             <button onClick={() => startAdjust(med)} className="btn-ghost text-xs">
-                              Ajustar
+                              {t('adjust')}
                             </button>
                             <button
                               onClick={() => handleDiscontinue(med.id)}
                               className="text-xs text-red-400 hover:text-red-600 px-2 py-1 rounded-xl hover:bg-red-50/50 transition-colors"
                             >
-                              Descontinuar
+                              {t('discontinue')}
                             </button>
                           </div>
                         )}
@@ -513,7 +520,7 @@ export default function MedicationManager({
             })}
 
             {activeMeds.length === 0 && (
-              <p className="text-sm text-gray-400 text-center py-6">Nenhum medicamento ativo</p>
+              <p className="text-sm text-gray-400 text-center py-6">{t('no_medications')}</p>
             )}
           </div>
         </div>
@@ -522,7 +529,7 @@ export default function MedicationManager({
         {pastMeds.length > 0 && (
           <div>
             <h4 className="text-sm font-medium text-gray-400 mb-3">
-              Medicamentos Anteriores ({pastMeds.length})
+              {t('past_medications', { count: pastMeds.length })}
             </h4>
             <div className="space-y-2">
               {pastMeds.map((med) => {
