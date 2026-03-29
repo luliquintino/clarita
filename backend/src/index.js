@@ -111,10 +111,11 @@ app.use(
 
 const corsOrigin =
   process.env.CORS_ORIGIN ||
+  process.env.FRONTEND_URL ||
   (process.env.NODE_ENV !== 'production' ? 'http://localhost:3000' : null);
 
 if (process.env.NODE_ENV === 'production' && !corsOrigin) {
-  console.error('[security] CORS_ORIGIN not set in production — refusing to start');
+  console.error('[security] CORS_ORIGIN and FRONTEND_URL not set in production — refusing to start');
   process.exit(1);
 }
 

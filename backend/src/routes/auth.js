@@ -24,10 +24,13 @@ const TOKEN_EXPIRY = '7d';
 const COOKIE_MAX_AGE = 7 * 24 * 60 * 60 * 1000; // 7 days in ms
 
 function setAuthCookie(res, token) {
+  const isProduction = process.env.NODE_ENV === 'production';
   res.cookie('token', token, {
     httpOnly: true,
-    secure: process.env.NODE_ENV === 'production',
-    sameSite: 'strict',
+    secure: isProduction,
+    // 'none' required for cross-origin requests (frontend on Vercel, backend on Railway)
+    // 'strict' is safe for same-origin (local dev)
+    sameSite: isProduction ? 'none' : 'strict',
     maxAge: COOKIE_MAX_AGE,
     path: '/',
   });
@@ -435,10 +438,11 @@ router.post(
 // ---------------------------------------------------------------------------
 
 router.post('/logout', (req, res) => {
+  const isProduction = process.env.NODE_ENV === 'production';
   res.clearCookie('token', {
     path: '/',
-    sameSite: 'strict',
-    secure: process.env.NODE_ENV === 'production',
+    sameSite: isProduction ? 'none' : 'strict',
+    secure: isProduction,
   });
   audit(req, 'auth.logout');
   res.json({ message: 'Sessão encerrada com sucesso.' });
