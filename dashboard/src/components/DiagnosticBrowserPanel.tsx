@@ -11,6 +11,7 @@ import {
   icd11Api, satepsiApi, psychTestsApi, diagnosesApi, medicalRecordsApi,
   ICD11Disorder, ICDTestSuggestion, SatepsiTest, PatientDiagnosis, RecentIcd,
 } from '@/lib/api';
+import Combobox from '@/components/Combobox';
 
 interface DiagnosticBrowserPanelProps {
   patientId?: string;
@@ -200,6 +201,18 @@ export default function DiagnosticBrowserPanel({
   const [diagNotes, setDiagNotes] = useState('');
   const [diagSaving, setDiagSaving] = useState(false);
   const [savedDiagnosis, setSavedDiagnosis] = useState<PatientDiagnosis | null>(null);
+
+  // Quick-diagnose form
+  const [showQuickDiagnose, setShowQuickDiagnose] = useState(false);
+  const [quickIcdValue, setQuickIcdValue] = useState('');
+  const [quickIcdOptions, setQuickIcdOptions] = useState<{ label: string; value: string; subtitle?: string }[]>([]);
+  const [quickIcdSearching, setQuickIcdSearching] = useState(false);
+  const [quickSelectedCode, setQuickSelectedCode] = useState('');
+  const [quickSelectedName, setQuickSelectedName] = useState('');
+  const [quickCertainty, setQuickCertainty] = useState<'suspected' | 'confirmed'>('suspected');
+  const [quickDate, setQuickDate] = useState(new Date().toISOString().split('T')[0]);
+  const [quickNotes, setQuickNotes] = useState('');
+  const [quickSaving, setQuickSaving] = useState(false);
 
   // Task 8 — Patient diagnosis history
   const [patientDiagnoses, setPatientDiagnoses] = useState<PatientDiagnosis[]>([]);
@@ -401,6 +414,51 @@ export default function DiagnosticBrowserPanel({
       setPatientDiagnoses(prev => prev.map(d => d.id === diagnosis.id ? data.diagnosis : d));
     } catch {
       // silent
+    }
+  }
+
+  async function handleQuickIcdSearch(query: string) {
+    setQuickIcdSearching(true);
+    try {
+      const data = await icd11Api.list({ search: query });
+      setQuickIcdOptions(
+        (data.disorders || []).slice(0, 10).map((d) => ({
+          label: d.disorder_name,
+          value: d.icd_code,
+          subtitle: d.icd_code,
+        }))
+      );
+    } catch {
+      setQuickIcdOptions([]);
+    } finally {
+      setQuickIcdSearching(false);
+    }
+  }
+
+  async function handleQuickDiagnosis() {
+    if (!quickSelectedCode || !patientId) return;
+    setQuickSaving(true);
+    try {
+      const data = await diagnosesApi.create(patientId, {
+        icd_code: quickSelectedCode,
+        icd_name: quickSelectedName,
+        certainty: quickCertainty,
+        diagnosis_date: quickDate,
+        notes: quickNotes || undefined,
+      });
+      setPatientDiagnoses((prev) => [data.diagnosis, ...prev]);
+      onDiagnosisCreated?.(data.diagnosis);
+      setShowQuickDiagnose(false);
+      setQuickIcdValue('');
+      setQuickSelectedCode('');
+      setQuickSelectedName('');
+      setQuickNotes('');
+      setQuickCertainty('suspected');
+      icd11Api.recent().then((d) => setRecentIcds(d.recent)).catch(() => {});
+    } catch {
+      // silent
+    } finally {
+      setQuickSaving(false);
     }
   }
 
@@ -843,6 +901,88 @@ export default function DiagnosticBrowserPanel({
               </button>
             ))}
           </div>
+        </div>
+      )}
+
+      {/* Quick Diagnose */}
+      {patientId && (
+        <div className="border border-indigo-200 rounded-xl overflow-hidden">
+          <button
+            onClick={() => setShowQuickDiagnose((v) => !v)}
+            className="w-full flex items-center justify-between px-4 py-3 bg-indigo-50 hover:bg-indigo-100 transition-colors text-left"
+          >
+            <span className="flex items-center gap-2 text-sm font-medium text-indigo-700">
+              <Stethoscope className="w-4 h-4" /> Diagnosticar diretamente por CID
+            </span>
+            <ChevronDown className={`w-4 h-4 text-indigo-400 transition-transform ${showQuickDiagnose ? 'rotate-180' : ''}`} />
+          </button>
+          {showQuickDiagnose && (
+            <div className="p-4 space-y-3">
+              <div>
+                <label className="block text-xs font-medium text-gray-600 mb-1.5">Código ou nome CID-11</label>
+                <Combobox
+                  value={quickIcdValue}
+                  onChange={setQuickIcdValue}
+                  onSelect={(item) => {
+                    setQuickIcdValue(item.label);
+                    setQuickSelectedCode(item.value);
+                    setQuickSelectedName(item.label);
+                  }}
+                  options={quickIcdOptions}
+                  onSearch={handleQuickIcdSearch}
+                  loading={quickIcdSearching}
+                  placeholder="ex.: ansiedade, F41.1..."
+                  minChars={2}
+                />
+              </div>
+              {quickSelectedCode && (
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-xs font-medium text-gray-600 mb-1.5">Certeza</label>
+                    <select
+                      value={quickCertainty}
+                      onChange={(e) => setQuickCertainty(e.target.value as 'suspected' | 'confirmed')}
+                      className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm bg-white focus:outline-none focus:border-indigo-400"
+                    >
+                      <option value="suspected">Suspeita</option>
+                      <option value="confirmed">Confirmado</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-xs font-medium text-gray-600 mb-1.5">Data</label>
+                    <input
+                      type="date"
+                      value={quickDate}
+                      onChange={(e) => setQuickDate(e.target.value)}
+                      className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm bg-white focus:outline-none focus:border-indigo-400"
+                    />
+                  </div>
+                </div>
+              )}
+              {quickSelectedCode && (
+                <>
+                  <div>
+                    <label className="block text-xs font-medium text-gray-600 mb-1.5">Notas (opcional)</label>
+                    <textarea
+                      value={quickNotes}
+                      onChange={(e) => setQuickNotes(e.target.value)}
+                      rows={2}
+                      placeholder="Observações clínicas..."
+                      className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm bg-white resize-none focus:outline-none focus:border-indigo-400 placeholder-gray-400"
+                    />
+                  </div>
+                  <button
+                    onClick={handleQuickDiagnosis}
+                    disabled={quickSaving}
+                    className="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg text-sm font-medium flex items-center gap-2 disabled:opacity-50 transition-colors"
+                  >
+                    {quickSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
+                    {quickSaving ? 'Salvando...' : `Registrar ${quickCertainty === 'confirmed' ? 'diagnóstico' : 'suspeita'}`}
+                  </button>
+                </>
+              )}
+            </div>
+          )}
         </div>
       )}
 
