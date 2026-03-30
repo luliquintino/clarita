@@ -131,15 +131,15 @@ export default function ReportSymptomModal({ open, onClose, onCreated }: ReportS
 
   function getSymptomName(symptom: Symptom): string {
     const key = toSymptomKey(symptom.name);
-    const result = t(`${key}_name` as any);
-    // next-intl returns "namespace.key" when key is missing
-    return result.endsWith('_name') ? symptom.name : result;
+    const result = t(key as any);
+    // next-intl returns "namespace.key" (contains '.') when key is missing
+    return result.includes('.') ? symptom.name : result;
   }
 
   function getSymptomDesc(symptom: Symptom): string {
     const key = toSymptomKey(symptom.name);
     const result = t(`${key}_desc` as any);
-    return result.endsWith('_desc') ? '' : result;
+    return result.includes('.') ? '' : result;
   }
 
   const recentIds = getRecentIds();
@@ -178,10 +178,10 @@ export default function ReportSymptomModal({ open, onClose, onCreated }: ReportS
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm animate-fade-in"
+      className="fixed inset-0 z-50 flex items-end sm:items-center justify-center sm:p-4 bg-black/40 backdrop-blur-sm animate-fade-in"
       onClick={(e) => { if (e.target === e.currentTarget) handleClose(); }}
     >
-      <div className="bg-white rounded-3xl shadow-xl w-full max-w-lg flex flex-col max-h-[90vh] animate-scale-in">
+      <div className="bg-white rounded-t-3xl sm:rounded-3xl shadow-xl w-full sm:max-w-lg flex flex-col max-h-[92vh] sm:max-h-[90vh] animate-scale-in">
         {/* Header */}
         <div className="flex items-center justify-between p-6 pb-4 border-b border-gray-100 flex-shrink-0">
           <div className="flex items-center gap-3">
