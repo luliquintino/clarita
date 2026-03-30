@@ -129,13 +129,17 @@ export default function ReportSymptomModal({ open, onClose, onCreated }: ReportS
     localStorage.setItem('clarita_recent_symptoms', JSON.stringify(ids));
   }
 
-  function getSymptomDisplayName(symptom: Symptom): string {
+  function getSymptomName(symptom: Symptom): string {
     const key = toSymptomKey(symptom.name);
-    try {
-      return t(key as any);
-    } catch {
-      return symptom.name;
-    }
+    const result = t(`${key}_name` as any);
+    // next-intl returns "namespace.key" when key is missing
+    return result.endsWith('_name') ? symptom.name : result;
+  }
+
+  function getSymptomDesc(symptom: Symptom): string {
+    const key = toSymptomKey(symptom.name);
+    const result = t(`${key}_desc` as any);
+    return result.endsWith('_desc') ? '' : result;
   }
 
   const recentIds = getRecentIds();
@@ -151,9 +155,14 @@ export default function ReportSymptomModal({ open, onClose, onCreated }: ReportS
   });
 
   const filtered = search.trim()
-    ? sortedSymptoms.filter((s) =>
-        s.name.toLowerCase().includes(search.toLowerCase())
-      )
+    ? sortedSymptoms.filter((s) => {
+        const q = search.toLowerCase();
+        return (
+          s.name.toLowerCase().includes(q) ||
+          getSymptomName(s).toLowerCase().includes(q) ||
+          getSymptomDesc(s).toLowerCase().includes(q)
+        );
+      })
     : sortedSymptoms;
 
   const grouped = filtered.reduce<Record<string, Symptom[]>>((acc, s) => {
@@ -224,23 +233,37 @@ export default function ReportSymptomModal({ open, onClose, onCreated }: ReportS
                       <p className="text-[10px] font-semibold text-gray-400 uppercase tracking-widest mb-1.5">
                         {categoryLabels[cat] ?? cat}
                       </p>
-                      <div className="flex flex-wrap gap-2">
+                      <div className="flex flex-col gap-1.5">
                         {items.map((s) => {
                           const selected = selectedIds.has(s.id);
+                          const desc = getSymptomDesc(s);
                           return (
                             <button
                               key={s.id}
                               type="button"
                               onClick={() => toggleSymptom(s.id)}
                               disabled={saving}
-                              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm border transition-all duration-150 ${
+                              className={`flex items-start gap-2 w-full px-3 py-2.5 rounded-xl text-left border transition-all duration-150 ${
                                 selected
-                                  ? 'bg-orange-500 border-orange-500 text-white font-medium shadow-sm'
-                                  : 'bg-white border-gray-200 text-gray-600 hover:border-orange-300 hover:text-orange-600'
+                                  ? 'bg-orange-500 border-orange-500 text-white shadow-sm'
+                                  : 'bg-white border-gray-200 text-gray-700 hover:border-orange-300 hover:bg-orange-50'
                               }`}
                             >
-                              {selected && <Check size={12} />}
-                              {getSymptomDisplayName(s)}
+                              <div className={`mt-0.5 flex-shrink-0 w-4 h-4 rounded-full border flex items-center justify-center ${
+                                selected ? 'border-white bg-white/30' : 'border-gray-300'
+                              }`}>
+                                {selected && <Check size={10} className="text-white" />}
+                              </div>
+                              <div>
+                                <p className={`text-sm font-semibold leading-tight ${selected ? 'text-white' : 'text-gray-800'}`}>
+                                  {getSymptomName(s)}
+                                </p>
+                                {desc && (
+                                  <p className={`text-xs mt-0.5 leading-tight ${selected ? 'text-white/80' : 'text-gray-500'}`}>
+                                    {desc}
+                                  </p>
+                                )}
+                              </div>
                             </button>
                           );
                         })}
