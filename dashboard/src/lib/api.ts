@@ -35,6 +35,7 @@ export function setUserInfo(user: UserInfo): void {
 export function clearUserInfo(): void {
   if (typeof window !== 'undefined') {
     localStorage.removeItem('clarita_user');
+    localStorage.removeItem('clarita_token');
   }
 }
 
@@ -52,9 +53,14 @@ export function getUserIdFromToken(): string | null {
   return getUserInfo()?.id ?? null;
 }
 
-// Legacy no-ops — kept so existing import sites don't break:
-export function getToken(): string | null { return null; }
-export function setToken(_token: string): void {}
+// Token storage — used as Bearer fallback when cross-origin cookies are blocked
+export function getToken(): string | null {
+  if (typeof window === 'undefined') return null;
+  return localStorage.getItem('clarita_token');
+}
+export function setToken(token: string): void {
+  if (typeof window !== 'undefined') localStorage.setItem('clarita_token', token);
+}
 export function removeToken(): void { clearUserInfo(); }
 export function isTokenExpired(): boolean { return !isAuthenticated(); }
 
@@ -82,8 +88,10 @@ async function request<T>(endpoint: string, options: RequestInit = {}): Promise<
   const controller = new AbortController();
   const timeoutId = setTimeout(() => controller.abort(), 30_000);
 
+  const token = getToken();
   const headers: Record<string, string> = {
     'Content-Type': 'application/json',
+    ...(token ? { Authorization: `Bearer ${token}` } : {}),
     ...(options.headers as Record<string, string>),
   };
 

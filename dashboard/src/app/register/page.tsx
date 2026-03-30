@@ -6,7 +6,7 @@ import Link from 'next/link';
 import { Eye, EyeOff, Loader2, Stethoscope, Brain, Heart } from 'lucide-react';
 import Image from 'next/image';
 import { useTranslations } from 'next-intl';
-import { authApi, setUserInfo } from '@/lib/api';
+import { authApi, setUserInfo, setToken } from '@/lib/api';
 import type { RegisterData } from '@/lib/api';
 
 type Role = 'psychologist' | 'psychiatrist' | 'patient';
@@ -96,6 +96,7 @@ export default function RegisterPage() {
           };
 
       const response = await authApi.register(payload);
+      if ((response as any).token) setToken((response as any).token);
       setUserInfo({
         id: response.user.id,
         role: response.user.role,

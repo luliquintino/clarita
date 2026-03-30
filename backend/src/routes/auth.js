@@ -125,7 +125,7 @@ router.post('/register', registerLimiter, registrationValidator, handleValidatio
     );
 
     setAuthCookie(res, token);
-    res.status(201).json({ user });
+    res.status(201).json({ user, token });
   } catch (err) {
     next(err);
   }
@@ -169,7 +169,7 @@ router.post('/login', loginLimiter, loginValidator, handleValidation, async (req
 
     setAuthCookie(res, token);
     audit(req, 'auth.login', 'user', user.id, { role: safeUser.role });
-    res.json({ user: safeUser });
+    res.json({ user: safeUser, token });
   } catch (err) {
     next(err);
   }

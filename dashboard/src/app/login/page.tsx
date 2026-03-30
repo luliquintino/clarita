@@ -6,7 +6,7 @@ import Link from 'next/link';
 import { Eye, EyeOff, Loader2, Heart, Brain, ClipboardList, Search, Shield } from 'lucide-react';
 import Image from 'next/image';
 import { useTranslations } from 'next-intl';
-import { authApi, setUserInfo } from '@/lib/api';
+import { authApi, setUserInfo, setToken } from '@/lib/api';
 
 export default function LoginPage() {
   const t = useTranslations();
@@ -45,6 +45,7 @@ export default function LoginPage() {
 
     try {
       const response = await authApi.login(email, password);
+      if ((response as any).token) setToken((response as any).token);
       setUserInfo({
         id: response.user.id,
         role: response.user.role,
