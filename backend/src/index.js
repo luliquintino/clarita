@@ -128,6 +128,8 @@ app.use(
   cors({
     origin: (origin, callback) => {
       if (!origin || ALLOWED_ORIGINS.includes(origin)) return callback(null, true);
+      // Allow any localhost port in development
+      if (process.env.NODE_ENV !== 'production' && origin?.startsWith('http://localhost:')) return callback(null, true);
       callback(new Error(`CORS: origin ${origin} not allowed`));
     },
     methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
