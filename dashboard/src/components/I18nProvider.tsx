@@ -30,10 +30,12 @@ export default function I18nProvider({ children }: { children: React.ReactNode }
     }
   }, []);
 
-  if (Object.keys(messages).length === 0) return null;
+  // While target language loads, render with PT fallback to avoid unmounting children
+  const activeMessages = Object.keys(messages).length === 0 ? (ptMessages as Messages) : messages;
+  const activeLocale = Object.keys(messages).length === 0 ? 'pt' : locale;
 
   return (
-    <NextIntlClientProvider locale={locale} messages={messages}>
+    <NextIntlClientProvider locale={activeLocale} messages={activeMessages}>
       {children}
     </NextIntlClientProvider>
   );

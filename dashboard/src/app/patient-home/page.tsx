@@ -10,6 +10,7 @@ import {
   clearUserInfo,
   isAuthenticated,
   getUserRoleFromToken,
+  ApiError,
   journalApi,
   patientProfileApi,
   goalsApi,
@@ -195,8 +196,12 @@ export default function PatientHomePage() {
       loadPatientSymptoms();
       loadInvitations();
       loadMedications();
-    } catch {
-      router.replace('/login');
+    } catch (err) {
+      if (err instanceof ApiError && err.status === 401) {
+        clearUserInfo();
+        router.replace('/login');
+      }
+      // Non-auth errors (502, network) — just stop loading, don't log out
     } finally {
       setLoading(false);
     }
