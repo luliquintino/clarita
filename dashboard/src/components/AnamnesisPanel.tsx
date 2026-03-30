@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { ClipboardList, Plus, Send, ChevronDown, ChevronUp, CheckCircle2, Clock, Loader2, Trash2 } from 'lucide-react';
+import { useTranslations } from 'next-intl';
 import { anamnesisApi, AnamnesisTemplate, AnamnesisResponse } from '@/lib/api';
 
 interface AnamnesisPanelProps {
@@ -18,6 +19,7 @@ const QUESTION_TYPES = [
 ];
 
 export default function AnamnesisPanel({ patientId, role }: AnamnesisPanelProps) {
+  const t = useTranslations('patients');
   const [templates, setTemplates] = useState<AnamnesisTemplate[]>([]);
   const [responses, setResponses] = useState<AnamnesisResponse[]>([]);
   const [loading, setLoading] = useState(true);
@@ -448,7 +450,7 @@ export default function AnamnesisPanel({ patientId, role }: AnamnesisPanelProps)
           </span>
         </div>
         {selectedResponse.patient_first_name && (
-          <p className="text-sm text-gray-500">Paciente: {selectedResponse.patient_first_name} {selectedResponse.patient_last_name}</p>
+          <p className="text-sm text-gray-500">{t('patient_label')}: {selectedResponse.patient_first_name} {selectedResponse.patient_last_name}</p>
         )}
         <div className="space-y-3">
           {questions.map((q, i) => (

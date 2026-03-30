@@ -24,9 +24,9 @@ export default function SideNav({ user, active, onChange, badges = {}, onLogout 
         <Image src="/logo-clarita.png" alt="Clarita" width={32} height={25} className="drop-shadow-sm flex-shrink-0" />
         <div className="min-w-0">
           <p className="text-sm font-semibold text-gray-800 truncate">
-            {user?.first_name || 'Paciente'}
+            {user?.first_name || t('patient_fallback')}
           </p>
-          <p className="text-xs text-gray-400">Minha conta</p>
+          <p className="text-xs text-gray-400">{t('my_account')}</p>
         </div>
       </div>
 

@@ -111,7 +111,9 @@
     "goals": "Metas",
     "history": "Historial",
     "medications": "Medicamentos",
-    "my_patients": "Mis Pacientes"
+    "my_patients": "Mis Pacientes",
+    "patient_fallback": "Paciente",
+    "my_account": "Mi cuenta"
   },
   "profile": {
     "title": "Mi Perfil",
@@ -371,7 +373,8 @@
     "score_attention": "< 40% Atención",
     "clear_search": "Limpiar búsqueda",
     "adjust_search": "Intenta ajustar los términos de búsqueda",
-    "invite_to_start": "Invita pacientes para comenzar"
+    "invite_to_start": "Invita pacientes para comenzar",
+    "patient_label": "Paciente"
   },
   "clinical_notes": {
     "title": "Notas Clínicas",
@@ -500,7 +503,8 @@
     "impact": "Impacto {level}/10",
     "reported_symptoms": "Síntomas Reportados",
     "protected_info": "Información protegida · Cumplimiento LGPD",
-    "loading": "Cargando..."
+    "loading": "Cargando...",
+    "patient_fallback": "Paciente"
   },
   "diagnostic_browser": {
     "back": "Volver",

@@ -303,7 +303,7 @@ export default function PatientHomePage() {
               />
               <div>
                 <h1 className="text-base font-semibold text-gray-800">
-                  {t('greeting', { name: user?.first_name || 'Paciente' })}
+                  {t('greeting', { name: user?.first_name || t('patient_fallback') })}
                 </h1>
                 <p className="text-xs text-gray-400">{t('how_are_you')}</p>
               </div>
@@ -332,7 +332,7 @@ export default function PatientHomePage() {
             {/* Desktop-only greeting + Clarita ID */}
             <div className="hidden md:flex items-center justify-between mb-6">
               <h1 className="text-xl font-semibold text-gray-800">
-                {t('greeting', { name: user?.first_name || 'Paciente' })}
+                {t('greeting', { name: user?.first_name || t('patient_fallback') })}
               </h1>
               {user?.display_id && (
                 <div className="flex items-center gap-1.5 text-xs text-gray-400">
