@@ -111,19 +111,25 @@ app.use(
   })
 );
 
-const corsOrigin =
-  process.env.CORS_ORIGIN ||
-  process.env.FRONTEND_URL ||
-  (process.env.NODE_ENV !== 'production' ? 'http://localhost:3000' : null);
+const ALLOWED_ORIGINS = [
+  'https://clarita.tec.br',
+  'https://www.clarita.tec.br',
+  process.env.CORS_ORIGIN,
+  process.env.FRONTEND_URL,
+  process.env.NODE_ENV !== 'production' ? 'http://localhost:3000' : null,
+].filter(Boolean);
 
-if (process.env.NODE_ENV === 'production' && !corsOrigin) {
+if (process.env.NODE_ENV === 'production' && ALLOWED_ORIGINS.length === 2) {
   console.error('[security] CORS_ORIGIN and FRONTEND_URL not set in production — refusing to start');
   process.exit(1);
 }
 
 app.use(
   cors({
-    origin: corsOrigin,
+    origin: (origin, callback) => {
+      if (!origin || ALLOWED_ORIGINS.includes(origin)) return callback(null, true);
+      callback(new Error(`CORS: origin ${origin} not allowed`));
+    },
     methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization'],
     credentials: true,
