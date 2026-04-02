@@ -45,7 +45,7 @@ export default function LoginPage() {
 
     try {
       const response = await authApi.login(email, password);
-      if ((response as any).token) setToken((response as any).token);
+      setToken(response.token);
       setUserInfo({
         id: response.user.id,
         role: response.user.role,

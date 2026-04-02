@@ -103,10 +103,6 @@ async function request<T>(endpoint: string, options: RequestInit = {}): Promise<
       signal: controller.signal,
     });
 
-    if (response.status === 401) {
-      clearUserInfo();
-    }
-
     if (!response.ok) {
       let detail = 'An error occurred';
       try {
